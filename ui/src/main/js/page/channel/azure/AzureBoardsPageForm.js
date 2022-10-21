@@ -11,6 +11,9 @@ import TextInput from 'common/component/input/TextInput';
 import * as ConfigurationRequestBuilder from 'common/util/configurationRequestBuilder';
 import ConcreteConfigurationForm from 'common/configuration/global/concrete/ConcreteConfigurationForm';
 
+import ButtonField from 'common/component/input/field/ButtonField';
+
+
 const AzureBoardsForm = ({ csrfToken, errorHandler, readonly, displayTest }) => {
     const { id } = useParams();
     const history = useHistory();
@@ -18,6 +21,36 @@ const AzureBoardsForm = ({ csrfToken, errorHandler, readonly, displayTest }) => 
 
     const [formData, setFormData] = useState({});
     const [errors, setErrors] = useState(HttpErrorUtilities.createEmptyErrorObject());
+
+    const [buttonErrorMessage, setButtonErrorMessage] = useState('');
+    const [buttonSuccess, setButtonSuccess] = useState(false);
+    const [buttonMessage, setButtonMessage] = useState('');
+
+    const authenticateAzureForm = async () => {
+        setButtonErrorMessage('');
+        setButtonSuccess(false);
+        // const testObj = {
+        //     "totalPages": 0,
+        //     "currentPage": 0,
+        //     "pageSize": 10,
+        //     "models": [],
+        //     "name": "12",
+        //     "name": "3",
+        //     "id": "4",
+        //     "secret": "5"
+        // }
+        const response = await ConfigurationRequestBuilder.createNewConfigurationRequest('/api/configuration/azure-boards/oauth/authenticate', csrfToken, formData);
+        const data = await response.json();
+        const hasErrors = HttpErrorUtilities.isError(response.status) && data.error && data.error.trim() !== '';
+
+        setButtonSuccess(!hasErrors);
+        setErrors(HttpErrorUtilities.createErrorObject(data));
+        if (hasErrors) {
+            setButtonErrorMessage(HttpErrorUtilities.createFieldError(data.error));
+        } else {
+            setButtonMessage(data.message);
+        }
+    };
 
     const azureBoardsRequestUrl = `${ConfigurationRequestBuilder.AZURE_BOARDS_API_URL}`;
 
@@ -152,6 +185,19 @@ const AzureBoardsForm = ({ csrfToken, errorHandler, readonly, displayTest }) => 
                     onChange={FieldModelUtilities.handleTestChange(formData, setFormData)}
                     errorName={FieldModelUtilities.createFieldModelErrorKey(AZURE_BOARDS_GLOBAL_FIELD_KEYS_UPDATED.configureOAuth)}
                     errorValue={errors.fieldErrors[AZURE_BOARDS_GLOBAL_FIELD_KEYS_UPDATED.configureOAuth]}
+                />
+                <ButtonField
+                    id={AZURE_BOARDS_GLOBAL_FIELD_KEYS_UPDATED.configureOAuth}
+                    name={AZURE_BOARDS_GLOBAL_FIELD_KEYS_UPDATED.configureOAuth}
+                    label="Authenticate TEST"
+                    buttonLabel="Authenticate TEST"
+                    description="Installs a required plugin on the Jira server."
+                    onSendClick={authenticateAzureForm}
+                    fieldKey={AZURE_BOARDS_GLOBAL_FIELD_KEYS_UPDATED.configureOAuth}
+                    fieldError={buttonErrorMessage}
+                    readOnly={readonly || !displayTest}
+                    success={buttonSuccess}
+                    statusMessage={buttonMessage}
                 />
             </ConcreteConfigurationForm>
         </div>

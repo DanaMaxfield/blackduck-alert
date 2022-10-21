@@ -40,9 +40,7 @@ const OAuthEndpointButtonField = ({
         setFieldError(errorValue);
         setProgress(true);
         setSuccess(false);
-        const newFieldModel = FieldModelUtilities.createFieldModelFromRequestedFields(currentConfig, requiredRelatedFields);
-        const mergedData = popupData ? FieldModelUtilities.combineFieldModels(newFieldModel, popupData) : newFieldModel;
-        const request = createNewConfigurationRequest(`/alert${endpoint}/${fieldKey}`, csrfToken, mergedData);
+        const request = createNewConfigurationRequest(`/alert${endpoint}/${fieldKey}`, csrfToken, currentConfig);
         request.then((response) => {
             response.json()
                 .then((data) => {
