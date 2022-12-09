@@ -15,22 +15,22 @@ import com.synopsys.integration.alert.descriptor.api.model.ChannelKey;
 import com.synopsys.integration.alert.processor.api.extract.model.ProviderMessageHolder;
 
 public class DistributionEvent extends AlertEvent {
-    private final UUID jobId;
+    private final UUID jobExecutionId;
     private final String jobName;
     private final Set<Long> notificationIds;
 
     private final ProviderMessageHolder providerMessages;
 
-    public DistributionEvent(ChannelKey destination, UUID jobId, String jobName, Set<Long> notificationIds, ProviderMessageHolder providerMessages) {
+    public DistributionEvent(ChannelKey destination, UUID jobExecutionId, String jobName, Set<Long> notificationIds, ProviderMessageHolder providerMessages) {
         super(destination.getUniversalKey());
-        this.jobId = jobId;
+        this.jobExecutionId = jobExecutionId;
         this.jobName = jobName;
         this.notificationIds = notificationIds;
         this.providerMessages = providerMessages;
     }
 
-    public UUID getJobId() {
-        return jobId;
+    public UUID getJobExecutionId() {
+        return jobExecutionId;
     }
 
     public String getJobName() {

@@ -8,13 +8,13 @@ import com.synopsys.integration.alert.api.event.AlertEvent;
 public class JobSubTaskEvent extends AlertEvent {
     private static final long serialVersionUID = 2328435266614582583L;
     private final UUID parentEventId;
-    private final UUID jobId;
+    private final UUID jobExecutionId;
     private final Set<Long> notificationIds;
 
-    protected JobSubTaskEvent(String destination, UUID parentEventId, UUID jobId, Set<Long> notificationIds) {
+    protected JobSubTaskEvent(String destination, UUID parentEventId, UUID jobExecutionId, Set<Long> notificationIds) {
         super(destination);
         this.parentEventId = parentEventId;
-        this.jobId = jobId;
+        this.jobExecutionId = jobExecutionId;
         this.notificationIds = notificationIds;
     }
 
@@ -22,8 +22,8 @@ public class JobSubTaskEvent extends AlertEvent {
         return parentEventId;
     }
 
-    public UUID getJobId() {
-        return jobId;
+    public UUID getJobExecutionId() {
+        return jobExecutionId;
     }
 
     public Set<Long> getNotificationIds() {

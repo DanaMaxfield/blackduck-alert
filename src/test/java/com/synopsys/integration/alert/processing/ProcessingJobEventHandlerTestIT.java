@@ -1,5 +1,6 @@
 package com.synopsys.integration.alert.processing;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -10,14 +11,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
-import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,7 +34,6 @@ import com.synopsys.integration.alert.common.enumeration.ProcessingType;
 import com.synopsys.integration.alert.common.message.model.LinkableItem;
 import com.synopsys.integration.alert.common.persistence.accessor.JobAccessor;
 import com.synopsys.integration.alert.common.persistence.accessor.JobNotificationMappingAccessor;
-import com.synopsys.integration.alert.common.persistence.accessor.ProcessingAuditAccessor;
 import com.synopsys.integration.alert.common.persistence.model.ConfigurationFieldModel;
 import com.synopsys.integration.alert.common.persistence.model.ConfigurationModel;
 import com.synopsys.integration.alert.common.persistence.model.job.DistributionJobModel;
@@ -102,7 +98,7 @@ class ProcessingJobEventHandlerTestIT {
     private NotificationContentProcessor notificationContentProcessor;
     private TestProperties properties;
 
-    private Map<UUID, Set<Long>> notificationsDistributed = new HashMap<>();
+    private final Map<UUID, UUID> jobIdAndCorrelationIdMap = new HashMap<>();
 
     @BeforeEach
     public void init() throws AlertConfigurationException {
@@ -142,9 +138,7 @@ class ProcessingJobEventHandlerTestIT {
 
     @AfterEach
     public void cleanUpDB() {
-        if (!notificationsDistributed.isEmpty()) {
-            notificationAccessor.deleteNotificationsCreatedBefore(OffsetDateTime.now(ZoneOffset.UTC));
-        }
+        notificationAccessor.deleteNotificationsCreatedBefore(OffsetDateTime.now(ZoneOffset.UTC));
         defaultConfigurationAccessor.deleteConfiguration(blackDuckGlobalConfigId);
         emailGlobalConfigAccessor.deleteConfiguration();
     }
@@ -165,7 +159,7 @@ class ProcessingJobEventHandlerTestIT {
         );
         JobProcessingEvent event = new JobProcessingEvent(correlationId, jobId);
         eventHandler.handle(event);
-        assertFalse(notificationsDistributed.containsKey(jobId));
+        assertFalse(jobIdAndCorrelationIdMap.containsKey(jobId));
     }
 
     @Test
@@ -192,9 +186,8 @@ class ProcessingJobEventHandlerTestIT {
         );
         JobProcessingEvent event = new JobProcessingEvent(correlationId, jobId);
         eventHandler.handle(event);
-        assertTrue(notificationsDistributed.containsKey(jobId));
-        List<Long> notificationIds = notifications.stream().map(AlertNotificationModel::getId).collect(Collectors.toList());
-        assertTrue(notificationsDistributed.get(jobId).containsAll(notificationIds));
+        assertTrue(jobIdAndCorrelationIdMap.containsKey(jobId));
+        assertEquals(correlationId, jobIdAndCorrelationIdMap.get(jobId));
     }
 
     private DistributionJobRequestModel createDistributionJobRequest(NotificationType notificationType) {
@@ -279,53 +272,18 @@ class ProcessingJobEventHandlerTestIT {
     private EventManager createMockEventManager() {
         RabbitTemplate rabbitTemplate = Mockito.mock(RabbitTemplate.class);
         Mockito.doNothing().when(rabbitTemplate).convertAndSend(Mockito.anyString(), Mockito.any(Object.class));
+        EventManager eventManager = Mockito.mock(EventManager.class);
+        Mockito.doAnswer(invocation -> {
+            JobProcessingEvent event = invocation.getArgument(0, JobProcessingEvent.class);
+            jobIdAndCorrelationIdMap.computeIfAbsent(event.getJobId(), ignored -> event.getCorrelationId());
+            return null;
+        }).when(eventManager).sendEvent(Mockito.any(JobProcessingEvent.class));
+
         return new EventManager(gson, rabbitTemplate, new SyncTaskExecutor());
-    }
-
-    private ProcessingAuditAccessor createMockAuditAccessor() {
-        return new ProcessingAuditAccessor() {
-            @Override
-            public void createOrUpdatePendingAuditEntryForJob(UUID jobId, Set<Long> notificationIds) {
-                Set<Long> currentNotificationIds = notificationsDistributed.computeIfAbsent(jobId, ignored -> new HashSet<>());
-                currentNotificationIds.addAll(notificationIds);
-            }
-
-            @Override
-            public void setAuditEntrySuccess(UUID jobId, Set<Long> notificationIds) {
-                // not used at this point only at the channel level.
-            }
-
-            @Override
-            public void setAuditEntrySuccess(UUID jobId, Set<Long> notificationIds, OffsetDateTime successTimestamp) {
-                // not used at this point only at the channel level.
-            }
-
-            @Override
-            public void setAuditEntryFailure(UUID jobId, Set<Long> notificationIds, String errorMessage, @Nullable Throwable exception) {
-                // not used at this point only at the channel level.
-            }
-
-            @Override
-            public void setAuditEntryFailure(UUID jobId, Set<Long> notificationIds, String errorMessage, @Nullable String stackTrace) {
-                // not used at this point only at the channel level.
-            }
-
-            @Override
-            public void setAuditEntryFailure(
-                UUID jobId,
-                Set<Long> notificationIds,
-                OffsetDateTime failureTimestamp,
-                String errorMessage,
-                @Nullable String stackTrace
-            ) {
-                // not used at this point only at the channel level.
-            }
-        };
     }
 
     private ProviderMessageDistributor createMockMessageDistributor() {
         EventManager eventManager = createMockEventManager();
-        ProcessingAuditAccessor auditAccessor = createMockAuditAccessor();
-        return new ProviderMessageDistributor(auditAccessor, eventManager);
+        return new ProviderMessageDistributor(eventManager);
     }
 }

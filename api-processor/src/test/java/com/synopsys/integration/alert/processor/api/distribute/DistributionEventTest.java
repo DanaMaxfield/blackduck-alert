@@ -22,7 +22,7 @@ public class DistributionEventTest {
     @Test
     public void getJobIdTest() {
         DistributionEvent event = new DistributionEvent(channelKey, JOB_ID, JOB_NAME, Set.of(NOTIFICATION_ID), providerMessageHolder);
-        assertEquals(JOB_ID, event.getJobId());
+        assertEquals(JOB_ID, event.getJobExecutionId());
     }
 
     @Test

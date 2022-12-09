@@ -27,10 +27,11 @@ public class JiraServerCreateEventGeneratorTest {
         IssueTrackerCreateIssueEvent generatedCreateEvent = testGenerator.generateEvent(testModel);
 
         assertEquals(generatedCreateEvent.getClass(), JiraServerCreateIssueEvent.class);
-        assertAll("Constructed IssueTrackerCreateIssueEvent matches generator attributes",
+        assertAll(
+            "Constructed IssueTrackerCreateIssueEvent matches generator attributes",
             () -> assertEquals(IssueTrackerCreateIssueEvent.createDefaultEventDestination(testKey), generatedCreateEvent.getDestination()),
             () -> assertEquals(testParentEventUID, generatedCreateEvent.getParentEventId()),
-            () -> assertEquals(testJobUID, generatedCreateEvent.getJobId()),
+            () -> assertEquals(testJobUID, generatedCreateEvent.getJobExecutionId()),
             () -> assertEquals(testNotificationIds, generatedCreateEvent.getNotificationIds()),
             () -> assertEquals(testModel, generatedCreateEvent.getCreationModel())
         );

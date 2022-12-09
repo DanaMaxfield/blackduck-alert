@@ -1,8 +1,5 @@
 package com.synopsys.integration.alert.processor.api;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Set;
@@ -82,7 +79,7 @@ class JobNotificationProcessorTest {
 
         MockProcessingAuditAccessor processingAuditAccessor = new MockProcessingAuditAccessor();
         EventManager eventManager = Mockito.mock(EventManager.class);
-        ProviderMessageDistributor providerMessageDistributor = new ProviderMessageDistributor(processingAuditAccessor, eventManager);
+        ProviderMessageDistributor providerMessageDistributor = new ProviderMessageDistributor(eventManager);
 
         NotificationExtractorBlackDuckServicesFactoryCache lifecycleCaches = createNotificationExtractorBlackDuckServicesFactoryCache();
 
@@ -99,8 +96,6 @@ class JobNotificationProcessorTest {
         Set<Long> auditNotificationIds = processingAuditAccessor.getNotificationIds(uuid);
 
         Mockito.verify(eventManager, Mockito.times(1)).sendEvent(Mockito.any());
-        assertEquals(1, auditNotificationIds.size());
-        assertTrue(auditNotificationIds.contains(notificationId));
     }
 
     private RuleViolationNotificationMessageExtractor createRuleViolationNotificationMessageExtractor() throws IntegrationException {

@@ -27,7 +27,7 @@ class IssueTrackerTransitionIssueEventTest {
         assertNotNull(event.getEventId());
         assertEquals(parentEventId, event.getParentEventId());
         assertEquals(destination, event.getDestination());
-        assertEquals(jobId, event.getJobId());
+        assertEquals(jobId, event.getJobExecutionId());
         assertEquals(notificationIds, event.getNotificationIds());
         assertEquals(model, event.getTransitionModel());
     }

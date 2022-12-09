@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import com.synopsys.integration.alert.api.common.model.exception.AlertException;
+import com.synopsys.integration.alert.api.distribution.execution.ExecutingJobManager;
 import com.synopsys.integration.alert.common.persistence.accessor.JobDetailsAccessor;
 import com.synopsys.integration.alert.common.persistence.accessor.ProcessingAuditAccessor;
 import com.synopsys.integration.alert.common.persistence.model.job.details.DistributionJobDetailsModel;
@@ -34,7 +35,9 @@ class DistributionEventHandlerTest {
             return null;
         };
 
-        DistributionEventHandler<DistributionJobDetailsModel> eventHandler = new DistributionEventHandler<>(channel, jobDetailsAccessor, auditAccessor);
+        ExecutingJobManager executingJobManager = new ExecutingJobManager();
+
+        DistributionEventHandler<DistributionJobDetailsModel> eventHandler = new DistributionEventHandler<>(channel, jobDetailsAccessor, auditAccessor, executingJobManager);
 
         UUID testJobId = UUID.randomUUID();
         Set<Long> testNotificationIds = Set.of(1L, 3L, 5L);
@@ -60,7 +63,8 @@ class DistributionEventHandlerTest {
             throw testException;
         };
 
-        DistributionEventHandler<DistributionJobDetailsModel> eventHandler = new DistributionEventHandler<>(channel, jobDetailsAccessor, auditAccessor);
+        ExecutingJobManager executingJobManager = new ExecutingJobManager();
+        DistributionEventHandler<DistributionJobDetailsModel> eventHandler = new DistributionEventHandler<>(channel, jobDetailsAccessor, auditAccessor, executingJobManager);
 
         UUID testJobId = UUID.randomUUID();
         Set<Long> testNotificationIds = Set.of(1L, 3L, 5L);
@@ -82,7 +86,9 @@ class DistributionEventHandlerTest {
             count.incrementAndGet();
             return null;
         };
-        DistributionEventHandler<DistributionJobDetailsModel> eventHandler = new DistributionEventHandler<>(channel, jobDetailsAccessor, auditAccessor);
+        ExecutingJobManager executingJobManager = new ExecutingJobManager();
+
+        DistributionEventHandler<DistributionJobDetailsModel> eventHandler = new DistributionEventHandler<>(channel, jobDetailsAccessor, auditAccessor, executingJobManager);
 
         UUID testJobId = UUID.randomUUID();
         Set<Long> testNotificationIds = Set.of(1L, 3L, 5L);

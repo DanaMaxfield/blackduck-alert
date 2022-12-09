@@ -17,6 +17,9 @@ import org.mockito.Mockito;
 import com.google.gson.Gson;
 import com.synopsys.integration.alert.api.channel.rest.ChannelRestConnectionFactory;
 import com.synopsys.integration.alert.api.distribution.audit.AuditSuccessEvent;
+import com.synopsys.integration.alert.api.distribution.execution.AggregatedExecutionResults;
+import com.synopsys.integration.alert.api.distribution.execution.ExecutingJob;
+import com.synopsys.integration.alert.api.distribution.execution.ExecutingJobManager;
 import com.synopsys.integration.alert.api.event.EventManager;
 import com.synopsys.integration.alert.channel.slack.distribution.mock.MockProcessingAuditAccessor;
 import com.synopsys.integration.alert.common.message.model.LinkableItem;
@@ -48,6 +51,7 @@ class SlackDistributionEventHandlerTest {
 
     private final Gson gson = new Gson();
     private EventManager eventManager;
+    private final ExecutingJobManager executingJobManager = new ExecutingJobManager();
 
     @BeforeEach
     public void init() throws IOException {
@@ -65,7 +69,7 @@ class SlackDistributionEventHandlerTest {
 
         SlackJobDetailsAccessor slackJobDetailsAccessor = jobId -> Optional.of(slackJobDetailsModel);
 
-        distributionEventHandler = new SlackDistributionEventHandler(slackChannel, slackJobDetailsAccessor, processingAuditAccessor);
+        distributionEventHandler = new SlackDistributionEventHandler(slackChannel, slackJobDetailsAccessor, processingAuditAccessor, executingJobManager);
     }
 
     @AfterEach
@@ -80,9 +84,14 @@ class SlackDistributionEventHandlerTest {
 
         assertEquals(0, mockSlackServer.getRequestCount());
 
-        distributionEventHandler.handle(createSlackDistributionEvent(FIRST_MESSAGE_NOTIFICATION_IDS, createTwoMessages()));
+        UUID jobConfigId1 = UUID.randomUUID();
+        ExecutingJob executingJob = executingJobManager.startJob(jobConfigId1);
+        DistributionEvent event1 = createSlackDistributionEvent(FIRST_MESSAGE_NOTIFICATION_IDS, createTwoMessages(), executingJob.getExecutionId());
+        distributionEventHandler.handle(event1);
 
         //assertEquals(0, processingAuditAccessor.getSuccessfulIds().size());
+        AggregatedExecutionResults executionResults = executingJobManager.aggregateExecutingJobData();
+        assertEquals(1, executionResults.getFailedJobs());
         assertEquals(3, processingAuditAccessor.getFailureIds().size());
         assertTrue(processingAuditAccessor.getFailureIds().containsAll(FIRST_MESSAGE_NOTIFICATION_IDS));
 
@@ -98,9 +107,18 @@ class SlackDistributionEventHandlerTest {
         mockSlackServer.enqueue(new MockResponse().setResponseCode(200));
 
         assertEquals(0, mockSlackServer.getRequestCount());
+        UUID jobConfigId1 = UUID.randomUUID();
+        UUID jobConfigId2 = UUID.randomUUID();
+        ExecutingJob executingJob1 = executingJobManager.startJob(jobConfigId1);
+        DistributionEvent event1 = createSlackDistributionEvent(FIRST_MESSAGE_NOTIFICATION_IDS, createTwoMessages(), executingJob1.getExecutionId());
+        ExecutingJob executingJob2 = executingJobManager.startJob(jobConfigId2);
+        DistributionEvent event2 = createSlackDistributionEvent(SECOND_MESSAGE_NOTIFICATION_IDS, createTwoMessages(), executingJob2.getExecutionId());
 
-        distributionEventHandler.handle(createSlackDistributionEvent(FIRST_MESSAGE_NOTIFICATION_IDS, createTwoMessages()));
-        distributionEventHandler.handle(createSlackDistributionEvent(SECOND_MESSAGE_NOTIFICATION_IDS, createTwoMessages()));
+        distributionEventHandler.handle(event1);
+        distributionEventHandler.handle(event2);
+
+        AggregatedExecutionResults executionResults = executingJobManager.aggregateExecutingJobData();
+        assertEquals(1, executionResults.getFailedJobs());
 
         assertEquals(3, processingAuditAccessor.getFailureIds().size());
         assertTrue(processingAuditAccessor.getFailureIds().containsAll(FIRST_MESSAGE_NOTIFICATION_IDS));
@@ -123,8 +141,8 @@ class SlackDistributionEventHandlerTest {
         return new ProviderMessageHolder(List.of(), List.of(simpleMessage, simpleMessage));
     }
 
-    private DistributionEvent createSlackDistributionEvent(Set<Long> notificationIds, ProviderMessageHolder providerMessages) {
-        return new DistributionEvent(slackChannelKey, UUID.randomUUID(), "jobName", notificationIds, providerMessages);
+    private DistributionEvent createSlackDistributionEvent(Set<Long> notificationIds, ProviderMessageHolder providerMessages, UUID jobExecutionId) {
+        return new DistributionEvent(slackChannelKey, jobExecutionId, "jobName", notificationIds, providerMessages);
     }
 
 }

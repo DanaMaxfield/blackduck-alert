@@ -27,12 +27,13 @@ public class JiraServerCommentGeneratorTest {
 		IssueTrackerCommentEvent<String> generatedCommentEvent = testGenerator.generateEvent(testModel);
 
 		assertEquals(generatedCommentEvent.getClass(), JiraServerCommentEvent.class);
-		assertAll("Constructed IssueTrackerCommentEvent matches generator attributes",
-            () -> assertEquals(IssueTrackerCommentEvent.createDefaultEventDestination(testKey), generatedCommentEvent.getDestination()),
+		assertAll(
+			"Constructed IssueTrackerCommentEvent matches generator attributes",
+			() -> assertEquals(IssueTrackerCommentEvent.createDefaultEventDestination(testKey), generatedCommentEvent.getDestination()),
 			() -> assertEquals(testParentEventUID, generatedCommentEvent.getParentEventId()),
-            () -> assertEquals(testJobUID, generatedCommentEvent.getJobId()),
-            () -> assertEquals(testNotificationIds, generatedCommentEvent.getNotificationIds()),
-            () -> assertEquals(testModel, generatedCommentEvent.getCommentModel())
+			() -> assertEquals(testJobUID, generatedCommentEvent.getJobExecutionId()),
+			() -> assertEquals(testNotificationIds, generatedCommentEvent.getNotificationIds()),
+			() -> assertEquals(testModel, generatedCommentEvent.getCommentModel())
 		);
 	}
 }

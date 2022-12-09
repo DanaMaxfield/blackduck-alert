@@ -76,8 +76,8 @@ public class AzureBoardsCreateIssueEventHandler extends IssueTrackerCreateIssueE
 
     @Override
     public void handleEvent(IssueTrackerCreateIssueEvent event) {
-        UUID jobId = event.getJobId();
-        Optional<AzureBoardsJobDetailsModel> details = jobDetailsAccessor.retrieveDetails(event.getJobId());
+        UUID jobId = event.getJobExecutionId();
+        Optional<AzureBoardsJobDetailsModel> details = jobDetailsAccessor.retrieveDetails(event.getJobExecutionId());
         if (details.isPresent()) {
             try {
                 AzureBoardsJobDetailsModel distributionDetails = details.get();

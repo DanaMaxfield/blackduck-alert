@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.synopsys.integration.alert.api.channel.DistributionEventHandler;
+import com.synopsys.integration.alert.api.distribution.execution.ExecutingJobManager;
 import com.synopsys.integration.alert.common.persistence.accessor.MSTeamsJobDetailsAccessor;
 import com.synopsys.integration.alert.common.persistence.accessor.ProcessingAuditAccessor;
 import com.synopsys.integration.alert.common.persistence.model.job.details.MSTeamsJobDetailsModel;
@@ -18,8 +19,13 @@ import com.synopsys.integration.alert.common.persistence.model.job.details.MSTea
 @Component
 public class MSTeamsDistributionEventHandler extends DistributionEventHandler<MSTeamsJobDetailsModel> {
     @Autowired
-    public MSTeamsDistributionEventHandler(MSTeamsChannel channel, MSTeamsJobDetailsAccessor jobDetailsAccessor, ProcessingAuditAccessor auditAccessor) {
-        super(channel, jobDetailsAccessor, auditAccessor);
+    public MSTeamsDistributionEventHandler(
+        MSTeamsChannel channel,
+        MSTeamsJobDetailsAccessor jobDetailsAccessor,
+        ProcessingAuditAccessor auditAccessor,
+        ExecutingJobManager executingJobManager
+    ) {
+        super(channel, jobDetailsAccessor, auditAccessor, executingJobManager);
     }
 
 }

@@ -72,8 +72,8 @@ public class AzureBoardsTransitionEventHandler extends IssueTrackerTransitionEve
 
     @Override
     public void handleEvent(AzureBoardsTransitionEvent event) throws AlertException {
-        UUID jobId = event.getJobId();
-        Optional<AzureBoardsJobDetailsModel> details = jobDetailsAccessor.retrieveDetails(event.getJobId());
+        UUID jobId = event.getJobExecutionId();
+        Optional<AzureBoardsJobDetailsModel> details = jobDetailsAccessor.retrieveDetails(event.getJobExecutionId());
         if (details.isPresent()) {
             AzureBoardsJobDetailsModel distributionDetails = details.get();
             AzureBoardsProperties azureBoardsProperties = azureBoardsPropertiesFactory.createAzureBoardsPropertiesWithJobId(jobId);
