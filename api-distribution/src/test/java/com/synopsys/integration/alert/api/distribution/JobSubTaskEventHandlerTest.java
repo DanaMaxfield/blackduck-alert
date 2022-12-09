@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import com.synopsys.integration.alert.api.common.model.exception.AlertException;
+import com.synopsys.integration.alert.api.distribution.execution.JobStage;
 import com.synopsys.integration.alert.api.distribution.mock.MockJobSubTaskRepository;
 import com.synopsys.integration.alert.api.distribution.mock.MockNotificationCorrelationToNotificationRelationRepository;
 import com.synopsys.integration.alert.api.event.EventManager;
@@ -122,7 +123,7 @@ class JobSubTaskEventHandlerTest {
             EventManager eventManager,
             JobSubTaskAccessor jobSubTaskAccessor
         ) {
-            super(eventManager, jobSubTaskAccessor);
+            super(eventManager, jobSubTaskAccessor, JobStage.CHANNEL_PROCESSING);
 
         }
 

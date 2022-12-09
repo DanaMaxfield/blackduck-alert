@@ -23,8 +23,8 @@ public class AuditFailedHandler implements AlertEventHandler<AuditFailedEvent> {
 
     @Override
     public void handle(AuditFailedEvent event) {
+        executingJobManager.endJobWithFailure(event.getJobExecutionId());
         executingJobManager.getExecutingJob(event.getJobExecutionId()).ifPresent(executingJob -> {
-            executingJob.jobFailed();
             UUID jobConfigId = executingJob.getJobConfigId();
             Set<Long> notificationids = event.getNotificationIds();
             processingAuditAccessor.createOrUpdatePendingAuditEntryForJob(jobConfigId, notificationids);

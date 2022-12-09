@@ -7,6 +7,7 @@ import java.util.UUID;
 import com.synopsys.integration.alert.api.common.model.exception.AlertException;
 import com.synopsys.integration.alert.api.distribution.audit.AuditFailedEvent;
 import com.synopsys.integration.alert.api.distribution.audit.AuditSuccessEvent;
+import com.synopsys.integration.alert.api.distribution.execution.JobStage;
 import com.synopsys.integration.alert.api.event.AlertEvent;
 import com.synopsys.integration.alert.api.event.AlertEventHandler;
 import com.synopsys.integration.alert.api.event.EventManager;
@@ -19,10 +20,12 @@ public abstract class JobSubTaskEventHandler<T extends JobSubTaskEvent> implemen
 
     private final EventManager eventManager;
     private final JobSubTaskAccessor jobSubTaskAccessor;
+    private final JobStage jobStage;
 
-    protected JobSubTaskEventHandler(EventManager eventManager, JobSubTaskAccessor jobSubTaskAccessor) {
+    protected JobSubTaskEventHandler(EventManager eventManager, JobSubTaskAccessor jobSubTaskAccessor, JobStage jobStage) {
         this.eventManager = eventManager;
         this.jobSubTaskAccessor = jobSubTaskAccessor;
+        this.jobStage = jobStage;
     }
 
     @Override
