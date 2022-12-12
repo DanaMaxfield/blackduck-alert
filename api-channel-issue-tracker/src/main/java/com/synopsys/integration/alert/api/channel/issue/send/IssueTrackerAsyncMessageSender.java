@@ -65,9 +65,14 @@ public class IssueTrackerAsyncMessageSender<T extends Serializable> {
     @NotNull
     private List<AlertEvent> createAlertEvents(IssueTrackerModelHolder<T> issueTrackerMessage) {
         List<AlertEvent> eventList = new LinkedList<>();
-        eventList.addAll(createMessages(issueTrackerMessage.getIssueCreationModels(), issueCreateEventGenerator::generateEvent));
-        eventList.addAll(createMessages(issueTrackerMessage.getIssueTransitionModels(), issueTrackerTransitionEventGenerator::generateEvent));
-        eventList.addAll(createMessages(issueTrackerMessage.getIssueCommentModels(), issueTrackerCommentEventGenerator::generateEvent));
+        List<AlertEvent> creationEvents = createMessages(issueTrackerMessage.getIssueCreationModels(), issueCreateEventGenerator::generateEvent);
+        List<AlertEvent> transitionEvents = createMessages(issueTrackerMessage.getIssueTransitionModels(), issueTrackerTransitionEventGenerator::generateEvent);
+        List<AlertEvent> commentEvents = createMessages(issueTrackerMessage.getIssueCommentModels(), issueTrackerCommentEventGenerator::generateEvent);
+
+        eventList.addAll(creationEvents);
+        eventList.addAll(transitionEvents);
+        eventList.addAll(commentEvents);
+
         return eventList;
     }
 

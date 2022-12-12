@@ -26,12 +26,12 @@ public class IssueTrackerCommentEvent<T extends Serializable> extends JobSubTask
 
     public IssueTrackerCommentEvent(
         String destination,
-        UUID parentEventId,
-        UUID jobId,
+        UUID jobExecutionId,
+        UUID jobConfigId,
         Set<Long> notificationIds,
         IssueCommentModel<T> commentModel
     ) {
-        super(destination, parentEventId, jobId, notificationIds);
+        super(destination, jobExecutionId, jobConfigId, notificationIds);
         this.commentModel = commentModel;
     }
 

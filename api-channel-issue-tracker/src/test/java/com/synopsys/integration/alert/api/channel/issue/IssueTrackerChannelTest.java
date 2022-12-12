@@ -2,7 +2,6 @@ package com.synopsys.integration.alert.api.channel.issue;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.io.Serializable;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -41,12 +40,7 @@ class IssueTrackerChannelTest {
 
         IssueTrackerProcessorFactory<DistributionJobDetailsModel, String> processorFactory = (x, y, z) -> processor;
 
-        IssueTrackerResponsePostProcessor postProcessor = new IssueTrackerResponsePostProcessor() {
-            @Override
-            public <T extends Serializable> void postProcess(IssueTrackerResponse<T> response) {
-            }
-        };
-        IssueTrackerChannel<DistributionJobDetailsModel, String> issueTrackerChannel = new IssueTrackerChannel<>(processorFactory, postProcessor, jobSubTaskAccessor) {};
+        IssueTrackerChannel<DistributionJobDetailsModel, String> issueTrackerChannel = new IssueTrackerChannel<>(processorFactory, jobSubTaskAccessor) {};
 
         MessageResult testResult = issueTrackerChannel.distributeMessages(distributionJobDetailsModel, ProviderMessageHolder.empty(), null, UUID.randomUUID(), Set.of());
 
