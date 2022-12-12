@@ -8,6 +8,7 @@ import com.synopsys.integration.alert.api.common.model.exception.AlertException;
 import com.synopsys.integration.alert.api.distribution.audit.AuditFailedEvent;
 import com.synopsys.integration.alert.api.distribution.audit.AuditSuccessEvent;
 import com.synopsys.integration.alert.api.distribution.execution.JobStage;
+import com.synopsys.integration.alert.api.distribution.execution.JobStageEndedEvent;
 import com.synopsys.integration.alert.api.event.AlertEvent;
 import com.synopsys.integration.alert.api.event.AlertEventHandler;
 import com.synopsys.integration.alert.api.event.EventManager;
@@ -30,17 +31,20 @@ public abstract class JobSubTaskEventHandler<T extends JobSubTaskEvent> implemen
 
     @Override
     public final void handle(T event) {
-        UUID parentEventId = event.getParentEventId();
+        UUID jobExecutionId = event.getJobExecutionId();
         try {
+
             handleEvent(event);
-            Optional<JobSubTaskStatusModel> subTaskStatus = jobSubTaskAccessor.decrementTaskCount(parentEventId);
+            Optional<JobSubTaskStatusModel> subTaskStatus = jobSubTaskAccessor.decrementTaskCount(jobExecutionId);
             subTaskStatus.map(JobSubTaskStatusModel::getRemainingTaskCount)
                 .filter(remainingCount -> remainingCount < 1)
                 .ifPresent(ignored -> {
+                    eventManager.sendEvent(new JobStageEndedEvent(event.getJobExecutionId(), jobStage));
                     eventManager.sendEvent(new AuditSuccessEvent(event.getJobExecutionId(), event.getNotificationIds()));
-                    jobSubTaskAccessor.removeSubTaskStatus(parentEventId);
+                    jobSubTaskAccessor.removeSubTaskStatus(jobExecutionId);
                 });
         } catch (AlertException exception) {
+            eventManager.sendEvent(new JobStageEndedEvent(event.getJobExecutionId(), jobStage));
             eventManager.sendEvent(new AuditFailedEvent(
                 event.getJobExecutionId(),
                 event.getNotificationIds(),
@@ -48,7 +52,7 @@ public abstract class JobSubTaskEventHandler<T extends JobSubTaskEvent> implemen
                 AuditStackTraceUtil.createStackTraceString(exception)
             ));
 
-            jobSubTaskAccessor.removeSubTaskStatus(parentEventId);
+            jobSubTaskAccessor.removeSubTaskStatus(jobExecutionId);
         }
     }
 
