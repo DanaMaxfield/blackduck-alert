@@ -75,7 +75,7 @@ public class JiraServerCreateIssueEventHandler extends IssueTrackerCreateIssueEv
     public void handleEvent(IssueTrackerCreateIssueEvent event) {
         UUID jobId = event.getJobConfigId();
         IssueCreationModel creationModel = event.getCreationModel();
-        Optional<JiraServerJobDetailsModel> details = jobDetailsAccessor.retrieveDetails(event.getJobExecutionId());
+        Optional<JiraServerJobDetailsModel> details = jobDetailsAccessor.retrieveDetails(jobId);
         if (details.isPresent()) {
             try {
                 JiraServerProperties jiraProperties = jiraServerPropertiesFactory.createJiraPropertiesWithJobId(jobId);

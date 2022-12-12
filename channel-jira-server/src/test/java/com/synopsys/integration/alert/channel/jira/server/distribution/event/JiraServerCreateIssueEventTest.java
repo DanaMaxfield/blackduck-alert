@@ -16,15 +16,16 @@ class JiraServerCreateIssueEventTest {
     @Test
     void testObjectConstruction() {
         String destination = "destination_queue";
-        UUID parentEventId = UUID.randomUUID();
+        UUID jobExecutionId = UUID.randomUUID();
         UUID jobId = UUID.randomUUID();
         Set<Long> notificationIds = Set.of(1L, 2L, 3L, 4L);
         IssueCreationModel model = IssueCreationModel.simple("title", "description", List.of(), new LinkableItem("providerLabel", "provider"));
-        JiraServerCreateIssueEvent event = new JiraServerCreateIssueEvent(destination, parentEventId, jobId, notificationIds, model);
+        JiraServerCreateIssueEvent event = new JiraServerCreateIssueEvent(destination, jobExecutionId, jobId, notificationIds, model);
 
         assertNotNull(event.getEventId());
         assertEquals(destination, event.getDestination());
-        assertEquals(jobId, event.getJobExecutionId());
+        assertEquals(jobExecutionId, event.getJobExecutionId());
+        assertEquals(jobId, event.getJobConfigId());
         assertEquals(notificationIds, event.getNotificationIds());
         assertEquals(model, event.getCreationModel());
     }

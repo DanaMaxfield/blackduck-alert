@@ -16,15 +16,16 @@ class JiraServerTransitionEventTest {
     @Test
     void testObjectConstruction() {
         String destination = "destination_queue";
-        UUID parentEventId = UUID.randomUUID();
+        UUID jobExecutionId = UUID.randomUUID();
         UUID jobId = UUID.randomUUID();
         Set<Long> notificationIds = Set.of(1L, 2L, 3L, 4L);
         IssueTransitionModel<String> model = new IssueTransitionModel<>(null, IssueOperation.UPDATE, List.of(), null);
-        JiraServerTransitionEvent event = new JiraServerTransitionEvent(destination, parentEventId, jobId, notificationIds, model);
+        JiraServerTransitionEvent event = new JiraServerTransitionEvent(destination, jobExecutionId, jobId, notificationIds, model);
 
         assertNotNull(event.getEventId());
         assertEquals(destination, event.getDestination());
-        assertEquals(jobId, event.getJobExecutionId());
+        assertEquals(jobExecutionId, event.getJobExecutionId());
+        assertEquals(jobId, event.getJobConfigId());
         assertEquals(notificationIds, event.getNotificationIds());
         assertEquals(model, event.getTransitionModel());
     }
