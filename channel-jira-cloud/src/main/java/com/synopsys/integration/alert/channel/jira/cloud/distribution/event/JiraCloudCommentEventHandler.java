@@ -72,7 +72,7 @@ public class JiraCloudCommentEventHandler extends IssueTrackerCommentEventHandle
 
     @Override
     public void handleEvent(JiraCloudCommentEvent event) {
-        UUID jobId = event.getJobExecutionId();
+        UUID jobId = event.getJobConfigId();
         Optional<JiraCloudJobDetailsModel> details = jobDetailsAccessor.retrieveDetails(event.getJobExecutionId());
         if (details.isPresent()) {
             try {

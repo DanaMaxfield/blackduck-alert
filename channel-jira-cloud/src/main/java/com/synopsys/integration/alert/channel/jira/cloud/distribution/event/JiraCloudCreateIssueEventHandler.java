@@ -74,7 +74,7 @@ public class JiraCloudCreateIssueEventHandler extends IssueTrackerCreateIssueEve
 
     @Override
     public void handleEvent(IssueTrackerCreateIssueEvent event) {
-        UUID jobId = event.getJobExecutionId();
+        UUID jobId = event.getJobConfigId();
         IssueCreationModel creationModel = event.getCreationModel();
         Optional<JiraCloudJobDetailsModel> details = jobDetailsAccessor.retrieveDetails(event.getJobExecutionId());
         if (details.isPresent()) {
