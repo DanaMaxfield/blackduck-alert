@@ -147,6 +147,7 @@ class ProcessingJobEventHandlerTestIT {
     void testNoNotificationsForJob() {
         DistributionJobModel distributionJobModel = jobAccessor.createJob(createDistributionJobRequest(NotificationType.VULNERABILITY));
         UUID correlationId = UUID.randomUUID();
+        UUID jobExecutionId = UUID.randomUUID();
         UUID jobId = distributionJobModel.getJobId();
         ProcessingJobEventHandler eventHandler = new ProcessingJobEventHandler(
             notificationDetailExtractionDelegator,
@@ -157,7 +158,7 @@ class ProcessingJobEventHandlerTestIT {
             jobAccessor,
             jobNotificationMappingAccessor
         );
-        JobProcessingEvent event = new JobProcessingEvent(correlationId, jobId);
+        JobProcessingEvent event = new JobProcessingEvent(correlationId, jobExecutionId, jobId);
         eventHandler.handle(event);
         assertFalse(jobIdAndCorrelationIdMap.containsKey(jobId));
     }
@@ -166,6 +167,7 @@ class ProcessingJobEventHandlerTestIT {
     void testNotificationsForJob() throws IOException {
         DistributionJobModel distributionJobModel = jobAccessor.createJob(createDistributionJobRequest(NotificationType.VULNERABILITY));
         UUID correlationId = UUID.randomUUID();
+        UUID jobExecutionId = UUID.randomUUID();
         UUID jobId = distributionJobModel.getJobId();
 
         List<AlertNotificationModel> notifications = new ArrayList<>();
@@ -184,7 +186,7 @@ class ProcessingJobEventHandlerTestIT {
             jobAccessor,
             jobNotificationMappingAccessor
         );
-        JobProcessingEvent event = new JobProcessingEvent(correlationId, jobId);
+        JobProcessingEvent event = new JobProcessingEvent(correlationId, jobExecutionId, jobId);
         eventHandler.handle(event);
         assertTrue(jobIdAndCorrelationIdMap.containsKey(jobId));
         assertEquals(correlationId, jobIdAndCorrelationIdMap.get(jobId));

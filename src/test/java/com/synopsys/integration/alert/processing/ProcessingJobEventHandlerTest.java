@@ -21,7 +21,9 @@ class ProcessingJobEventHandlerTest {
     @Test
     void handleEventTest() {
         UUID correlationId = UUID.randomUUID();
+        UUID jobExecutionId = UUID.randomUUID();
         UUID jobId = UUID.randomUUID();
+
         NotificationDetailExtractionDelegator notificationDetailExtractionDelegator = Mockito.mock(NotificationDetailExtractionDelegator.class);
         NotificationContentProcessor notificationContentProcessor = Mockito.mock(NotificationContentProcessor.class);
         ProviderMessageDistributor providerMessageDistributor = Mockito.mock(ProviderMessageDistributor.class);
@@ -39,7 +41,7 @@ class ProcessingJobEventHandlerTest {
             jobNotificationMappingAccessor
         );
         try {
-            eventHandler.handle(new JobProcessingEvent(correlationId, jobId));
+            eventHandler.handle(new JobProcessingEvent(correlationId, jobExecutionId, jobId));
         } catch (RuntimeException e) {
             fail("Unable to handle event", e);
         }
