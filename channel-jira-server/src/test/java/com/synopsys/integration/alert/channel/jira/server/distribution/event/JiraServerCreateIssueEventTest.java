@@ -23,7 +23,6 @@ class JiraServerCreateIssueEventTest {
         JiraServerCreateIssueEvent event = new JiraServerCreateIssueEvent(destination, parentEventId, jobId, notificationIds, model);
 
         assertNotNull(event.getEventId());
-        assertEquals(parentEventId, event.getParentEventId());
         assertEquals(destination, event.getDestination());
         assertEquals(jobId, event.getJobExecutionId());
         assertEquals(notificationIds, event.getNotificationIds());

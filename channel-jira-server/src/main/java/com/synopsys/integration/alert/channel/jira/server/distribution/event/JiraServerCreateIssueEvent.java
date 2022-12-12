@@ -18,11 +18,11 @@ public class JiraServerCreateIssueEvent extends IssueTrackerCreateIssueEvent {
 
     public JiraServerCreateIssueEvent(
         String destination,
-        UUID parentEventId,
-        UUID jobId,
+        UUID jobExecutionId,
+        UUID jobConfigId,
         Set<Long> notificationIds,
         IssueCreationModel creationModel
     ) {
-        super(destination, parentEventId, jobId, notificationIds, creationModel);
+        super(destination, jobExecutionId, jobConfigId, notificationIds, creationModel);
     }
 }

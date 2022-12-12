@@ -19,11 +19,11 @@ public class JiraServerCommentEvent extends IssueTrackerCommentEvent<String> {
 
     public JiraServerCommentEvent(
         String destination,
-        UUID parentEventId,
-        UUID jobId,
+        UUID jobExecutionId,
+        UUID jobConfigId,
         Set<Long> notificationIds,
         IssueCommentModel<String> commentModel
     ) {
-        super(destination, parentEventId, jobId, notificationIds, commentModel);
+        super(destination, jobExecutionId, jobConfigId, notificationIds, commentModel);
     }
 }
