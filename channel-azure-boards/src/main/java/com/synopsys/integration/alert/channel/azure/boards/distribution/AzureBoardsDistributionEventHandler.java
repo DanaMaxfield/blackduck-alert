@@ -11,7 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.synopsys.integration.alert.api.channel.DistributionEventHandler;
-import com.synopsys.integration.alert.api.distribution.execution.ExecutingJobManager;
+import com.synopsys.integration.alert.api.event.EventManager;
 import com.synopsys.integration.alert.common.persistence.accessor.AzureBoardsJobDetailsAccessor;
 import com.synopsys.integration.alert.common.persistence.accessor.ProcessingAuditAccessor;
 import com.synopsys.integration.alert.common.persistence.model.job.details.AzureBoardsJobDetailsModel;
@@ -23,9 +23,9 @@ public class AzureBoardsDistributionEventHandler extends DistributionEventHandle
         AzureBoardsChannel channel,
         AzureBoardsJobDetailsAccessor jobDetailsAccessor,
         ProcessingAuditAccessor auditAccessor,
-        ExecutingJobManager executingJobManager
+        EventManager eventManager
     ) {
-        super(channel, jobDetailsAccessor, auditAccessor, executingJobManager);
+        super(channel, jobDetailsAccessor, auditAccessor, eventManager);
     }
 
 }

@@ -72,7 +72,7 @@ public class AzureBoardsCommentEventHandler extends IssueTrackerCommentEventHand
 
     @Override
     public void handleEvent(AzureBoardsCommentEvent event) throws AlertException {
-        UUID jobId = event.getJobExecutionId();
+        UUID jobId = event.getJobConfigId();
         Optional<AzureBoardsJobDetailsModel> details = jobDetailsAccessor.retrieveDetails(jobId);
         if (details.isPresent()) {
             AzureBoardsJobDetailsModel distributionDetails = details.get();

@@ -15,16 +15,16 @@ class AzureBoardsCommentEventTest {
     @Test
     void testObjectConstruction() {
         String destination = "destination_queue";
-        UUID parentEventId = UUID.randomUUID();
+        UUID jobExecutionId = UUID.randomUUID();
         UUID jobId = UUID.randomUUID();
         Set<Long> notificationIds = Set.of(1L, 2L, 3L, 4L);
         IssueCommentModel<Integer> model = new IssueCommentModel<>(null, List.of(), null);
-        AzureBoardsCommentEvent event = new AzureBoardsCommentEvent(destination, parentEventId, jobId, notificationIds, model);
+        AzureBoardsCommentEvent event = new AzureBoardsCommentEvent(destination, jobExecutionId, jobId, notificationIds, model);
 
         assertNotNull(event.getEventId());
-        assertEquals(parentEventId, event.getParentEventId());
         assertEquals(destination, event.getDestination());
-        assertEquals(jobId, event.getJobExecutionId());
+        assertEquals(jobExecutionId, event.getJobExecutionId());
+        assertEquals(jobId, event.getJobConfigId());
         assertEquals(notificationIds, event.getNotificationIds());
         assertEquals(model, event.getCommentModel());
     }

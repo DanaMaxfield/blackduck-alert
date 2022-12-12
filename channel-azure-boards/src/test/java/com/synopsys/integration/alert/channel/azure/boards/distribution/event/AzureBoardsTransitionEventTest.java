@@ -16,16 +16,16 @@ class AzureBoardsTransitionEventTest {
     @Test
     void testObjectConstruction() {
         String destination = "destination_queue";
-        UUID parentEventId = UUID.randomUUID();
+        UUID jobExecutionId = UUID.randomUUID();
         UUID jobId = UUID.randomUUID();
         Set<Long> notificationIds = Set.of(1L, 2L, 3L, 4L);
         IssueTransitionModel<Integer> model = new IssueTransitionModel<>(null, IssueOperation.UPDATE, List.of(), null);
-        AzureBoardsTransitionEvent event = new AzureBoardsTransitionEvent(destination, parentEventId, jobId, notificationIds, model);
+        AzureBoardsTransitionEvent event = new AzureBoardsTransitionEvent(destination, jobExecutionId, jobId, notificationIds, model);
 
         assertNotNull(event.getEventId());
-        assertEquals(parentEventId, event.getParentEventId());
         assertEquals(destination, event.getDestination());
-        assertEquals(jobId, event.getJobExecutionId());
+        assertEquals(jobExecutionId, event.getJobExecutionId());
+        assertEquals(jobId, event.getJobConfigId());
         assertEquals(notificationIds, event.getNotificationIds());
         assertEquals(model, event.getTransitionModel());
     }

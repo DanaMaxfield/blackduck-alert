@@ -16,11 +16,11 @@ import com.synopsys.integration.alert.api.channel.issue.model.IssueTransitionMod
 public class AzureBoardsTransitionEvent extends IssueTrackerTransitionIssueEvent<Integer> {
     public AzureBoardsTransitionEvent(
         String destination,
-        UUID parentEventId,
-        UUID jobId,
+        UUID jobExecutionId,
+        UUID jobConfigId,
         Set<Long> notificationIds,
         IssueTransitionModel<Integer> transitionModel
     ) {
-        super(destination, parentEventId, jobId, notificationIds, transitionModel);
+        super(destination, jobExecutionId, jobConfigId, notificationIds, transitionModel);
     }
 }
