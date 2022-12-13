@@ -12,6 +12,8 @@ import org.jetbrains.annotations.NotNull;
 
 import com.synopsys.integration.alert.api.channel.issue.model.IssueTrackerModelHolder;
 import com.synopsys.integration.alert.api.distribution.audit.AuditSuccessEvent;
+import com.synopsys.integration.alert.api.distribution.execution.JobStage;
+import com.synopsys.integration.alert.api.distribution.execution.JobStageStartedEvent;
 import com.synopsys.integration.alert.api.event.AlertEvent;
 import com.synopsys.integration.alert.api.event.EventManager;
 import com.synopsys.integration.alert.common.persistence.accessor.JobSubTaskAccessor;
@@ -69,9 +71,9 @@ public class IssueTrackerAsyncMessageSender<T extends Serializable> {
         List<AlertEvent> transitionEvents = createMessages(issueTrackerMessage.getIssueTransitionModels(), issueTrackerTransitionEventGenerator::generateEvent);
         List<AlertEvent> commentEvents = createMessages(issueTrackerMessage.getIssueCommentModels(), issueTrackerCommentEventGenerator::generateEvent);
 
-        eventList.addAll(creationEvents);
-        eventList.addAll(transitionEvents);
-        eventList.addAll(commentEvents);
+        addEventsAndStartStage(eventList, creationEvents, JobStage.ISSUE_CREATION);
+        addEventsAndStartStage(eventList, transitionEvents, JobStage.ISSUE_RESOLVING);
+        addEventsAndStartStage(eventList, commentEvents, JobStage.ISSUE_COMMENTING);
 
         return eventList;
     }
@@ -80,6 +82,13 @@ public class IssueTrackerAsyncMessageSender<T extends Serializable> {
         return messages.stream()
             .map(eventGenerator::apply)
             .collect(Collectors.toList());
+    }
+
+    private void addEventsAndStartStage(List<AlertEvent> allEvents, List<AlertEvent> events, JobStage jobStage) {
+        if (!events.isEmpty()) {
+            eventManager.sendEvent(new JobStageStartedEvent(parentEventId, jobStage));
+            allEvents.addAll(events);
+        }
     }
 
 }
