@@ -85,7 +85,7 @@ class JiraCloudCreateIssueEventHandlerTest {
 
     @Test
     void handleUnknownJobTest() {
-        UUID parentEventId = UUID.randomUUID();
+        UUID jobExecutionId = UUID.randomUUID();
         UUID jobId = UUID.randomUUID();
         Set<Long> notificationIds = Set.of(1L, 2L, 3L, 4L);
 
@@ -103,7 +103,7 @@ class JiraCloudCreateIssueEventHandlerTest {
         );
 
         JiraCloudJobDetailsModel jobDetailsModel = createJobDetails(jobId);
-        jobSubTaskAccessor.createSubTaskStatus(parentEventId, jobDetailsModel.getJobId(), 1L, notificationIds);
+        jobSubTaskAccessor.createSubTaskStatus(jobExecutionId, jobDetailsModel.getJobId(), 1L, notificationIds);
 
         JiraCloudCreateIssueEventHandler handler = new JiraCloudCreateIssueEventHandler(
             eventManager,
@@ -119,25 +119,25 @@ class JiraCloudCreateIssueEventHandlerTest {
         IssueCreationModel issueCreationModel = IssueCreationModel.simple("title", "description", List.of(), provider);
         JiraCloudCreateIssueEvent event = new JiraCloudCreateIssueEvent(
             IssueTrackerCreateIssueEvent.createDefaultEventDestination(ChannelKeys.JIRA_CLOUD),
-            parentEventId,
+            jobExecutionId,
             jobId,
             notificationIds,
             issueCreationModel
         );
 
         handler.handle(event);
-        Optional<JobSubTaskStatusModel> jobSubTaskStatusModelOptional = jobSubTaskAccessor.getSubTaskStatus(parentEventId);
+        Optional<JobSubTaskStatusModel> jobSubTaskStatusModelOptional = jobSubTaskAccessor.getSubTaskStatus(jobExecutionId);
         assertTrue(jobSubTaskStatusModelOptional.isEmpty());
     }
 
     @Test
     void handleIssueQueryBlankTest() throws IntegrationException {
-        UUID parentEventId = UUID.randomUUID();
+        UUID jobExecutionId = UUID.randomUUID();
         UUID jobId = UUID.randomUUID();
         Set<Long> notificationIds = Set.of(1L, 2L, 3L, 4L);
 
         JiraCloudJobDetailsModel jobDetailsModel = createJobDetails(jobId);
-        jobSubTaskAccessor.createSubTaskStatus(parentEventId, jobDetailsModel.getJobId(), 1L, notificationIds);
+        jobSubTaskAccessor.createSubTaskStatus(jobExecutionId, jobDetailsModel.getJobId(), 1L, notificationIds);
 
         JiraCloudPropertiesFactory propertiesFactory = Mockito.mock(JiraCloudPropertiesFactory.class);
         JiraCloudProperties jiraProperties = Mockito.mock(JiraCloudProperties.class);
@@ -190,7 +190,7 @@ class JiraCloudCreateIssueEventHandlerTest {
         IssueCreationModel issueCreationModel = IssueCreationModel.simple("title", "description", List.of(), provider);
         JiraCloudCreateIssueEvent event = new JiraCloudCreateIssueEvent(
             IssueTrackerCreateIssueEvent.createDefaultEventDestination(ChannelKeys.JIRA_CLOUD),
-            parentEventId,
+            jobExecutionId,
             jobId,
             notificationIds,
             issueCreationModel
@@ -198,18 +198,18 @@ class JiraCloudCreateIssueEventHandlerTest {
 
         handler.handle(event);
         assertEquals(1, issueCounter.get());
-        Optional<JobSubTaskStatusModel> jobSubTaskStatusModelOptional = jobSubTaskAccessor.getSubTaskStatus(parentEventId);
+        Optional<JobSubTaskStatusModel> jobSubTaskStatusModelOptional = jobSubTaskAccessor.getSubTaskStatus(jobExecutionId);
         assertFalse(jobSubTaskStatusModelOptional.isPresent());
     }
 
     @Test
     void handleIssueIssueDoesNotExistTest() throws IntegrationException {
-        UUID parentEventId = UUID.randomUUID();
+        UUID jobExecutionId = UUID.randomUUID();
         UUID jobId = UUID.randomUUID();
         Set<Long> notificationIds = Set.of(1L, 2L, 3L, 4L);
 
         JiraCloudJobDetailsModel jobDetailsModel = createJobDetails(jobId);
-        jobSubTaskAccessor.createSubTaskStatus(parentEventId, jobDetailsModel.getJobId(), 1L, notificationIds);
+        jobSubTaskAccessor.createSubTaskStatus(jobExecutionId, jobDetailsModel.getJobId(), 1L, notificationIds);
 
         JiraCloudPropertiesFactory propertiesFactory = Mockito.mock(JiraCloudPropertiesFactory.class);
         JiraCloudProperties jiraProperties = Mockito.mock(JiraCloudProperties.class);
@@ -271,7 +271,7 @@ class JiraCloudCreateIssueEventHandlerTest {
         IssueCreationModel issueCreationModel = IssueCreationModel.project("title", "description", List.of(), projectIssueModel, "JQL Query String");
         JiraCloudCreateIssueEvent event = new JiraCloudCreateIssueEvent(
             IssueTrackerCreateIssueEvent.createDefaultEventDestination(ChannelKeys.JIRA_CLOUD),
-            parentEventId,
+            jobExecutionId,
             jobId,
             notificationIds,
             issueCreationModel
@@ -279,18 +279,18 @@ class JiraCloudCreateIssueEventHandlerTest {
 
         handler.handle(event);
         assertEquals(1, issueCounter.get());
-        Optional<JobSubTaskStatusModel> jobSubTaskStatusModelOptional = jobSubTaskAccessor.getSubTaskStatus(parentEventId);
+        Optional<JobSubTaskStatusModel> jobSubTaskStatusModelOptional = jobSubTaskAccessor.getSubTaskStatus(jobExecutionId);
         assertFalse(jobSubTaskStatusModelOptional.isPresent());
     }
 
     @Test
     void handleIssueIssueExistsTest() throws IntegrationException {
-        UUID parentEventId = UUID.randomUUID();
+        UUID jobExecutionId = UUID.randomUUID();
         UUID jobId = UUID.randomUUID();
         Set<Long> notificationIds = Set.of(1L, 2L, 3L, 4L);
 
         JiraCloudJobDetailsModel jobDetailsModel = createJobDetails(jobId);
-        jobSubTaskAccessor.createSubTaskStatus(parentEventId, jobDetailsModel.getJobId(), 1L, notificationIds);
+        jobSubTaskAccessor.createSubTaskStatus(jobExecutionId, jobDetailsModel.getJobId(), 1L, notificationIds);
 
         JiraCloudPropertiesFactory propertiesFactory = Mockito.mock(JiraCloudPropertiesFactory.class);
         JiraCloudProperties jiraProperties = Mockito.mock(JiraCloudProperties.class);
@@ -345,7 +345,7 @@ class JiraCloudCreateIssueEventHandlerTest {
         IssueCreationModel issueCreationModel = IssueCreationModel.project("title", "description", List.of(), projectIssueModel, "JQL Query String");
         JiraCloudCreateIssueEvent event = new JiraCloudCreateIssueEvent(
             IssueTrackerCreateIssueEvent.createDefaultEventDestination(ChannelKeys.JIRA_CLOUD),
-            parentEventId,
+            jobExecutionId,
             jobId,
             notificationIds,
             issueCreationModel
@@ -353,7 +353,7 @@ class JiraCloudCreateIssueEventHandlerTest {
 
         handler.handle(event);
         assertEquals(0, issueCounter.get());
-        Optional<JobSubTaskStatusModel> jobSubTaskStatusModelOptional = jobSubTaskAccessor.getSubTaskStatus(parentEventId);
+        Optional<JobSubTaskStatusModel> jobSubTaskStatusModelOptional = jobSubTaskAccessor.getSubTaskStatus(jobExecutionId);
         assertFalse(jobSubTaskStatusModelOptional.isPresent());
     }
 

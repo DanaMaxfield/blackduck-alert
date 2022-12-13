@@ -27,7 +27,7 @@ class JiraServerCommentEventListenerTest {
 
     @Test
     void onMessageTest() {
-        UUID parentEventId = UUID.randomUUID();
+        UUID jobExecutionId = UUID.randomUUID();
         UUID jobId = UUID.randomUUID();
         Set<Long> notificationIds = Set.of(1L, 2L, 3L);
         EventManager eventManager = Mockito.mock(EventManager.class);
@@ -35,7 +35,7 @@ class JiraServerCommentEventListenerTest {
         IssueCommentModel<String> issueCommentModel = new IssueCommentModel<>(null, List.of("A comment"), null);
         JiraServerCommentEvent event = new JiraServerCommentEvent(
             "destination",
-            parentEventId,
+            jobExecutionId,
             jobId,
             notificationIds,
             issueCommentModel
@@ -55,15 +55,15 @@ class JiraServerCommentEventListenerTest {
         ));
         Mockito.doNothing().when(handler).handle(event);
 
-        jobSubTaskAccessor.createSubTaskStatus(parentEventId, jobId, 1L, notificationIds);
-        Optional<JobSubTaskStatusModel> optionalJobSubTaskStatusModel = jobSubTaskAccessor.getSubTaskStatus(parentEventId);
+        jobSubTaskAccessor.createSubTaskStatus(jobExecutionId, jobId, 1L, notificationIds);
+        Optional<JobSubTaskStatusModel> optionalJobSubTaskStatusModel = jobSubTaskAccessor.getSubTaskStatus(jobExecutionId);
         assertTrue(optionalJobSubTaskStatusModel.isPresent());
 
         JiraServerCommentEventListener listener = new JiraServerCommentEventListener(gson, new SyncTaskExecutor(), ChannelKeys.JIRA_SERVER, handler);
         Message message = new Message(gson.toJson(event).getBytes());
         listener.onMessage(message);
 
-        optionalJobSubTaskStatusModel = jobSubTaskAccessor.getSubTaskStatus(parentEventId);
+        optionalJobSubTaskStatusModel = jobSubTaskAccessor.getSubTaskStatus(jobExecutionId);
         assertFalse(optionalJobSubTaskStatusModel.isPresent());
     }
 }

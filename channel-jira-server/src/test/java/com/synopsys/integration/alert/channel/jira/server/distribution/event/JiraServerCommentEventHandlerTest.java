@@ -76,7 +76,7 @@ class JiraServerCommentEventHandlerTest {
 
     @Test
     void handleUnknownJobTest() {
-        UUID parentEventId = UUID.randomUUID();
+        UUID jobExecutionId = UUID.randomUUID();
         UUID jobId = UUID.randomUUID();
         Set<Long> notificationIds = Set.of(1L, 2L, 3L, 4L);
 
@@ -94,7 +94,7 @@ class JiraServerCommentEventHandlerTest {
         );
 
         JiraServerJobDetailsModel jobDetailsModel = createJobDetails(jobId);
-        jobSubTaskAccessor.createSubTaskStatus(parentEventId, jobDetailsModel.getJobId(), 1L, notificationIds);
+        jobSubTaskAccessor.createSubTaskStatus(jobExecutionId, jobDetailsModel.getJobId(), 1L, notificationIds);
 
         JiraServerCommentEventHandler handler = new JiraServerCommentEventHandler(
             eventManager,
@@ -109,25 +109,25 @@ class JiraServerCommentEventHandlerTest {
         IssueCommentModel<String> model = new IssueCommentModel<>(existingIssueDetails, List.of(), null);
         JiraServerCommentEvent event = new JiraServerCommentEvent(
             IssueTrackerCommentEvent.createDefaultEventDestination(ChannelKeys.JIRA_SERVER),
-            parentEventId,
+            jobExecutionId,
             jobId,
             notificationIds,
             model
         );
         handler.handle(event);
         assertEquals(0, issueCounter.get());
-        Optional<JobSubTaskStatusModel> jobSubTaskStatusModelOptional = jobSubTaskAccessor.getSubTaskStatus(parentEventId);
+        Optional<JobSubTaskStatusModel> jobSubTaskStatusModelOptional = jobSubTaskAccessor.getSubTaskStatus(jobExecutionId);
         assertTrue(jobSubTaskStatusModelOptional.isEmpty());
     }
 
     @Test
     void handleCommentTest() throws IntegrationException {
-        UUID parentEventId = UUID.randomUUID();
+        UUID jobExecutionId = UUID.randomUUID();
         UUID jobId = UUID.randomUUID();
         Set<Long> notificationIds = Set.of(1L, 2L, 3L, 4L);
 
         JiraServerJobDetailsModel jobDetailsModel = createJobDetails(jobId);
-        jobSubTaskAccessor.createSubTaskStatus(parentEventId, jobDetailsModel.getJobId(), 1L, notificationIds);
+        jobSubTaskAccessor.createSubTaskStatus(jobExecutionId, jobDetailsModel.getJobId(), 1L, notificationIds);
 
         JiraServerPropertiesFactory propertiesFactory = Mockito.mock(JiraServerPropertiesFactory.class);
         JiraServerProperties jiraProperties = Mockito.mock(JiraServerProperties.class);
@@ -175,14 +175,14 @@ class JiraServerCommentEventHandlerTest {
         IssueCommentModel<String> model = new IssueCommentModel<>(existingIssueDetails, List.of("A comment"), null);
         JiraServerCommentEvent event = new JiraServerCommentEvent(
             IssueTrackerCommentEvent.createDefaultEventDestination(ChannelKeys.JIRA_SERVER),
-            parentEventId,
+            jobExecutionId,
             jobId,
             notificationIds,
             model
         );
         handler.handle(event);
         assertEquals(1, issueCounter.get());
-        Optional<JobSubTaskStatusModel> jobSubTaskStatusModelOptional = jobSubTaskAccessor.getSubTaskStatus(parentEventId);
+        Optional<JobSubTaskStatusModel> jobSubTaskStatusModelOptional = jobSubTaskAccessor.getSubTaskStatus(jobExecutionId);
         assertFalse(jobSubTaskStatusModelOptional.isPresent());
     }
 

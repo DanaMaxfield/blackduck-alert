@@ -28,7 +28,7 @@ class JiraServerTransitionEventListenerTest {
 
     @Test
     void onMessageTest() {
-        UUID parentEventId = UUID.randomUUID();
+        UUID jobExecutionId = UUID.randomUUID();
         UUID jobId = UUID.randomUUID();
         Set<Long> notificationIds = Set.of(1L, 2L, 3L);
         EventManager eventManager = Mockito.mock(EventManager.class);
@@ -36,7 +36,7 @@ class JiraServerTransitionEventListenerTest {
         IssueTransitionModel<String> issueTransitionModel = new IssueTransitionModel<>(null, IssueOperation.RESOLVE, List.of(), null);
         JiraServerTransitionEvent event = new JiraServerTransitionEvent(
             "destination",
-            parentEventId,
+            jobExecutionId,
             jobId,
             notificationIds,
             issueTransitionModel
@@ -56,15 +56,15 @@ class JiraServerTransitionEventListenerTest {
         ));
         Mockito.doNothing().when(handler).handle(event);
 
-        jobSubTaskAccessor.createSubTaskStatus(parentEventId, jobId, 1L, notificationIds);
-        Optional<JobSubTaskStatusModel> optionalJobSubTaskStatusModel = jobSubTaskAccessor.getSubTaskStatus(parentEventId);
+        jobSubTaskAccessor.createSubTaskStatus(jobExecutionId, jobId, 1L, notificationIds);
+        Optional<JobSubTaskStatusModel> optionalJobSubTaskStatusModel = jobSubTaskAccessor.getSubTaskStatus(jobExecutionId);
         assertTrue(optionalJobSubTaskStatusModel.isPresent());
 
         JiraServerTransitionEventListener listener = new JiraServerTransitionEventListener(gson, new SyncTaskExecutor(), ChannelKeys.JIRA_SERVER, handler);
         Message message = new Message(gson.toJson(event).getBytes());
         listener.onMessage(message);
 
-        optionalJobSubTaskStatusModel = jobSubTaskAccessor.getSubTaskStatus(parentEventId);
+        optionalJobSubTaskStatusModel = jobSubTaskAccessor.getSubTaskStatus(jobExecutionId);
         assertFalse(optionalJobSubTaskStatusModel.isPresent());
     }
 }

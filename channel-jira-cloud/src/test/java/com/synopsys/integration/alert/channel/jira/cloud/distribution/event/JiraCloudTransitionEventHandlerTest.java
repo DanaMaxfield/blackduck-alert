@@ -61,7 +61,7 @@ class JiraCloudTransitionEventHandlerTest {
 
     @Test
     void handleUnknownJobTest() {
-        UUID parentEventId = UUID.randomUUID();
+        UUID jobExecutionId = UUID.randomUUID();
         UUID jobId = UUID.randomUUID();
         Set<Long> notificationIds = Set.of(1L, 2L, 3L, 4L);
 
@@ -92,7 +92,7 @@ class JiraCloudTransitionEventHandlerTest {
         IssueTransitionModel<String> model = new IssueTransitionModel<>(existingIssueDetails, IssueOperation.RESOLVE, List.of(), null);
         JiraCloudTransitionEvent event = new JiraCloudTransitionEvent(
             IssueTrackerTransitionIssueEvent.createDefaultEventDestination(ChannelKeys.JIRA_CLOUD),
-            parentEventId,
+            jobExecutionId,
             jobId,
             notificationIds,
             model
@@ -103,7 +103,7 @@ class JiraCloudTransitionEventHandlerTest {
 
     @Test
     void handleTransitionTest() throws IntegrationException {
-        UUID parentEventId = UUID.randomUUID();
+        UUID jobExecutionId = UUID.randomUUID();
         UUID jobId = UUID.randomUUID();
         Set<Long> notificationIds = Set.of(1L, 2L, 3L, 4L);
 
@@ -155,7 +155,7 @@ class JiraCloudTransitionEventHandlerTest {
         IssueTransitionModel<String> model = new IssueTransitionModel<>(existingIssueDetails, IssueOperation.RESOLVE, List.of(), null);
         JiraCloudTransitionEvent event = new JiraCloudTransitionEvent(
             IssueTrackerTransitionIssueEvent.createDefaultEventDestination(ChannelKeys.JIRA_CLOUD),
-            parentEventId,
+            jobExecutionId,
             jobId,
             notificationIds,
             model

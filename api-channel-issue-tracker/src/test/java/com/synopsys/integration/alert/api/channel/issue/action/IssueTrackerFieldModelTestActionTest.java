@@ -53,7 +53,7 @@ class IssueTrackerFieldModelTestActionTest {
             public IssueTrackerAsyncMessageSender<String> createAsyncMessageSender(
                 TestJobDetails distributionDetails,
                 UUID globalId,
-                UUID parentEventId,
+                UUID jobExecutionId,
                 Set<Long> notificationIds
             )
                 throws AlertException {
@@ -81,7 +81,7 @@ class IssueTrackerFieldModelTestActionTest {
             public IssueTrackerAsyncMessageSender<String> createAsyncMessageSender(
                 TestJobDetails distributionDetails,
                 UUID globalId,
-                UUID parentEventId,
+                UUID jobExecutionId,
                 Set<Long> notificationIds
             )
                 throws AlertException {
@@ -109,7 +109,7 @@ class IssueTrackerFieldModelTestActionTest {
             public IssueTrackerAsyncMessageSender<String> createAsyncMessageSender(
                 TestJobDetails distributionDetails,
                 UUID globalId,
-                UUID parentEventId,
+                UUID jobExecutionId,
                 Set<Long> notificationIds
             )
                 throws AlertException {
@@ -144,7 +144,7 @@ class IssueTrackerFieldModelTestActionTest {
             public IssueTrackerAsyncMessageSender<String> createAsyncMessageSender(
                 TestJobDetails distributionDetails,
                 UUID globalId,
-                UUID parentEventId,
+                UUID jobExecutionId,
                 Set<Long> notificationIds
             )
                 throws AlertException {
@@ -172,7 +172,7 @@ class IssueTrackerFieldModelTestActionTest {
             public IssueTrackerAsyncMessageSender<String> createAsyncMessageSender(
                 TestJobDetails distributionDetails,
                 UUID globalId,
-                UUID parentEventId,
+                UUID jobExecutionId,
                 Set<Long> notificationIds
             )
                 throws AlertException {
@@ -212,7 +212,7 @@ class IssueTrackerFieldModelTestActionTest {
             public IssueTrackerAsyncMessageSender<String> createAsyncMessageSender(
                 TestJobDetails distributionDetails,
                 UUID globalId,
-                UUID parentEventId,
+                UUID jobExecutionId,
                 Set<Long> notificationIds
             )
                 throws AlertException {

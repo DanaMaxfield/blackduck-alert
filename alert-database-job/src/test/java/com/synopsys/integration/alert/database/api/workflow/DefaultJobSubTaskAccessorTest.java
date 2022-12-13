@@ -34,7 +34,7 @@ class DefaultJobSubTaskAccessorTest {
         Set<Long> notificationIds = Set.of(1L, 2L, 3L);
         JobSubTaskStatusModel model = accessor.createSubTaskStatus(id, jobId, remainingTaskCount, notificationIds);
         assertNotNull(model);
-        assertEquals(id, model.getParentEventId());
+        assertEquals(id, model.getJobExecutionId());
         assertEquals(jobId, model.getJobId());
         assertEquals(remainingTaskCount, model.getRemainingTaskCount());
         assertNotNull(model.getNotificationCorrelationId());
@@ -57,7 +57,7 @@ class DefaultJobSubTaskAccessorTest {
         Optional<JobSubTaskStatusModel> savedModel = accessor.getSubTaskStatus(id);
         assertTrue(savedModel.isPresent());
         JobSubTaskStatusModel model = savedModel.get();
-        assertEquals(createdModel.getParentEventId(), model.getParentEventId());
+        assertEquals(createdModel.getJobExecutionId(), model.getJobExecutionId());
         assertEquals(createdModel.getJobId(), model.getJobId());
         assertEquals(createdModel.getRemainingTaskCount(), model.getRemainingTaskCount());
         assertEquals(createdModel.getNotificationCorrelationId(), model.getNotificationCorrelationId());
@@ -82,7 +82,7 @@ class DefaultJobSubTaskAccessorTest {
         Optional<JobSubTaskStatusModel> savedModel = accessor.updateTaskCount(id, updatedTaskCount);
         assertTrue(savedModel.isPresent());
         JobSubTaskStatusModel model = savedModel.get();
-        assertEquals(createdModel.getParentEventId(), model.getParentEventId());
+        assertEquals(createdModel.getJobExecutionId(), model.getJobExecutionId());
         assertEquals(createdModel.getJobId(), model.getJobId());
         assertNotEquals(createdModel.getRemainingTaskCount(), model.getRemainingTaskCount());
         assertEquals(updatedTaskCount, model.getRemainingTaskCount());
@@ -106,7 +106,7 @@ class DefaultJobSubTaskAccessorTest {
         Optional<JobSubTaskStatusModel> savedModel = accessor.decrementTaskCount(id);
         assertTrue(savedModel.isPresent());
         JobSubTaskStatusModel model = savedModel.get();
-        assertEquals(createdModel.getParentEventId(), model.getParentEventId());
+        assertEquals(createdModel.getJobExecutionId(), model.getJobExecutionId());
         assertEquals(createdModel.getJobId(), model.getJobId());
         assertNotEquals(createdModel.getRemainingTaskCount(), model.getRemainingTaskCount());
         assertEquals(4L, model.getRemainingTaskCount());

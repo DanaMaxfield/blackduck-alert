@@ -25,7 +25,7 @@ public class IssueTrackerAsyncMessageSender<T extends Serializable> {
     private final IssueTrackerCommentEventGenerator<T> issueTrackerCommentEventGenerator;
     private final EventManager eventManager;
     private final JobSubTaskAccessor jobSubTaskAccessor;
-    private final UUID parentEventId;
+    private final UUID jobExecutionId;
     private final UUID jobId;
     private final Set<Long> notificationIds;
 
@@ -35,7 +35,7 @@ public class IssueTrackerAsyncMessageSender<T extends Serializable> {
         IssueTrackerCommentEventGenerator<T> issueTrackerCommentEventGenerator,
         EventManager eventManager,
         JobSubTaskAccessor jobSubTaskAccessor,
-        UUID parentEventId,
+        UUID jobExecutionId,
         UUID jobId,
         Set<Long> notificationIds
     ) {
@@ -44,7 +44,7 @@ public class IssueTrackerAsyncMessageSender<T extends Serializable> {
         this.issueTrackerCommentEventGenerator = issueTrackerCommentEventGenerator;
         this.eventManager = eventManager;
         this.jobSubTaskAccessor = jobSubTaskAccessor;
-        this.parentEventId = parentEventId;
+        this.jobExecutionId = jobExecutionId;
         this.jobId = jobId;
         this.notificationIds = notificationIds;
     }
@@ -59,7 +59,7 @@ public class IssueTrackerAsyncMessageSender<T extends Serializable> {
             // nothing further to send downstream. Channel handled message successfully.
             eventManager.sendEvent(new AuditSuccessEvent(jobId, notificationIds));
         } else {
-            jobSubTaskAccessor.updateTaskCount(parentEventId, (long) eventList.size());
+            jobSubTaskAccessor.updateTaskCount(jobExecutionId, (long) eventList.size());
             eventManager.sendEvents(eventList);
         }
     }
@@ -86,7 +86,7 @@ public class IssueTrackerAsyncMessageSender<T extends Serializable> {
 
     private void addEventsAndStartStage(List<AlertEvent> allEvents, List<AlertEvent> events, JobStage jobStage) {
         if (!events.isEmpty()) {
-            eventManager.sendEvent(new JobStageStartedEvent(parentEventId, jobStage));
+            eventManager.sendEvent(new JobStageStartedEvent(jobExecutionId, jobStage));
             allEvents.addAll(events);
         }
     }

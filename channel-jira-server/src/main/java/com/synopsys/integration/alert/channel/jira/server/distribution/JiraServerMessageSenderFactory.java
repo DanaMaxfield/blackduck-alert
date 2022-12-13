@@ -118,10 +118,10 @@ public class JiraServerMessageSenderFactory implements IssueTrackerMessageSender
     public IssueTrackerAsyncMessageSender<String> createAsyncMessageSender(
         JiraServerJobDetailsModel distributionDetails,
         UUID globalId,
-        UUID parentEventId,
+        UUID jobExecutionId,
         Set<Long> notificationIds
     ) throws AlertException {
-        return createAsyncMessageSender(distributionDetails, parentEventId, notificationIds);
+        return createAsyncMessageSender(distributionDetails, jobExecutionId, notificationIds);
     }
 
     public IssueTrackerMessageSender<String> createMessageSender(
@@ -162,13 +162,13 @@ public class JiraServerMessageSenderFactory implements IssueTrackerMessageSender
 
     public IssueTrackerAsyncMessageSender<String> createAsyncMessageSender(
         JiraServerJobDetailsModel distributionDetails,
-        UUID parentEventId,
+        UUID jobExecutionId,
         Set<Long> notificationIds
     ) {
         UUID jobId = distributionDetails.getJobId();
-        IssueTrackerCommentEventGenerator<String> commentEventGenerator = new JiraServerCommentGenerator(channelKey, parentEventId, jobId, notificationIds);
-        IssueTrackerCreationEventGenerator createEventGenerator = new JiraServerCreateEventGenerator(channelKey, parentEventId, jobId, notificationIds);
-        IssueTrackerTransitionEventGenerator<String> transitionEventGenerator = new JiraServerTransitionGenerator(channelKey, parentEventId, jobId, notificationIds);
+        IssueTrackerCommentEventGenerator<String> commentEventGenerator = new JiraServerCommentGenerator(channelKey, jobExecutionId, jobId, notificationIds);
+        IssueTrackerCreationEventGenerator createEventGenerator = new JiraServerCreateEventGenerator(channelKey, jobExecutionId, jobId, notificationIds);
+        IssueTrackerTransitionEventGenerator<String> transitionEventGenerator = new JiraServerTransitionGenerator(channelKey, jobExecutionId, jobId, notificationIds);
 
         return new IssueTrackerAsyncMessageSender<>(
             createEventGenerator,
@@ -176,7 +176,7 @@ public class JiraServerMessageSenderFactory implements IssueTrackerMessageSender
             commentEventGenerator,
             eventManager,
             jobSubTaskAccessor,
-            parentEventId,
+            jobExecutionId,
             jobId,
             notificationIds
         );

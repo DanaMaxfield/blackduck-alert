@@ -67,7 +67,7 @@ class AzureBoardsCreateIssueEventHandlerTest {
 
     @Test
     void handleUnknownJobTest() {
-        UUID parentEventId = UUID.randomUUID();
+        UUID jobExecutionId = UUID.randomUUID();
         UUID jobId = UUID.randomUUID();
         Set<Long> notificationIds = Set.of(1L, 2L, 3L, 4L);
 
@@ -91,7 +91,7 @@ class AzureBoardsCreateIssueEventHandlerTest {
         Mockito.when(mockProxyManager.createProxyInfoForHost(Mockito.anyString())).thenReturn(ProxyInfo.NO_PROXY_INFO);
 
         AzureBoardsJobDetailsModel jobDetailsModel = createJobDetails(jobId);
-        jobSubTaskAccessor.createSubTaskStatus(parentEventId, jobDetailsModel.getJobId(), 1L, notificationIds);
+        jobSubTaskAccessor.createSubTaskStatus(jobExecutionId, jobDetailsModel.getJobId(), 1L, notificationIds);
 
         AzureBoardsCreateIssueEventHandler handler = new AzureBoardsCreateIssueEventHandler(
             eventManager,
@@ -108,7 +108,7 @@ class AzureBoardsCreateIssueEventHandlerTest {
         IssueCreationModel issueCreationModel = IssueCreationModel.simple("title", "description", List.of(), provider);
         AzureBoardsCreateIssueEvent event = new AzureBoardsCreateIssueEvent(
             IssueTrackerCreateIssueEvent.createDefaultEventDestination(ChannelKeys.AZURE_BOARDS),
-            parentEventId,
+            jobExecutionId,
             jobId,
             notificationIds,
             issueCreationModel
@@ -116,14 +116,14 @@ class AzureBoardsCreateIssueEventHandlerTest {
 
         handler.handleEvent(event);
         assertEquals(0, issueCounter.get());
-        Optional<JobSubTaskStatusModel> jobSubTaskStatusModelOptional = jobSubTaskAccessor.getSubTaskStatus(parentEventId);
+        Optional<JobSubTaskStatusModel> jobSubTaskStatusModelOptional = jobSubTaskAccessor.getSubTaskStatus(jobExecutionId);
         assertTrue(jobSubTaskStatusModelOptional.isPresent());
     }
 
     @Test
     @Disabled("Blocked by IALERT-3136")
     void handleIssueQueryBlankTest() throws IntegrationException, IOException {
-        UUID parentEventId = UUID.randomUUID();
+        UUID jobExecutionId = UUID.randomUUID();
         UUID jobId = UUID.randomUUID();
         Set<Long> notificationIds = Set.of(1L, 2L, 3L, 4L);
 
@@ -132,7 +132,7 @@ class AzureBoardsCreateIssueEventHandlerTest {
         AzureHttpRequestCreator azureHttpRequestCreator = Mockito.mock(AzureHttpRequestCreator.class);
 
         AzureBoardsJobDetailsModel jobDetailsModel = createJobDetails(jobId);
-        jobSubTaskAccessor.createSubTaskStatus(parentEventId, jobDetailsModel.getJobId(), 1L, notificationIds);
+        jobSubTaskAccessor.createSubTaskStatus(jobExecutionId, jobDetailsModel.getJobId(), 1L, notificationIds);
 
         //TODO: Mockito.doAnswer when we create a work item to increment the issueCounter
 
@@ -175,7 +175,7 @@ class AzureBoardsCreateIssueEventHandlerTest {
         IssueCreationModel issueCreationModel = IssueCreationModel.simple("title", "description", List.of(), provider);
         AzureBoardsCreateIssueEvent event = new AzureBoardsCreateIssueEvent(
             IssueTrackerCreateIssueEvent.createDefaultEventDestination(ChannelKeys.AZURE_BOARDS),
-            parentEventId,
+            jobExecutionId,
             jobId,
             notificationIds,
             issueCreationModel
@@ -183,7 +183,7 @@ class AzureBoardsCreateIssueEventHandlerTest {
 
         handler.handle(event);
         assertEquals(0, issueCounter.get());
-        Optional<JobSubTaskStatusModel> jobSubTaskStatusModelOptional = jobSubTaskAccessor.getSubTaskStatus(parentEventId);
+        Optional<JobSubTaskStatusModel> jobSubTaskStatusModelOptional = jobSubTaskAccessor.getSubTaskStatus(jobExecutionId);
         assertTrue(jobSubTaskStatusModelOptional.isPresent());
     }
 

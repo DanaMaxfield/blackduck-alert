@@ -28,7 +28,7 @@ class JiraCloudTransitionEventListenerTest {
 
     @Test
     void onMessageTest() {
-        UUID parentEventId = UUID.randomUUID();
+        UUID jobExecutionId = UUID.randomUUID();
         UUID jobId = UUID.randomUUID();
         Set<Long> notificationIds = Set.of(1L, 2L, 3L);
         EventManager eventManager = Mockito.mock(EventManager.class);
@@ -36,7 +36,7 @@ class JiraCloudTransitionEventListenerTest {
         IssueTransitionModel<String> issueTransitionModel = new IssueTransitionModel<>(null, IssueOperation.RESOLVE, List.of(), null);
         JiraCloudTransitionEvent event = new JiraCloudTransitionEvent(
             "destination",
-            parentEventId,
+            jobExecutionId,
             jobId,
             notificationIds,
             issueTransitionModel
@@ -56,15 +56,15 @@ class JiraCloudTransitionEventListenerTest {
         ));
         Mockito.doNothing().when(handler).handle(event);
 
-        jobSubTaskAccessor.createSubTaskStatus(parentEventId, jobId, 1L, notificationIds);
-        Optional<JobSubTaskStatusModel> optionalJobSubTaskStatusModel = jobSubTaskAccessor.getSubTaskStatus(parentEventId);
+        jobSubTaskAccessor.createSubTaskStatus(jobExecutionId, jobId, 1L, notificationIds);
+        Optional<JobSubTaskStatusModel> optionalJobSubTaskStatusModel = jobSubTaskAccessor.getSubTaskStatus(jobExecutionId);
         assertTrue(optionalJobSubTaskStatusModel.isPresent());
 
         JiraCloudTransitionEventListener listener = new JiraCloudTransitionEventListener(gson, new SyncTaskExecutor(), ChannelKeys.JIRA_CLOUD, handler);
         Message message = new Message(gson.toJson(event).getBytes());
         listener.onMessage(message);
 
-        optionalJobSubTaskStatusModel = jobSubTaskAccessor.getSubTaskStatus(parentEventId);
+        optionalJobSubTaskStatusModel = jobSubTaskAccessor.getSubTaskStatus(jobExecutionId);
         assertFalse(optionalJobSubTaskStatusModel.isPresent());
     }
 }
