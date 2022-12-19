@@ -54,7 +54,7 @@ class JiraCloudTransitionEventListenerTest {
             null,
             null
         ));
-        Mockito.doNothing().when(handler).handle(event);
+        Mockito.doNothing().when(handler).handleEvent(event);
 
         jobSubTaskAccessor.createSubTaskStatus(jobExecutionId, jobId, 1L, notificationIds);
         Optional<JobSubTaskStatusModel> optionalJobSubTaskStatusModel = jobSubTaskAccessor.getSubTaskStatus(jobExecutionId);
