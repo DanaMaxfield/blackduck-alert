@@ -32,6 +32,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.synopsys.integration.alert.api.distribution.execution.ExecutingJobManager;
 import com.synopsys.integration.alert.api.provider.ProviderDescriptor;
 import com.synopsys.integration.alert.common.enumeration.AuditEntryStatus;
 import com.synopsys.integration.alert.common.enumeration.ConfigContextEnum;
@@ -102,6 +103,8 @@ class AuditEntryHandlerTestIT {
     private JobNotificationProcessor jobNotificationProcessor;
     @Autowired
     private NotificationAccessor notificationAccessor;
+    @Autowired
+    private ExecutingJobManager executingJobManager;
 
     private ConfigurationModel providerConfigModel = null;
 
@@ -152,7 +155,16 @@ class AuditEntryHandlerTestIT {
     }
 
     private AuditEntryActions createAuditActions(AuthorizationManager authorizationManager) {
-        return new AuditEntryActions(authorizationManager, auditDescriptorKey, auditAccessor, notificationAccessor, jobAccessor, notificationMappingProcessor, jobNotificationProcessor);
+        return new AuditEntryActions(
+            authorizationManager,
+            auditDescriptorKey,
+            auditAccessor,
+            notificationAccessor,
+            jobAccessor,
+            notificationMappingProcessor,
+            jobNotificationProcessor,
+            executingJobManager
+        );
     }
 
     @Test

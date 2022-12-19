@@ -20,6 +20,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.synopsys.integration.alert.api.distribution.execution.ExecutingJob;
+import com.synopsys.integration.alert.api.distribution.execution.ExecutingJobManager;
 import com.synopsys.integration.alert.common.action.ActionResponse;
 import com.synopsys.integration.alert.common.enumeration.ConfigContextEnum;
 import com.synopsys.integration.alert.common.enumeration.FrequencyType;
@@ -53,6 +55,8 @@ public class AuditEntryActions {
     private final NotificationMappingProcessor notificationMappingProcessor;
     private final JobNotificationProcessor jobNotificationProcessor;
 
+    private final ExecutingJobManager executingJobManager;
+
     @Autowired
     public AuditEntryActions(
         AuthorizationManager authorizationManager,
@@ -61,7 +65,8 @@ public class AuditEntryActions {
         NotificationAccessor notificationAccessor,
         JobAccessor jobAccessor,
         NotificationMappingProcessor notificationMappingProcessor,
-        JobNotificationProcessor jobNotificationProcessor
+        JobNotificationProcessor jobNotificationProcessor,
+        ExecutingJobManager executingJobManager
     ) {
         this.authorizationManager = authorizationManager;
         this.descriptorKey = descriptorKey;
@@ -70,6 +75,7 @@ public class AuditEntryActions {
         this.jobAccessor = jobAccessor;
         this.notificationMappingProcessor = notificationMappingProcessor;
         this.jobNotificationProcessor = jobNotificationProcessor;
+        this.executingJobManager = executingJobManager;
     }
 
     public ActionResponse<AuditEntryPageModel> get() {
@@ -146,7 +152,9 @@ public class AuditEntryActions {
             }
             DistributionJobModel distributionJob = optionalDistributionJob.get();
             if (distributionJob.isEnabled()) {
-                ProcessedNotificationDetails processedNotificationDetails = ProcessedNotificationDetails.fromDistributionJob(distributionJob);
+                ExecutingJob executingJob = executingJobManager.startJob(distributionJob.getJobId());
+                UUID jobExecutionId = executingJob.getExecutionId();
+                ProcessedNotificationDetails processedNotificationDetails = ProcessedNotificationDetails.fromDistributionJob(jobExecutionId, distributionJob);
                 jobNotificationProcessor.processNotificationForJob(
                     processedNotificationDetails,
                     distributionJob.getProcessingType(),

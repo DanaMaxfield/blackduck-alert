@@ -81,7 +81,8 @@ public class ProcessingJobEventHandler implements AlertEventHandler<JobProcessin
                 ProcessedNotificationDetails processedNotificationDetails = new ProcessedNotificationDetails(
                     job.getJobId(),
                     job.getChannelDescriptorName(),
-                    job.getName()
+                    job.getName(),
+                    event.getJobExecutionId()
                 );
                 providerMessageDistributor.distribute(processedNotificationDetails, processedMessageHolder);
             }

@@ -10,6 +10,8 @@ import org.mockito.Mockito;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.synopsys.integration.alert.api.distribution.execution.ExecutingJob;
+import com.synopsys.integration.alert.api.distribution.execution.ExecutingJobManager;
 import com.synopsys.integration.alert.api.event.EventManager;
 import com.synopsys.integration.alert.common.AlertProperties;
 import com.synopsys.integration.alert.common.enumeration.ProcessingType;
@@ -57,6 +59,7 @@ class JobNotificationProcessorTest {
 
     private final UUID uuid = UUID.randomUUID();
     private final Long notificationId = 123L;
+    private final ExecutingJobManager executingJobManager = new ExecutingJobManager();
 
     @Test
     void processNotificationForJobTest() throws IntegrationException {
@@ -80,11 +83,12 @@ class JobNotificationProcessorTest {
         MockProcessingAuditAccessor processingAuditAccessor = new MockProcessingAuditAccessor();
         EventManager eventManager = Mockito.mock(EventManager.class);
         ProviderMessageDistributor providerMessageDistributor = new ProviderMessageDistributor(eventManager);
+        ExecutingJob executingJob = executingJobManager.startJob(uuid);
 
         NotificationExtractorBlackDuckServicesFactoryCache lifecycleCaches = createNotificationExtractorBlackDuckServicesFactoryCache();
 
         //Create Requirements for processNotificationForJob
-        ProcessedNotificationDetails processedNotificationDetails = new ProcessedNotificationDetails(uuid, CHANNEL_KEY, "JobName");
+        ProcessedNotificationDetails processedNotificationDetails = new ProcessedNotificationDetails(uuid, CHANNEL_KEY, "JobName", executingJob.getExecutionId());
 
         AlertNotificationModel notificationModel = createNotification(NotificationType.RULE_VIOLATION.name());
 

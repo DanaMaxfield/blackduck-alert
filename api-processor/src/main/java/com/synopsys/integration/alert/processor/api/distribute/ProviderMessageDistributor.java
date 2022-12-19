@@ -45,7 +45,7 @@ public class ProviderMessageDistributor {
         }
 
         for (ProcessedProviderMessageHolder singleMessageHolder : processedMessageHolder.expand()) {
-            distributeIndividually(processedNotificationDetails.getJobId(), processedNotificationDetails.getJobName(), destinationKey, singleMessageHolder);
+            distributeIndividually(processedNotificationDetails.getJobExecutionId(), processedNotificationDetails.getJobName(), destinationKey, singleMessageHolder);
         }
     }
 

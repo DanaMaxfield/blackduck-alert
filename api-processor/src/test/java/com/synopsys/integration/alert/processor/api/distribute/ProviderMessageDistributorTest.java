@@ -17,15 +17,16 @@ import com.synopsys.integration.alert.processor.api.extract.model.SimpleMessage;
 import com.synopsys.integration.alert.processor.api.extract.model.project.ProjectMessage;
 import com.synopsys.integration.alert.processor.api.extract.model.project.ProjectOperation;
 
-public class ProviderMessageDistributorTest {
+class ProviderMessageDistributorTest {
     private final UUID uuid = UUID.randomUUID();
+    private final UUID jobExecutionId = UUID.randomUUID();
     private final SlackChannelKey slackChannelKey = new SlackChannelKey();
 
     @Test
     void distributeTest() {
         EventManager eventManager = Mockito.mock(EventManager.class);
 
-        ProcessedNotificationDetails processedNotificationDetails = new ProcessedNotificationDetails(uuid, slackChannelKey.getUniversalKey(), "JobName");
+        ProcessedNotificationDetails processedNotificationDetails = new ProcessedNotificationDetails(uuid, slackChannelKey.getUniversalKey(), "JobName", jobExecutionId);
         ProcessedProviderMessageHolder processedMessageHolder = createProcessedProviderMessageHolder(2, 2);
 
         ProviderMessageDistributor providerMessageDistributor = new ProviderMessageDistributor(eventManager);
@@ -38,7 +39,7 @@ public class ProviderMessageDistributorTest {
     void distributeMissingDestinationKeyTest() {
         EventManager eventManager = Mockito.mock(EventManager.class);
 
-        ProcessedNotificationDetails processedNotificationDetails = new ProcessedNotificationDetails(uuid, "bad channel key", "JobName");
+        ProcessedNotificationDetails processedNotificationDetails = new ProcessedNotificationDetails(uuid, "bad channel key", "JobName", jobExecutionId);
         ProcessedProviderMessageHolder processedMessageHolder = createProcessedProviderMessageHolder(1, 0);
 
         ProviderMessageDistributor providerMessageDistributor = new ProviderMessageDistributor(eventManager);

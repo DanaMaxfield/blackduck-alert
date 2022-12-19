@@ -11,8 +11,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import org.junit.jupiter.api.AfterEach;
@@ -21,7 +23,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.task.SyncTaskExecutor;
 
 import com.google.gson.Gson;
 import com.synopsys.integration.alert.api.common.model.exception.AlertConfigurationException;
@@ -49,6 +50,7 @@ import com.synopsys.integration.alert.processor.api.NotificationContentProcessor
 import com.synopsys.integration.alert.processor.api.NotificationMappingProcessor;
 import com.synopsys.integration.alert.processor.api.NotificationProcessingLifecycleCache;
 import com.synopsys.integration.alert.processor.api.detail.NotificationDetailExtractionDelegator;
+import com.synopsys.integration.alert.processor.api.distribute.DistributionEvent;
 import com.synopsys.integration.alert.processor.api.distribute.ProviderMessageDistributor;
 import com.synopsys.integration.alert.processor.api.event.JobProcessingEvent;
 import com.synopsys.integration.alert.processor.api.extract.model.ProcessedProviderMessage;
@@ -98,7 +100,7 @@ class ProcessingJobEventHandlerTestIT {
     private NotificationContentProcessor notificationContentProcessor;
     private TestProperties properties;
 
-    private final Map<UUID, UUID> jobIdAndCorrelationIdMap = new HashMap<>();
+    private final Map<UUID, Set<String>> jobIdAndEventIdMap = new HashMap<>();
 
     @BeforeEach
     public void init() throws AlertConfigurationException {
@@ -160,7 +162,7 @@ class ProcessingJobEventHandlerTestIT {
         );
         JobProcessingEvent event = new JobProcessingEvent(correlationId, jobExecutionId, jobId);
         eventHandler.handle(event);
-        assertFalse(jobIdAndCorrelationIdMap.containsKey(jobId));
+        assertFalse(jobIdAndEventIdMap.containsKey(jobId));
     }
 
     @Test
@@ -188,8 +190,8 @@ class ProcessingJobEventHandlerTestIT {
         );
         JobProcessingEvent event = new JobProcessingEvent(correlationId, jobExecutionId, jobId);
         eventHandler.handle(event);
-        assertTrue(jobIdAndCorrelationIdMap.containsKey(jobId));
-        assertEquals(correlationId, jobIdAndCorrelationIdMap.get(jobId));
+        assertTrue(jobIdAndEventIdMap.containsKey(jobExecutionId));
+        assertEquals(2, jobIdAndEventIdMap.get(jobExecutionId).size());
     }
 
     private DistributionJobRequestModel createDistributionJobRequest(NotificationType notificationType) {
@@ -276,12 +278,13 @@ class ProcessingJobEventHandlerTestIT {
         Mockito.doNothing().when(rabbitTemplate).convertAndSend(Mockito.anyString(), Mockito.any(Object.class));
         EventManager eventManager = Mockito.mock(EventManager.class);
         Mockito.doAnswer(invocation -> {
-            JobProcessingEvent event = invocation.getArgument(0, JobProcessingEvent.class);
-            jobIdAndCorrelationIdMap.computeIfAbsent(event.getJobId(), ignored -> event.getCorrelationId());
+            DistributionEvent event = invocation.getArgument(0, DistributionEvent.class);
+            Set<String> eventIdSet = jobIdAndEventIdMap.computeIfAbsent(event.getJobExecutionId(), ignored -> new HashSet<>());
+            eventIdSet.add(event.getEventId());
             return null;
-        }).when(eventManager).sendEvent(Mockito.any(JobProcessingEvent.class));
+        }).when(eventManager).sendEvent(Mockito.any());
 
-        return new EventManager(gson, rabbitTemplate, new SyncTaskExecutor());
+        return eventManager;
     }
 
     private ProviderMessageDistributor createMockMessageDistributor() {

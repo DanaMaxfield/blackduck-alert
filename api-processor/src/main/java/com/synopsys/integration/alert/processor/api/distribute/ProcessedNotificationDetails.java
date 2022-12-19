@@ -16,23 +16,30 @@ public final class ProcessedNotificationDetails extends AlertSerializableModel {
     private final UUID jobId;
     private final String channelName;
     private final String jobName;
+    private final UUID jobExecutionId;
 
-    public static ProcessedNotificationDetails fromDistributionJob(DistributionJobModel distributionJobModel) {
+    public static ProcessedNotificationDetails fromDistributionJob(UUID jobExecutionId, DistributionJobModel distributionJobModel) {
         return new ProcessedNotificationDetails(
             distributionJobModel.getJobId(),
             distributionJobModel.getChannelDescriptorName(),
-            distributionJobModel.getName()
+            distributionJobModel.getName(),
+            jobExecutionId
         );
     }
 
-    public ProcessedNotificationDetails(UUID jobId, String channelName, String jobName) {
+    public ProcessedNotificationDetails(final UUID jobId, final String channelName, final String jobName, final UUID jobExecutionId) {
         this.jobId = jobId;
         this.channelName = channelName;
         this.jobName = jobName;
+        this.jobExecutionId = jobExecutionId;
     }
 
     public UUID getJobId() {
         return jobId;
+    }
+
+    public UUID getJobExecutionId() {
+        return jobExecutionId;
     }
 
     public String getChannelName() {
