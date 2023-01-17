@@ -17,7 +17,8 @@ public class DiagnosticModel extends AlertSerializableModel implements Obfuscate
     private AuditDiagnosticModel auditDiagnosticModel;
     private SystemDiagnosticModel systemDiagnosticModel;
     private RabbitMQDiagnosticModel rabbitMQDiagnosticModel;
-    private JobExecutionsDiagnosticModel jobExecutionsDiagnosticModel;
+    private JobStatusDiagnosticModel jobStatusDiagnosticModel;
+    private JobExecutionsDiagnosticModel executingJobsDiagnosticModel;
     private String requestTimestamp;
 
     public DiagnosticModel() {
@@ -30,14 +31,14 @@ public class DiagnosticModel extends AlertSerializableModel implements Obfuscate
         AuditDiagnosticModel auditDiagnosticModel,
         SystemDiagnosticModel systemDiagnosticModel,
         RabbitMQDiagnosticModel rabbitMQDiagnosticModel,
-        JobExecutionsDiagnosticModel jobExecutionsDiagnosticModel
+        JobExecutionsDiagnosticModel executingJobsDiagnosticModel
     ) {
         this.requestTimestamp = requestTimestamp;
         this.notificationDiagnosticModel = notificationDiagnosticModel;
         this.auditDiagnosticModel = auditDiagnosticModel;
         this.systemDiagnosticModel = systemDiagnosticModel;
         this.rabbitMQDiagnosticModel = rabbitMQDiagnosticModel;
-        this.jobExecutionsDiagnosticModel = jobExecutionsDiagnosticModel;
+        this.executingJobsDiagnosticModel = executingJobsDiagnosticModel;
     }
 
     public NotificationDiagnosticModel getNotificationDiagnosticModel() {
@@ -60,8 +61,8 @@ public class DiagnosticModel extends AlertSerializableModel implements Obfuscate
         return requestTimestamp;
     }
 
-    public JobExecutionsDiagnosticModel getJobExecutionsDiagnosticModel() {
-        return jobExecutionsDiagnosticModel;
+    public JobExecutionsDiagnosticModel getExecutingJobsDiagnosticModel() {
+        return executingJobsDiagnosticModel;
     }
 
     @Override
@@ -72,7 +73,7 @@ public class DiagnosticModel extends AlertSerializableModel implements Obfuscate
             auditDiagnosticModel,
             systemDiagnosticModel,
             rabbitMQDiagnosticModel,
-            jobExecutionsDiagnosticModel
+            executingJobsDiagnosticModel
         );
     }
 }

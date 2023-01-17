@@ -5,7 +5,7 @@ import java.util.List;
 public class JobExecutionsDiagnosticModel {
     private final long totalJobsInSystem;
     private final long pendingJobs;
-    private final long successFulJobs;
+    private final long successfulJobs;
     private final long failedJobs;
 
     private final List<JobExecutionDiagnosticModel> jobExecutions;
@@ -13,13 +13,13 @@ public class JobExecutionsDiagnosticModel {
     public JobExecutionsDiagnosticModel(
         final long totalJobsInSystem,
         final long pendingJobs,
-        final long successFulJobs,
+        long successfulJobs,
         final long failedJobs,
         final List<JobExecutionDiagnosticModel> jobExecutions
     ) {
         this.totalJobsInSystem = totalJobsInSystem;
         this.pendingJobs = pendingJobs;
-        this.successFulJobs = successFulJobs;
+        this.successfulJobs = successfulJobs;
         this.failedJobs = failedJobs;
         this.jobExecutions = jobExecutions;
     }
@@ -32,8 +32,8 @@ public class JobExecutionsDiagnosticModel {
         return pendingJobs;
     }
 
-    public long getSuccessFulJobs() {
-        return successFulJobs;
+    public long getSuccessfulJobs() {
+        return successfulJobs;
     }
 
     public long getFailedJobs() {
