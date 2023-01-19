@@ -12,6 +12,7 @@ import org.mockito.Mockito;
 
 import com.synopsys.integration.alert.api.distribution.execution.ExecutingJobManager;
 import com.synopsys.integration.alert.common.enumeration.AuditEntryStatus;
+import com.synopsys.integration.alert.common.persistence.accessor.JobExecutionStatusAccessor;
 import com.synopsys.integration.alert.component.diagnostic.model.AlertQueueInformation;
 import com.synopsys.integration.alert.component.diagnostic.model.AuditDiagnosticModel;
 import com.synopsys.integration.alert.component.diagnostic.model.DiagnosticModel;
@@ -29,6 +30,7 @@ class DefaultDiagnosticAccessorTest {
     private RabbitMQDiagnosticUtility rabbitMQDiagnosticUtility;
     private ExecutingJobManager executingJobManager;
     private StaticJobAccessor staticJobAccessor;
+    private JobExecutionStatusAccessor jobExecutionStatusAccessor;
 
     @BeforeEach
     public void init() {
@@ -37,6 +39,7 @@ class DefaultDiagnosticAccessorTest {
         rabbitMQDiagnosticUtility = Mockito.mock(RabbitMQDiagnosticUtility.class);
         staticJobAccessor = Mockito.mock(StaticJobAccessor.class);
         executingJobManager = new ExecutingJobManager();
+        jobExecutionStatusAccessor = Mockito.mock(JobExecutionStatusAccessor.class);
     }
 
     @Test
@@ -46,7 +49,8 @@ class DefaultDiagnosticAccessorTest {
             auditEntryRepository,
             rabbitMQDiagnosticUtility,
             staticJobAccessor,
-            executingJobManager
+            executingJobManager,
+            jobExecutionStatusAccessor
         );
         NotificationDiagnosticModel notificationDiagnosticModel = createNotificationDiagnosticModel();
         AuditDiagnosticModel auditDiagnosticModel = createAuditDiagnosticModel();
