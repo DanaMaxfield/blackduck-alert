@@ -7,7 +7,6 @@
  */
 package com.synopsys.integration.alert.component.diagnostic.database;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.LinkedList;
 import java.util.List;
@@ -83,6 +82,7 @@ public class DefaultDiagnosticAccessor implements DiagnosticAccessor {
         AuditDiagnosticModel auditDiagnosticModel = getAuditDiagnosticInfo();
         SystemDiagnosticModel systemDiagnosticModel = getSystemInfo();
         RabbitMQDiagnosticModel rabbitMQDiagnosticModel = rabbitMQDiagnosticUtility.getRabbitMQDiagnostics();
+        JobDiagnosticModel jobDiagnosticModel = getJobDiagnosticModel();
         JobExecutionsDiagnosticModel jobExecutionsDiagnosticModel = getExecutingJobDiagnosticModel();
         return new DiagnosticModel(
             LocalDateTime.now().toString(),
@@ -90,6 +90,7 @@ public class DefaultDiagnosticAccessor implements DiagnosticAccessor {
             auditDiagnosticModel,
             systemDiagnosticModel,
             rabbitMQDiagnosticModel,
+            jobDiagnosticModel,
             jobExecutionsDiagnosticModel
         );
     }
@@ -135,7 +136,7 @@ public class DefaultDiagnosticAccessor implements DiagnosticAccessor {
         int pageSize = 100;
         int pageNumber = 0;
         AlertPagedModel<ExecutingJob> page = executingJobManager.getExecutingJobs(pageNumber, pageSize);
-        while (page.getCurrentPage() <= page.getTotalPages()) {
+        while (pageNumber < page.getTotalPages()) {
             jobExecutions.addAll(page.getModels().stream()
                 .map(this::convertExecutionData)
                 .collect(Collectors.toList()));
@@ -151,7 +152,7 @@ public class DefaultDiagnosticAccessor implements DiagnosticAccessor {
         int pageNumber = 0;
         int pageSize = 100;
         AlertPagedModel<JobExecutionStatusModel> page = jobExecutionStatusAccessor.getJobExecutionStatus(new AlertPagedQueryDetails(pageNumber, pageSize));
-        while (page.getCurrentPage() <= page.getTotalPages()) {
+        while (pageNumber < page.getTotalPages()) {
             jobStatusData.addAll(page.getModels().stream()
                 .map(this::convertJobStatusData)
                 .collect(Collectors.toList()));
@@ -208,17 +209,12 @@ public class DefaultDiagnosticAccessor implements DiagnosticAccessor {
 
     private JobDurationDiagnosticModel convertJobDurationData(JobExecutionStatusDurations jobDurationModel) {
         return new JobDurationDiagnosticModel(
-            calculateFormattedDuration(jobDurationModel.getJobDurationMillisec()),
-            jobDurationModel.getNotificationProcessingDuration().map(this::calculateFormattedDuration).orElse(null),
-            jobDurationModel.getChannelProcessingDuration().map(this::calculateFormattedDuration).orElse(null),
-            jobDurationModel.getIssueCreationDuration().map(this::calculateFormattedDuration).orElse(null),
-            jobDurationModel.getIssueCommentingDuration().map(this::calculateFormattedDuration).orElse(null),
-            jobDurationModel.getIssueTransitionDuration().map(this::calculateFormattedDuration).orElse(null)
+            DateUtils.formatDurationFromMilliseconds(jobDurationModel.getJobDurationMillisec()),
+            jobDurationModel.getNotificationProcessingDuration().map(DateUtils::formatDurationFromMilliseconds).orElse(null),
+            jobDurationModel.getChannelProcessingDuration().map(DateUtils::formatDurationFromMilliseconds).orElse(null),
+            jobDurationModel.getIssueCreationDuration().map(DateUtils::formatDurationFromMilliseconds).orElse(null),
+            jobDurationModel.getIssueCommentingDuration().map(DateUtils::formatDurationFromMilliseconds).orElse(null),
+            jobDurationModel.getIssueTransitionDuration().map(DateUtils::formatDurationFromMilliseconds).orElse(null)
         );
-    }
-
-    private String calculateFormattedDuration(Long milliseconds) {
-        Duration duration = Duration.ofMillis(milliseconds);
-        return String.format("%sH:%sm:%ss.%s", duration.toHoursPart(), duration.toMinutesPart(), duration.toSecondsPart(), duration.toMillisPart());
     }
 }

@@ -2,7 +2,10 @@ package com.synopsys.integration.alert.component.diagnostic.model;
 
 import java.util.UUID;
 
-public class JobStatusDiagnosticModel {
+import com.synopsys.integration.alert.api.common.model.AlertSerializableModel;
+
+public class JobStatusDiagnosticModel extends AlertSerializableModel {
+    private static final long serialVersionUID = -4662389084967372263L;
     private final UUID jobConfigId;
     private final String jobName;
     private final Long notificationCount;

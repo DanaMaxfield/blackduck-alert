@@ -17,7 +17,7 @@ public class DiagnosticModel extends AlertSerializableModel implements Obfuscate
     private AuditDiagnosticModel auditDiagnosticModel;
     private SystemDiagnosticModel systemDiagnosticModel;
     private RabbitMQDiagnosticModel rabbitMQDiagnosticModel;
-    private JobStatusDiagnosticModel jobStatusDiagnosticModel;
+    private JobDiagnosticModel jobDiagnosticModel;
     private JobExecutionsDiagnosticModel executingJobsDiagnosticModel;
     private String requestTimestamp;
 
@@ -31,6 +31,7 @@ public class DiagnosticModel extends AlertSerializableModel implements Obfuscate
         AuditDiagnosticModel auditDiagnosticModel,
         SystemDiagnosticModel systemDiagnosticModel,
         RabbitMQDiagnosticModel rabbitMQDiagnosticModel,
+        JobDiagnosticModel jobDiagnosticModel,
         JobExecutionsDiagnosticModel executingJobsDiagnosticModel
     ) {
         this.requestTimestamp = requestTimestamp;
@@ -38,6 +39,7 @@ public class DiagnosticModel extends AlertSerializableModel implements Obfuscate
         this.auditDiagnosticModel = auditDiagnosticModel;
         this.systemDiagnosticModel = systemDiagnosticModel;
         this.rabbitMQDiagnosticModel = rabbitMQDiagnosticModel;
+        this.jobDiagnosticModel = jobDiagnosticModel;
         this.executingJobsDiagnosticModel = executingJobsDiagnosticModel;
     }
 
@@ -61,6 +63,10 @@ public class DiagnosticModel extends AlertSerializableModel implements Obfuscate
         return requestTimestamp;
     }
 
+    public JobDiagnosticModel getJobDiagnosticModel() {
+        return jobDiagnosticModel;
+    }
+
     public JobExecutionsDiagnosticModel getExecutingJobsDiagnosticModel() {
         return executingJobsDiagnosticModel;
     }
@@ -73,6 +79,7 @@ public class DiagnosticModel extends AlertSerializableModel implements Obfuscate
             auditDiagnosticModel,
             systemDiagnosticModel,
             rabbitMQDiagnosticModel,
+            jobDiagnosticModel,
             executingJobsDiagnosticModel
         );
     }

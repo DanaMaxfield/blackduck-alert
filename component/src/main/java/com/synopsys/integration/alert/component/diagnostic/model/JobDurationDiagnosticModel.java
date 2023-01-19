@@ -2,8 +2,11 @@ package com.synopsys.integration.alert.component.diagnostic.model;
 
 import java.util.Optional;
 
-public class JobDurationDiagnosticModel {
+import com.synopsys.integration.alert.api.common.model.AlertSerializableModel;
 
+public class JobDurationDiagnosticModel extends AlertSerializableModel {
+
+    private static final long serialVersionUID = 603773894608608652L;
     private final String jobDuration;
     private final String notificationProcessingDuration;
     private final String channelProcessingDuration;
