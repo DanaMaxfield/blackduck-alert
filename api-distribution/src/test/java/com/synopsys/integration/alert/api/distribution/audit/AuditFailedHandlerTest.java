@@ -76,7 +76,6 @@ class AuditFailedHandlerTest {
     public void init() {
         AuditNotificationRepository auditNotificationRepository = new MockAuditNotificationRepository(this::generateRelationKey);
         AuditEntryRepository auditEntryRepository = new MockAuditEntryRepository(this::generateEntityKey, auditNotificationRepository);
-        executingJobManager = new ExecutingJobManager();
         notificationContentRepository = new MockNotificationContentRepository(this::generateNotificationId);
         auditFailedEntryRepository = new MockAuditFailedEntryRepository(AuditFailedEntity::getId);
         auditFailedNotificationRepository = new MockAuditFailedNotificationRepository(AuditFailedNotificationEntity::getNotificationId);
@@ -86,6 +85,7 @@ class AuditFailedHandlerTest {
         JobExecutionRepository jobExecutionRepository = new MockJobExecutionStatusRepository(jobExecutionDurationsRepository);
 
         jobExecutionStatusAccessor = new DefaultJobExecutionStatusAccessor(jobExecutionRepository, jobExecutionDurationsRepository);
+        executingJobManager = new ExecutingJobManager(jobExecutionStatusAccessor);
     }
 
     private Long generateNotificationId(NotificationEntity entity) {

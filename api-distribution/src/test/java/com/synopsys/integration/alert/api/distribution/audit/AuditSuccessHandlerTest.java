@@ -28,11 +28,11 @@ class AuditSuccessHandlerTest {
 
     @BeforeEach
     public void init() {
-        executingJobManager = new ExecutingJobManager();
         JobExecutionDurationsRepository jobExecutionDurationsRepository = new MockJobExecutionStatusDurationsRepository();
         JobExecutionRepository jobExecutionRepository = new MockJobExecutionStatusRepository(jobExecutionDurationsRepository);
 
         jobExecutionStatusAccessor = new DefaultJobExecutionStatusAccessor(jobExecutionRepository, jobExecutionDurationsRepository);
+        executingJobManager = new ExecutingJobManager(jobExecutionStatusAccessor);
     }
 
     @Test

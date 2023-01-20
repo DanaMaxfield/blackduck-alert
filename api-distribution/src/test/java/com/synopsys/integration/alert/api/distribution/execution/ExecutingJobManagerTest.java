@@ -10,13 +10,26 @@ import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 
+import com.synopsys.integration.alert.api.distribution.mock.MockJobExecutionStatusDurationsRepository;
+import com.synopsys.integration.alert.api.distribution.mock.MockJobExecutionStatusRepository;
 import com.synopsys.integration.alert.common.enumeration.AuditEntryStatus;
+import com.synopsys.integration.alert.common.persistence.accessor.JobExecutionStatusAccessor;
+import com.synopsys.integration.alert.database.api.DefaultJobExecutionStatusAccessor;
+import com.synopsys.integration.alert.database.job.execution.JobExecutionDurationsRepository;
+import com.synopsys.integration.alert.database.job.execution.JobExecutionRepository;
 
 class ExecutingJobManagerTest {
 
+    private JobExecutionStatusAccessor createAccessor() {
+        JobExecutionDurationsRepository durationsRepository = new MockJobExecutionStatusDurationsRepository();
+        JobExecutionRepository jobExecutionRepository = new MockJobExecutionStatusRepository(durationsRepository);
+        return new DefaultJobExecutionStatusAccessor(jobExecutionRepository, durationsRepository);
+    }
+
     @Test
     void createExecutingJobTest() {
-        ExecutingJobManager jobManager = new ExecutingJobManager();
+        JobExecutionStatusAccessor accessor = createAccessor();
+        ExecutingJobManager jobManager = new ExecutingJobManager(accessor);
         UUID jobConfigId = UUID.randomUUID();
         ExecutingJob executingJob = jobManager.startJob(jobConfigId, 0);
         assertNotNull(executingJob);
@@ -25,7 +38,8 @@ class ExecutingJobManagerTest {
 
     @Test
     void removeExecutingJobTest() {
-        ExecutingJobManager jobManager = new ExecutingJobManager();
+        JobExecutionStatusAccessor accessor = createAccessor();
+        ExecutingJobManager jobManager = new ExecutingJobManager(accessor);
         UUID jobConfigId = UUID.randomUUID();
         ExecutingJob executingJob = jobManager.startJob(jobConfigId, 0);
         jobManager.endJobWithSuccess(jobConfigId, Instant.now());
@@ -38,7 +52,8 @@ class ExecutingJobManagerTest {
 
     @Test
     void executingJobPendingTest() {
-        ExecutingJobManager jobManager = new ExecutingJobManager();
+        JobExecutionStatusAccessor accessor = createAccessor();
+        ExecutingJobManager jobManager = new ExecutingJobManager(accessor);
         UUID jobConfigId = UUID.randomUUID();
         ExecutingJob executingJob = jobManager.startJob(jobConfigId, 1);
         AggregatedExecutionResults results = jobManager.aggregateExecutingJobData();
@@ -56,7 +71,8 @@ class ExecutingJobManagerTest {
 
     @Test
     void executingJobSucceededTest() {
-        ExecutingJobManager jobManager = new ExecutingJobManager();
+        JobExecutionStatusAccessor accessor = createAccessor();
+        ExecutingJobManager jobManager = new ExecutingJobManager(accessor);
         UUID jobConfigId = UUID.randomUUID();
         ExecutingJob executingJob = jobManager.startJob(jobConfigId, 1);
         ExecutingJob savedJob = jobManager.getExecutingJob(executingJob.getExecutionId()).orElseThrow(() -> new AssertionError("Job with execution ID not found."));
@@ -75,7 +91,8 @@ class ExecutingJobManagerTest {
 
     @Test
     void executingJobFailedTest() {
-        ExecutingJobManager jobManager = new ExecutingJobManager();
+        JobExecutionStatusAccessor accessor = createAccessor();
+        ExecutingJobManager jobManager = new ExecutingJobManager(accessor);
         UUID jobConfigId = UUID.randomUUID();
         ExecutingJob executingJob = jobManager.startJob(jobConfigId, 1);
         ExecutingJob savedJob = jobManager.getExecutingJob(executingJob.getExecutionId()).orElseThrow(() -> new AssertionError("Job with execution ID not found."));
@@ -94,7 +111,8 @@ class ExecutingJobManagerTest {
 
     @Test
     void addStageTest() {
-        ExecutingJobManager jobManager = new ExecutingJobManager();
+        JobExecutionStatusAccessor accessor = createAccessor();
+        ExecutingJobManager jobManager = new ExecutingJobManager(accessor);
         UUID jobConfigId = UUID.randomUUID();
         ExecutingJob executingJob = jobManager.startJob(jobConfigId, 1);
         ExecutingJobStage executingJobStage = ExecutingJobStage.createStage(executingJob.getExecutionId(), JobStage.NOTIFICATION_PROCESSING);
@@ -111,7 +129,8 @@ class ExecutingJobManagerTest {
 
     @Test
     void stageMissingTest() {
-        ExecutingJobManager jobManager = new ExecutingJobManager();
+        JobExecutionStatusAccessor accessor = createAccessor();
+        ExecutingJobManager jobManager = new ExecutingJobManager(accessor);
         UUID jobConfigId = UUID.randomUUID();
         ExecutingJob executingJob = jobManager.startJob(jobConfigId, 1);
         ExecutingJobStage executingJobStage = ExecutingJobStage.createStage(executingJob.getExecutionId(), JobStage.NOTIFICATION_PROCESSING);
@@ -123,7 +142,8 @@ class ExecutingJobManagerTest {
 
     @Test
     void addSameStageTest() {
-        ExecutingJobManager jobManager = new ExecutingJobManager();
+        JobExecutionStatusAccessor accessor = createAccessor();
+        ExecutingJobManager jobManager = new ExecutingJobManager(accessor);
         UUID jobConfigId = UUID.randomUUID();
         ExecutingJob executingJob = jobManager.startJob(jobConfigId, 1);
         ExecutingJobStage firstStage = ExecutingJobStage.createStage(executingJob.getExecutionId(), JobStage.NOTIFICATION_PROCESSING);
@@ -142,7 +162,8 @@ class ExecutingJobManagerTest {
 
     @Test
     void multipleStagesTest() {
-        ExecutingJobManager jobManager = new ExecutingJobManager();
+        JobExecutionStatusAccessor accessor = createAccessor();
+        ExecutingJobManager jobManager = new ExecutingJobManager(accessor);
         UUID jobConfigId = UUID.randomUUID();
         ExecutingJob executingJob = jobManager.startJob(jobConfigId, 1);
         ExecutingJobStage mappingStage = ExecutingJobStage.createStage(executingJob.getExecutionId(), JobStage.NOTIFICATION_PROCESSING);

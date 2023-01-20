@@ -39,7 +39,6 @@ public class AuditFailedHandler implements AlertEventHandler<AuditFailedEvent> {
     @Override
     public void handle(AuditFailedEvent event) {
         UUID jobExecutionId = event.getJobExecutionId();
-        executingJobManager.endJobWithFailure(jobExecutionId, event.getCreatedTimestamp().toInstant());
         Optional<ExecutingJob> executingJobOptional = executingJobManager.getExecutingJob(jobExecutionId);
         if (executingJobOptional.isPresent()) {
             ExecutingJob executingJob = executingJobOptional.get();
@@ -55,8 +54,7 @@ public class AuditFailedHandler implements AlertEventHandler<AuditFailedEvent> {
             } else {
                 processingFailedAccessor.setAuditFailure(jobConfigId, event.getNotificationIds(), event.getCreatedTimestamp(), event.getErrorMessage());
             }
-            jobExecutionStatusAccessor.saveExecutionStatus(createStatusModel(executingJob));
-            executingJobManager.purgeJob(jobExecutionId);
+            executingJobManager.endJobWithFailure(jobExecutionId, event.getCreatedTimestamp().toInstant());
         }
     }
 
