@@ -143,8 +143,7 @@ public class IntegrationPerformanceTestRunner {
         String jobName,
         String blackDuckProviderID,
         String policyName,
-        int numberOfExpectedAuditEntries,
-        boolean waitForAuditComplete
+        int numberOfExpectedAuditEntries
     ) {
         LocalDateTime jobStartingTime = LocalDateTime.now();
         LocalDateTime startingNotificationTime;
@@ -164,7 +163,6 @@ public class IntegrationPerformanceTestRunner {
         }
 
         WaitJobCondition waitJobCondition = createWaitJobCondition(
-            waitForAuditComplete,
             Set.of(jobId),
             startingNotificationTime,
             numberOfExpectedAuditEntries,
@@ -176,8 +174,7 @@ public class IntegrationPerformanceTestRunner {
     public PerformanceExecutionStatusModel testManyPolicyJobsToManyProjects(
         Set<String> jobIds,
         String policyName,
-        int numberOfExpectedAuditEntries,
-        boolean waitForAuditComplete
+        int numberOfExpectedAuditEntries
     ) {
         // trigger BD notifications
         LocalDateTime startingNotificationTime = LocalDateTime.now();
@@ -190,7 +187,6 @@ public class IntegrationPerformanceTestRunner {
         }
 
         WaitJobCondition waitJobCondition = createWaitJobCondition(
-            waitForAuditComplete,
             jobIds,
             startingNotificationTime,
             numberOfExpectedAuditEntries,
@@ -278,18 +274,18 @@ public class IntegrationPerformanceTestRunner {
     }
 
     private WaitJobCondition createWaitJobCondition(
-        boolean waitForAuditComplete,
         Set<String> jobIds,
         LocalDateTime startingNotificationTime,
         int numberOfExpectedAuditEntries,
         NotificationType notificationType
     ) {
-        WaitJobCondition waitJobCondition;
-        if (waitForAuditComplete) {
-            waitJobCondition = createAuditCompleteWaitTask(jobIds, startingNotificationTime, numberOfExpectedAuditEntries, notificationType);
-        } else {
-            waitJobCondition = createAuditProcessingWaitTask(jobIds, startingNotificationTime, numberOfExpectedAuditEntries, notificationType);
-        }
-        return waitJobCondition;
+        return new ProcessingCompleteWaitJobTask(
+            intLogger,
+            gson,
+            alertRequestUtility,
+            startingNotificationTime,
+            numberOfExpectedAuditEntries,
+            jobIds
+        );
     }
 }
