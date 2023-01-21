@@ -39,7 +39,7 @@ class AuditSuccessEventListenerTest {
 
         jobExecutionStatusAccessor = new DefaultJobExecutionStatusAccessor(jobExecutionRepository, jobExecutionDurationsRepository);
         executingJobManager = new ExecutingJobManager(jobExecutionStatusAccessor);
-        handler = new AuditSuccessHandler(executingJobManager, jobExecutionStatusAccessor);
+        handler = new AuditSuccessHandler(executingJobManager);
     }
 
     @Test

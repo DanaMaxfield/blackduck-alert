@@ -84,7 +84,7 @@ public class DefaultJobExecutionStatusAccessor implements JobExecutionStatusAcce
 
     private JobExecutionStatusDurations convertDurationToModel(JobExecutionStatusDurationsEntity entity) {
         return new JobExecutionStatusDurations(
-            entity.getJobDurationMillisec(),
+            entity.getJobDurationNanosec(),
             entity.getNotificationProcessingDuration(),
             entity.getChannelProcessingDuration(),
             entity.getIssueCreationDuration(),

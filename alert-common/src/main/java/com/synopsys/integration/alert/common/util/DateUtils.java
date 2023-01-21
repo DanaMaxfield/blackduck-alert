@@ -69,6 +69,11 @@ public final class DateUtils {
         return String.format("%sH:%sm:%ss.%s", duration.toHoursPart(), duration.toMinutesPart(), duration.toSecondsPart(), duration.toMillisPart());
     }
 
+    public static String formatDurationFromNanos(Long nanoseconds) {
+        Duration duration = Duration.ofNanos(nanoseconds);
+        return String.format("%sH:%sm:%ss.%s", duration.toHoursPart(), duration.toMinutesPart(), duration.toSecondsPart(), duration.toNanosPart());
+    }
+
     private DateUtils() {
     }
 

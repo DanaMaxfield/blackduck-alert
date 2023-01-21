@@ -209,12 +209,12 @@ public class DefaultDiagnosticAccessor implements DiagnosticAccessor {
 
     private JobDurationDiagnosticModel convertJobDurationData(JobExecutionStatusDurations jobDurationModel) {
         return new JobDurationDiagnosticModel(
-            DateUtils.formatDurationFromMilliseconds(jobDurationModel.getJobDurationMillisec()),
-            jobDurationModel.getNotificationProcessingDuration().map(DateUtils::formatDurationFromMilliseconds).orElse(null),
-            jobDurationModel.getChannelProcessingDuration().map(DateUtils::formatDurationFromMilliseconds).orElse(null),
-            jobDurationModel.getIssueCreationDuration().map(DateUtils::formatDurationFromMilliseconds).orElse(null),
-            jobDurationModel.getIssueCommentingDuration().map(DateUtils::formatDurationFromMilliseconds).orElse(null),
-            jobDurationModel.getIssueTransitionDuration().map(DateUtils::formatDurationFromMilliseconds).orElse(null)
+            DateUtils.formatDurationFromNanos(jobDurationModel.getJobDurationMillisec()),
+            jobDurationModel.getNotificationProcessingDuration().map(DateUtils::formatDurationFromNanos).orElse(null),
+            jobDurationModel.getChannelProcessingDuration().map(DateUtils::formatDurationFromNanos).orElse(null),
+            jobDurationModel.getIssueCreationDuration().map(DateUtils::formatDurationFromNanos).orElse(null),
+            jobDurationModel.getIssueCommentingDuration().map(DateUtils::formatDurationFromNanos).orElse(null),
+            jobDurationModel.getIssueTransitionDuration().map(DateUtils::formatDurationFromNanos).orElse(null)
         );
     }
 }

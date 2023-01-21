@@ -129,7 +129,7 @@ class AuditFailedHandlerTest {
         String stackTrace = "Stack trace goes here";
         UUID executingJobId = executingJob.getExecutionId();
 
-        AuditFailedHandler handler = new AuditFailedHandler(processingFailedAccessor, executingJobManager, jobExecutionStatusAccessor);
+        AuditFailedHandler handler = new AuditFailedHandler(processingFailedAccessor, executingJobManager);
         notificationIds.stream()
             .map(this::createNotification)
             .forEach(notificationContentRepository::save);
@@ -143,7 +143,7 @@ class AuditFailedHandlerTest {
             assertNotNull(entity.getProviderName());
             assertEquals(TEST_JOB_NAME, entity.getJobName());
             assertEquals(ChannelKeys.SLACK.getUniversalKey(), entity.getChannelName());
-            assertEquals(event.getCreatedTimestamp(), entity.getTimeCreated());
+            assertEquals(event.getCreatedTimestamp(), entity.getTimeCreated().toInstant());
             assertEquals(errorMessage, entity.getErrorMessage());
             assertEquals(stackTrace, entity.getErrorStackTrace().orElseThrow(() -> new AssertionError("Expected stack trace but none found")));
         }
@@ -175,7 +175,7 @@ class AuditFailedHandlerTest {
         notificationIds.stream()
             .map(this::createNotification)
             .forEach(notificationContentRepository::save);
-        AuditFailedHandler handler = new AuditFailedHandler(processingFailedAccessor, executingJobManager, jobExecutionStatusAccessor);
+        AuditFailedHandler handler = new AuditFailedHandler(processingFailedAccessor, executingJobManager);
         AuditFailedEvent event = new AuditFailedEvent(jobExecutionId, notificationIds, errorMessage, stackTrace);
 
         handler.handle(event);
@@ -186,7 +186,7 @@ class AuditFailedHandlerTest {
             assertNotNull(entity.getProviderName());
             assertEquals(TEST_JOB_NAME, entity.getJobName());
             assertEquals(ChannelKeys.SLACK.getUniversalKey(), entity.getChannelName());
-            assertEquals(event.getCreatedTimestamp(), entity.getTimeCreated());
+            assertEquals(event.getCreatedTimestamp(), entity.getTimeCreated().toInstant());
             assertEquals(errorMessage, entity.getErrorMessage());
             assertEquals(stackTrace, entity.getErrorStackTrace().orElseThrow(() -> new AssertionError("Expected stack trace but none found")));
         }

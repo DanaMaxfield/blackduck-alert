@@ -17,22 +17,22 @@ public class JobExecutionStatusDurationsEntity extends BaseEntity {
     @Column(name = "job_config_id")
     private UUID jobConfigId;
 
-    @Column(name = "job_duration_milliseconds")
-    private Long jobDurationMillisec;
+    @Column(name = "job_duration_nanoseconds")
+    private Long jobDurationNanosec;
 
-    @Column(name = "notification_processing_duration_milliseconds")
+    @Column(name = "notification_processing_duration_nanoseconds")
     private Long notificationProcessingDuration;
 
-    @Column(name = "channel_processing_duration_milliseconds")
+    @Column(name = "channel_processing_duration_nanoseconds")
     private Long channelProcessingDuration;
 
-    @Column(name = "issue_creation_duration_milliseconds")
+    @Column(name = "issue_creation_duration_nanoseconds")
     private Long issueCreationDuration;
 
-    @Column(name = "issue_commenting_duration_milliseconds")
+    @Column(name = "issue_commenting_duration_nanoseconds")
     private Long issueCommentingDuration;
 
-    @Column(name = "issue_resolving_duration_milliseconds")
+    @Column(name = "issue_resolving_duration_nanoseconds")
     private Long issueTransitionDuration;
 
     public JobExecutionStatusDurationsEntity() {
@@ -41,7 +41,7 @@ public class JobExecutionStatusDurationsEntity extends BaseEntity {
 
     public JobExecutionStatusDurationsEntity(
         UUID jobConfigId,
-        Long jobDurationMillisec,
+        Long jobDurationNanosec,
         Long notificationProcessingDuration,
         Long channelProcessingDuration,
         Long issueCreationDuration,
@@ -49,7 +49,7 @@ public class JobExecutionStatusDurationsEntity extends BaseEntity {
         Long issueTransitionDuration
     ) {
         this.jobConfigId = jobConfigId;
-        this.jobDurationMillisec = jobDurationMillisec;
+        this.jobDurationNanosec = jobDurationNanosec;
         this.notificationProcessingDuration = notificationProcessingDuration;
         this.channelProcessingDuration = channelProcessingDuration;
         this.issueCreationDuration = issueCreationDuration;
@@ -61,8 +61,8 @@ public class JobExecutionStatusDurationsEntity extends BaseEntity {
         return jobConfigId;
     }
 
-    public Long getJobDurationMillisec() {
-        return jobDurationMillisec;
+    public Long getJobDurationNanosec() {
+        return jobDurationNanosec;
     }
 
     public Long getNotificationProcessingDuration() {

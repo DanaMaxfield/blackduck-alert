@@ -133,7 +133,7 @@ class AuditFailedEventListenerTest {
             notificationAccessor,
             jobAccessor
         );
-        AuditFailedHandler handler = new AuditFailedHandler(processingFailedAccessor, executingJobManager, jobExecutionStatusAccessor);
+        AuditFailedHandler handler = new AuditFailedHandler(processingFailedAccessor, executingJobManager);
 
         notificationIds.stream()
             .map(this::createNotification)

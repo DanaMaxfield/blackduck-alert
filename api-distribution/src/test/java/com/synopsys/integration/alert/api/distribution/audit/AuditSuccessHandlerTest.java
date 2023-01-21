@@ -40,7 +40,7 @@ class AuditSuccessHandlerTest {
         UUID jobId = UUID.randomUUID();
         ExecutingJob executingJob = executingJobManager.startJob(jobId, 0);
         UUID jobExecutionId = executingJob.getExecutionId();
-        AuditSuccessHandler handler = new AuditSuccessHandler(executingJobManager, jobExecutionStatusAccessor);
+        AuditSuccessHandler handler = new AuditSuccessHandler(executingJobManager);
         AuditSuccessEvent event = new AuditSuccessEvent(jobExecutionId, Set.of());
         handler.handle(event);
         JobExecutionStatusModel statusModel = jobExecutionStatusAccessor.getJobExecutionStatus(jobId)
@@ -57,7 +57,7 @@ class AuditSuccessHandlerTest {
         UUID jobExecutionId = UUID.randomUUID();
         Set<Long> notificationIds = Set.of(1L, 2L, 3L);
         AlertPagedQueryDetails pagedQueryDetails = new AlertPagedQueryDetails(1, 10);
-        AuditSuccessHandler handler = new AuditSuccessHandler(executingJobManager, jobExecutionStatusAccessor);
+        AuditSuccessHandler handler = new AuditSuccessHandler(executingJobManager);
         AuditSuccessEvent event = new AuditSuccessEvent(jobExecutionId, notificationIds);
         handler.handle(event);
         Optional<ExecutingJob> executingJob = executingJobManager.getExecutingJob(jobExecutionId);

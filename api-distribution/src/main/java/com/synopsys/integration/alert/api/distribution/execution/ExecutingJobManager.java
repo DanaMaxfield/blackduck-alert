@@ -71,18 +71,18 @@ public class ExecutingJobManager {
         return new AlertPagedModel<>(pages.size(), pageNumber, pageSize, pageOfData);
     }
 
-    public void startStage(UUID executionId, JobStage stage) {
+    public void startStage(UUID executionId, JobStage stage, Instant start) {
         Optional<ExecutingJob> executingJob = Optional.ofNullable(executingJobMap.getOrDefault(executionId, null));
         executingJob.ifPresent(job -> {
-            job.addStage(ExecutingJobStage.createStage(executionId, stage));
+            job.addStage(new ExecutingJobStage(executionId, stage, start));
         });
     }
 
-    public void endStage(UUID executionId, JobStage stage) {
+    public void endStage(UUID executionId, JobStage stage, Instant end) {
         Optional<ExecutingJob> executingJob = Optional.ofNullable(executingJobMap.getOrDefault(executionId, null));
         executingJob
             .flatMap(job -> job.getStage(stage))
-            .ifPresent(ExecutingJobStage::endStage);
+            .ifPresent(jobStage -> jobStage.endStage(end));
     }
 
     public void purgeJob(UUID executionId) {
@@ -132,7 +132,7 @@ public class ExecutingJobManager {
 
     private JobExecutionStatusModel updateCompletedJobStatus(ExecutingJob executingJob, AuditEntryStatus jobStatus, JobExecutionStatusModel currentStatus) {
         JobExecutionStatusDurations currentDurations = currentStatus.getDurations();
-        Long jobDuration = calculateMillisecondDuration(executingJob.getStart(), executingJob.getEnd().orElse(Instant.now()));
+        Long jobDuration = calculateNanoDuration(executingJob.getStart(), executingJob.getEnd().orElse(Instant.now()));
         Long processingStageDuration = calculateJobStageDuration(executingJob, JobStage.NOTIFICATION_PROCESSING);
         Long channelProcessingStageDuration = calculateJobStageDuration(executingJob, JobStage.CHANNEL_PROCESSING);
         Long issueCreationDuration = calculateJobStageDuration(executingJob, JobStage.ISSUE_CREATION);
@@ -183,7 +183,7 @@ public class ExecutingJobManager {
         }
 
         JobExecutionStatusDurations durations = new JobExecutionStatusDurations(
-            calculateMillisecondDuration(executingJob.getStart(), executingJob.getEnd().orElse(Instant.now())),
+            calculateNanoDuration(executingJob.getStart(), executingJob.getEnd().orElse(Instant.now())),
             calculateJobStageDuration(executingJob, JobStage.NOTIFICATION_PROCESSING),
             calculateJobStageDuration(executingJob, JobStage.CHANNEL_PROCESSING),
             calculateJobStageDuration(executingJob, JobStage.ISSUE_CREATION),
@@ -211,12 +211,12 @@ public class ExecutingJobManager {
     private Long calculateJobStageDuration(ExecutingJob executingJob, JobStage stage) {
         return executingJob.getStage(stage)
             .filter(executingJobStage -> executingJobStage.getEnd().isPresent())
-            .map(executedStage -> calculateMillisecondDuration(executedStage.getStart(), executedStage.getEnd().orElse(Instant.now())))
+            .map(executedStage -> calculateNanoDuration(executedStage.getStart(), executedStage.getEnd().orElse(Instant.now())))
             .orElse(0L);
     }
 
-    private Long calculateMillisecondDuration(Instant start, Instant end) {
-        return Duration.between(start, end).toMillis();
+    private Long calculateNanoDuration(Instant start, Instant end) {
+        return Duration.between(start, end).toNanos();
     }
 
 }

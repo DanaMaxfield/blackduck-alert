@@ -115,9 +115,9 @@ class ExecutingJobManagerTest {
         ExecutingJobManager jobManager = new ExecutingJobManager(accessor);
         UUID jobConfigId = UUID.randomUUID();
         ExecutingJob executingJob = jobManager.startJob(jobConfigId, 1);
-        ExecutingJobStage executingJobStage = ExecutingJobStage.createStage(executingJob.getExecutionId(), JobStage.NOTIFICATION_PROCESSING);
+        ExecutingJobStage executingJobStage = new ExecutingJobStage(executingJob.getExecutionId(), JobStage.NOTIFICATION_PROCESSING, Instant.now());
         executingJob.addStage(executingJobStage);
-        executingJobStage.endStage();
+        executingJobStage.endStage(Instant.now());
         ExecutingJobStage storedStage = executingJob.getStage(JobStage.NOTIFICATION_PROCESSING)
             .orElseThrow(() -> new AssertionError("Job Stage is missing when it should be present."));
         assertEquals(executingJobStage, storedStage);
@@ -133,9 +133,9 @@ class ExecutingJobManagerTest {
         ExecutingJobManager jobManager = new ExecutingJobManager(accessor);
         UUID jobConfigId = UUID.randomUUID();
         ExecutingJob executingJob = jobManager.startJob(jobConfigId, 1);
-        ExecutingJobStage executingJobStage = ExecutingJobStage.createStage(executingJob.getExecutionId(), JobStage.NOTIFICATION_PROCESSING);
+        ExecutingJobStage executingJobStage = new ExecutingJobStage(executingJob.getExecutionId(), JobStage.NOTIFICATION_PROCESSING, Instant.now());
         executingJob.addStage(executingJobStage);
-        executingJobStage.endStage();
+        executingJobStage.endStage(Instant.now());
         Optional<ExecutingJobStage> missingStage = executingJob.getStage(JobStage.CHANNEL_PROCESSING);
         assertTrue(missingStage.isEmpty());
     }
@@ -146,13 +146,13 @@ class ExecutingJobManagerTest {
         ExecutingJobManager jobManager = new ExecutingJobManager(accessor);
         UUID jobConfigId = UUID.randomUUID();
         ExecutingJob executingJob = jobManager.startJob(jobConfigId, 1);
-        ExecutingJobStage firstStage = ExecutingJobStage.createStage(executingJob.getExecutionId(), JobStage.NOTIFICATION_PROCESSING);
+        ExecutingJobStage firstStage = new ExecutingJobStage(executingJob.getExecutionId(), JobStage.NOTIFICATION_PROCESSING, Instant.now());
         executingJob.addStage(firstStage);
-        firstStage.endStage();
+        firstStage.endStage(Instant.now());
 
-        ExecutingJobStage secondStage = ExecutingJobStage.createStage(executingJob.getExecutionId(), JobStage.NOTIFICATION_PROCESSING);
+        ExecutingJobStage secondStage = new ExecutingJobStage(executingJob.getExecutionId(), JobStage.NOTIFICATION_PROCESSING, Instant.now());
         executingJob.addStage(secondStage);
-        secondStage.endStage();
+        secondStage.endStage(Instant.now());
 
         ExecutingJobStage storedStage = executingJob.getStage(JobStage.NOTIFICATION_PROCESSING)
             .orElseThrow(() -> new AssertionError("Job Stage is missing when it should be present."));
@@ -166,15 +166,14 @@ class ExecutingJobManagerTest {
         ExecutingJobManager jobManager = new ExecutingJobManager(accessor);
         UUID jobConfigId = UUID.randomUUID();
         ExecutingJob executingJob = jobManager.startJob(jobConfigId, 1);
-        ExecutingJobStage mappingStage = ExecutingJobStage.createStage(executingJob.getExecutionId(), JobStage.NOTIFICATION_PROCESSING);
+        ExecutingJobStage mappingStage = new ExecutingJobStage(executingJob.getExecutionId(), JobStage.NOTIFICATION_PROCESSING, Instant.now());
         executingJob.addStage(mappingStage);
-        mappingStage.endStage();
-        ExecutingJobStage processingStage = ExecutingJobStage.createStage(executingJob.getExecutionId(), JobStage.CHANNEL_PROCESSING);
+        mappingStage.endStage(Instant.now());
+        ExecutingJobStage processingStage = new ExecutingJobStage(executingJob.getExecutionId(), JobStage.CHANNEL_PROCESSING, Instant.now());
         executingJob.addStage(processingStage);
-        processingStage.endStage();
+        processingStage.endStage(Instant.now());
         assertTrue(executingJob.getStage(JobStage.NOTIFICATION_PROCESSING).isPresent());
         assertTrue(executingJob.getStage(JobStage.CHANNEL_PROCESSING).isPresent());
         assertEquals(2, executingJob.getStages().size());
     }
-
 }

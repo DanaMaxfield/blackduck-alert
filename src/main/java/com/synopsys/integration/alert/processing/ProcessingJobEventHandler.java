@@ -7,6 +7,7 @@
  */
 package com.synopsys.integration.alert.processing;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -88,7 +89,7 @@ public class ProcessingJobEventHandler implements AlertEventHandler<JobProcessin
             if (jobModel.isPresent()) {
                 int totalNotificationCount = jobNotificationMappingAccessor.getNotificationCountForJob(correlationId, jobId);
                 ExecutingJob executingJob = executingJobManager.startJob(jobId, totalNotificationCount);
-                executingJobManager.startStage(executingJob.getExecutionId(), JobStage.NOTIFICATION_PROCESSING);
+                executingJobManager.startStage(executingJob.getExecutionId(), JobStage.NOTIFICATION_PROCESSING, Instant.now());
                 DistributionJobModel jobConfiguration = jobModel.get();
                 ProcessedProviderMessageHolder processedMessageHolder = jobNotificationContentProcessor.processNotifications(
                     event,
@@ -102,7 +103,7 @@ public class ProcessingJobEventHandler implements AlertEventHandler<JobProcessin
                     jobConfiguration.getName()
                 );
                 providerMessageDistributor.distribute(processedNotificationDetails, processedMessageHolder);
-                executingJobManager.endStage(executingJob.getExecutionId(), JobStage.NOTIFICATION_PROCESSING);
+                executingJobManager.endStage(executingJob.getExecutionId(), JobStage.NOTIFICATION_PROCESSING, Instant.now());
             }
         } finally {
             jobNotificationMappingAccessor.removeJobMapping(correlationId, jobId);

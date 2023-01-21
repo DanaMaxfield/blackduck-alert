@@ -21,6 +21,6 @@ public class JobStageEndedHandler implements AlertEventHandler<JobStageEndedEven
         UUID jobExecutionId = event.getJobExecutionId();
         JobStage jobStage = event.getJobStage();
         executingJobManager.getExecutingJob(jobExecutionId)
-            .ifPresent(executingJob -> executingJobManager.endStage(jobExecutionId, jobStage));
+            .ifPresent(executingJob -> executingJobManager.endStage(jobExecutionId, jobStage, event.getCreatedTimestamp()));
     }
 }

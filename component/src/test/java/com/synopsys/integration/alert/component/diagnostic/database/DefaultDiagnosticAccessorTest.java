@@ -143,12 +143,12 @@ class DefaultDiagnosticAccessorTest {
 
         Mockito.when(staticJobAccessor.getJobById(Mockito.any())).thenReturn(Optional.of(jobModelBuilder.build()));
         JobDurationDiagnosticModel durationDiagnosticModel = new JobDurationDiagnosticModel(
-            DateUtils.formatDurationFromMilliseconds(durations.getJobDurationMillisec()),
-            durations.getNotificationProcessingDuration().map(DateUtils::formatDurationFromMilliseconds).orElse(null),
-            durations.getChannelProcessingDuration().map(DateUtils::formatDurationFromMilliseconds).orElse(null),
-            durations.getIssueCreationDuration().map(DateUtils::formatDurationFromMilliseconds).orElse(null),
-            durations.getIssueCommentingDuration().map(DateUtils::formatDurationFromMilliseconds).orElse(null),
-            durations.getIssueTransitionDuration().map(DateUtils::formatDurationFromMilliseconds).orElse(null)
+            DateUtils.formatDurationFromNanos(durations.getJobDurationMillisec()),
+            durations.getNotificationProcessingDuration().map(DateUtils::formatDurationFromNanos).orElse(null),
+            durations.getChannelProcessingDuration().map(DateUtils::formatDurationFromNanos).orElse(null),
+            durations.getIssueCreationDuration().map(DateUtils::formatDurationFromNanos).orElse(null),
+            durations.getIssueCommentingDuration().map(DateUtils::formatDurationFromNanos).orElse(null),
+            durations.getIssueTransitionDuration().map(DateUtils::formatDurationFromNanos).orElse(null)
         );
         JobStatusDiagnosticModel statusDiagnosticModel = new JobStatusDiagnosticModel(
             jobConfigId,

@@ -36,14 +36,14 @@
             <column name="job_config_id" type="UUID" defaultValueComputed="uuid_generate_v4()">
                 <constraints primaryKey="true"/>
             </column>
-            <column name="job_duration_milliseconds" type="BIGINT">
+            <column name="job_duration_nanoseconds" type="BIGINT">
                 <constraints nullable="false"/>
             </column>
-            <column name="notification_processing_duration_milliseconds" type="BIGINT"/>
-            <column name="channel_processing_duration_milliseconds" type="BIGINT"/>
-            <column name="issue_creation_duration_milliseconds" type="BIGINT"/>
-            <column name="issue_commenting_duration_milliseconds" type="BIGINT"/>
-            <column name="issue_resolving_duration_milliseconds" type="BIGINT"/>
+            <column name="notification_processing_duration_nanoseconds" type="BIGINT"/>
+            <column name="channel_processing_duration_nanoseconds" type="BIGINT"/>
+            <column name="issue_creation_duration_nanoseconds" type="BIGINT"/>
+            <column name="issue_commenting_duration_nanoseconds" type="BIGINT"/>
+            <column name="issue_resolving_duration_nanoseconds" type="BIGINT"/>
         </createTable>
     </changeSet>
     <changeSet author="psantos" id="create-execution-tables-foreign-key">

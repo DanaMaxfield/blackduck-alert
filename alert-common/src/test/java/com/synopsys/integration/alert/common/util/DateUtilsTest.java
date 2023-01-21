@@ -86,4 +86,20 @@ import com.synopsys.integration.rest.RestConstants;
          assertEquals(expected, DateUtils.formatDurationFromMilliseconds(millisecDuration));
      }
 
+     @Test
+     void formatDurationFromNanosecondsTest() {
+         OffsetDateTime start = OffsetDateTime.now();
+         OffsetDateTime end = start.plusMinutes(5);
+         Duration duration = Duration.between(start, end);
+         Long nanosecDuration = duration.toNanos();
+         String expected = String.format(
+             "%sH:%sm:%ss.%s",
+             duration.toHoursPart(),
+             duration.toMinutesPart(),
+             duration.toSecondsPart(),
+             duration.toNanosPart()
+         );
+         assertEquals(expected, DateUtils.formatDurationFromNanos(nanosecDuration));
+     }
+
  }
