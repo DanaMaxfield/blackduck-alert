@@ -12,15 +12,15 @@ import org.junit.jupiter.api.Test;
 
 import com.synopsys.integration.alert.api.distribution.execution.ExecutingJob;
 import com.synopsys.integration.alert.api.distribution.execution.ExecutingJobManager;
-import com.synopsys.integration.alert.api.distribution.mock.MockJobExecutionStatusDurationsRepository;
-import com.synopsys.integration.alert.api.distribution.mock.MockJobExecutionStatusRepository;
+import com.synopsys.integration.alert.api.distribution.mock.MockJobCompletionStatusDurationRepository;
+import com.synopsys.integration.alert.api.distribution.mock.MockJobCompletionStatusStatusRepository;
 import com.synopsys.integration.alert.common.enumeration.AuditEntryStatus;
 import com.synopsys.integration.alert.common.persistence.accessor.JobExecutionStatusAccessor;
 import com.synopsys.integration.alert.common.persistence.model.job.executions.JobExecutionStatusModel;
 import com.synopsys.integration.alert.common.rest.model.AlertPagedQueryDetails;
 import com.synopsys.integration.alert.database.api.DefaultJobExecutionStatusAccessor;
-import com.synopsys.integration.alert.database.job.execution.JobExecutionDurationsRepository;
-import com.synopsys.integration.alert.database.job.execution.JobExecutionRepository;
+import com.synopsys.integration.alert.database.job.execution.JobCompletionStatusDurationRepository;
+import com.synopsys.integration.alert.database.job.execution.JobCompletionStatusRepository;
 
 class AuditSuccessHandlerTest {
     private ExecutingJobManager executingJobManager;
@@ -28,10 +28,10 @@ class AuditSuccessHandlerTest {
 
     @BeforeEach
     public void init() {
-        JobExecutionDurationsRepository jobExecutionDurationsRepository = new MockJobExecutionStatusDurationsRepository();
-        JobExecutionRepository jobExecutionRepository = new MockJobExecutionStatusRepository(jobExecutionDurationsRepository);
+        JobCompletionStatusDurationRepository jobCompletionStatusDurationRepository = new MockJobCompletionStatusDurationRepository();
+        JobCompletionStatusRepository jobCompletionStatusRepository = new MockJobCompletionStatusStatusRepository(jobCompletionStatusDurationRepository);
 
-        jobExecutionStatusAccessor = new DefaultJobExecutionStatusAccessor(jobExecutionRepository, jobExecutionDurationsRepository);
+        jobExecutionStatusAccessor = new DefaultJobExecutionStatusAccessor(jobCompletionStatusRepository, jobCompletionStatusDurationRepository);
         executingJobManager = new ExecutingJobManager(jobExecutionStatusAccessor);
     }
 

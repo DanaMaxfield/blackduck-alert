@@ -10,20 +10,20 @@ import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 
-import com.synopsys.integration.alert.api.distribution.mock.MockJobExecutionStatusDurationsRepository;
-import com.synopsys.integration.alert.api.distribution.mock.MockJobExecutionStatusRepository;
+import com.synopsys.integration.alert.api.distribution.mock.MockJobCompletionStatusDurationRepository;
+import com.synopsys.integration.alert.api.distribution.mock.MockJobCompletionStatusStatusRepository;
 import com.synopsys.integration.alert.common.enumeration.AuditEntryStatus;
 import com.synopsys.integration.alert.common.persistence.accessor.JobExecutionStatusAccessor;
 import com.synopsys.integration.alert.database.api.DefaultJobExecutionStatusAccessor;
-import com.synopsys.integration.alert.database.job.execution.JobExecutionDurationsRepository;
-import com.synopsys.integration.alert.database.job.execution.JobExecutionRepository;
+import com.synopsys.integration.alert.database.job.execution.JobCompletionStatusDurationRepository;
+import com.synopsys.integration.alert.database.job.execution.JobCompletionStatusRepository;
 
 class ExecutingJobManagerTest {
 
     private JobExecutionStatusAccessor createAccessor() {
-        JobExecutionDurationsRepository durationsRepository = new MockJobExecutionStatusDurationsRepository();
-        JobExecutionRepository jobExecutionRepository = new MockJobExecutionStatusRepository(durationsRepository);
-        return new DefaultJobExecutionStatusAccessor(jobExecutionRepository, durationsRepository);
+        JobCompletionStatusDurationRepository durationsRepository = new MockJobCompletionStatusDurationRepository();
+        JobCompletionStatusRepository jobCompletionStatusRepository = new MockJobCompletionStatusStatusRepository(durationsRepository);
+        return new DefaultJobExecutionStatusAccessor(jobCompletionStatusRepository, durationsRepository);
     }
 
     @Test

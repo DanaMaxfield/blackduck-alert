@@ -18,27 +18,30 @@ import com.synopsys.integration.alert.common.persistence.model.job.executions.Jo
 import com.synopsys.integration.alert.common.persistence.model.job.executions.JobExecutionStatusModel;
 import com.synopsys.integration.alert.common.rest.model.AlertPagedModel;
 import com.synopsys.integration.alert.common.rest.model.AlertPagedQueryDetails;
-import com.synopsys.integration.alert.database.job.execution.JobExecutionDurationsRepository;
-import com.synopsys.integration.alert.database.job.execution.JobExecutionRepository;
-import com.synopsys.integration.alert.database.job.execution.JobExecutionStatusDurationsEntity;
-import com.synopsys.integration.alert.database.job.execution.JobExecutionStatusEntity;
+import com.synopsys.integration.alert.database.job.execution.JobCompletionStatusDurationRepository;
+import com.synopsys.integration.alert.database.job.execution.JobCompletionStatusDurationsEntity;
+import com.synopsys.integration.alert.database.job.execution.JobCompletionStatusEntity;
+import com.synopsys.integration.alert.database.job.execution.JobCompletionStatusRepository;
 
 @Component
 public class DefaultJobExecutionStatusAccessor implements JobExecutionStatusAccessor {
 
-    private final JobExecutionRepository jobExecutionRepository;
-    private final JobExecutionDurationsRepository jobExecutionDurationsRepository;
+    private final JobCompletionStatusRepository jobCompletionStatusRepository;
+    private final JobCompletionStatusDurationRepository jobCompletionStatusDurationRepository;
 
     @Autowired
-    public DefaultJobExecutionStatusAccessor(JobExecutionRepository jobExecutionRepository, JobExecutionDurationsRepository jobExecutionDurationsRepository) {
-        this.jobExecutionRepository = jobExecutionRepository;
-        this.jobExecutionDurationsRepository = jobExecutionDurationsRepository;
+    public DefaultJobExecutionStatusAccessor(
+        JobCompletionStatusRepository jobCompletionStatusRepository,
+        JobCompletionStatusDurationRepository jobCompletionStatusDurationRepository
+    ) {
+        this.jobCompletionStatusRepository = jobCompletionStatusRepository;
+        this.jobCompletionStatusDurationRepository = jobCompletionStatusDurationRepository;
     }
 
     @Override
     @Transactional(readOnly = true)
     public Optional<JobExecutionStatusModel> getJobExecutionStatus(UUID jobConfigId) {
-        return jobExecutionRepository.findById(jobConfigId).map(this::convertToModel);
+        return jobCompletionStatusRepository.findById(jobConfigId).map(this::convertToModel);
     }
 
     @Override
@@ -49,11 +52,11 @@ public class DefaultJobExecutionStatusAccessor implements JobExecutionStatusAcce
             Sort.unsorted();
         PageRequest pageRequest = PageRequest.of(pagedQueryDetails.getOffset(), pagedQueryDetails.getLimit(), sort);
 
-        Page<JobExecutionStatusEntity> entities;
+        Page<JobCompletionStatusEntity> entities;
         if (pagedQueryDetails.getSearchTerm().filter(StringUtils::isNotBlank).isPresent()) {
-            entities = jobExecutionRepository.findBySearchTerm(pagedQueryDetails.getSearchTerm().get(), pageRequest);
+            entities = jobCompletionStatusRepository.findBySearchTerm(pagedQueryDetails.getSearchTerm().get(), pageRequest);
         } else {
-            entities = jobExecutionRepository.findAll(pageRequest);
+            entities = jobCompletionStatusRepository.findAll(pageRequest);
         }
         List<JobExecutionStatusModel> pageContents = entities.map(this::convertToModel).getContent();
         return new AlertPagedModel<>(entities.getTotalPages(), pagedQueryDetails.getOffset(), pagedQueryDetails.getLimit(), pageContents);
@@ -62,14 +65,14 @@ public class DefaultJobExecutionStatusAccessor implements JobExecutionStatusAcce
     @Override
     @Transactional(propagation = Propagation.REQUIRED)
     public void saveExecutionStatus(JobExecutionStatusModel statusModel) {
-        JobExecutionStatusDurationsEntity durations = convertDurationFromModel(statusModel.getJobConfigId(), statusModel.getDurations());
-        JobExecutionStatusEntity jobExecutionStatus = convertFromModel(statusModel);
-        jobExecutionRepository.save(jobExecutionStatus);
-        jobExecutionDurationsRepository.save(durations);
+        JobCompletionStatusDurationsEntity durations = convertDurationFromModel(statusModel.getJobConfigId(), statusModel.getDurations());
+        JobCompletionStatusEntity jobExecutionStatus = convertFromModel(statusModel);
+        jobCompletionStatusRepository.save(jobExecutionStatus);
+        jobCompletionStatusDurationRepository.save(durations);
     }
 
-    private JobExecutionStatusModel convertToModel(JobExecutionStatusEntity entity) {
-        JobExecutionStatusDurations durations = convertDurationToModel(jobExecutionDurationsRepository.findById(entity.getJobConfigId())
+    private JobExecutionStatusModel convertToModel(JobCompletionStatusEntity entity) {
+        JobExecutionStatusDurations durations = convertDurationToModel(jobCompletionStatusDurationRepository.findById(entity.getJobConfigId())
             .orElseGet(() -> createEmptyDurations(entity.getJobConfigId())));
         return new JobExecutionStatusModel(
             entity.getJobConfigId(),
@@ -82,7 +85,7 @@ public class DefaultJobExecutionStatusAccessor implements JobExecutionStatusAcce
         );
     }
 
-    private JobExecutionStatusDurations convertDurationToModel(JobExecutionStatusDurationsEntity entity) {
+    private JobExecutionStatusDurations convertDurationToModel(JobCompletionStatusDurationsEntity entity) {
         return new JobExecutionStatusDurations(
             entity.getJobDurationNanosec(),
             entity.getNotificationProcessingDuration(),
@@ -93,8 +96,8 @@ public class DefaultJobExecutionStatusAccessor implements JobExecutionStatusAcce
         );
     }
 
-    private JobExecutionStatusEntity convertFromModel(JobExecutionStatusModel model) {
-        return new JobExecutionStatusEntity(
+    private JobCompletionStatusEntity convertFromModel(JobExecutionStatusModel model) {
+        return new JobCompletionStatusEntity(
             model.getJobConfigId(),
             model.getNotificationCount(),
             model.getSuccessCount(),
@@ -104,8 +107,8 @@ public class DefaultJobExecutionStatusAccessor implements JobExecutionStatusAcce
         );
     }
 
-    private JobExecutionStatusDurationsEntity convertDurationFromModel(UUID jobConfigId, JobExecutionStatusDurations model) {
-        return new JobExecutionStatusDurationsEntity(
+    private JobCompletionStatusDurationsEntity convertDurationFromModel(UUID jobConfigId, JobExecutionStatusDurations model) {
+        return new JobCompletionStatusDurationsEntity(
             jobConfigId,
             model.getJobDurationMillisec(),
             model.getNotificationProcessingDuration().orElse(null),
@@ -116,8 +119,8 @@ public class DefaultJobExecutionStatusAccessor implements JobExecutionStatusAcce
         );
     }
 
-    private JobExecutionStatusDurationsEntity createEmptyDurations(UUID jobConfigId) {
-        return new JobExecutionStatusDurationsEntity(
+    private JobCompletionStatusDurationsEntity createEmptyDurations(UUID jobConfigId) {
+        return new JobCompletionStatusDurationsEntity(
             jobConfigId,
             0L,
             null,

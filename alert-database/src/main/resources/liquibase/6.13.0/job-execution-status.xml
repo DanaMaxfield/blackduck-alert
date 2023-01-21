@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd">
-    <changeSet author="psantos" id="create-job-execution-status-table">
+    <changeSet author="psantos" id="create-job-completion-status-table">
         <preConditions onFail="MARK_RAN">
             <not>
-                <tableExists schemaName="alert" tableName="job_execution_status"/>
+                <tableExists schemaName="alert" tableName="job_completion_status"/>
             </not>
         </preConditions>
-        <createTable schemaName="alert" tableName="job_execution_status">
+        <createTable schemaName="alert" tableName="job_completion_status">
             <column name="job_config_id" type="UUID" defaultValueComputed="uuid_generate_v4()">
                 <constraints primaryKey="true"/>
             </column>
@@ -26,13 +26,13 @@
             </column>
         </createTable>
     </changeSet>
-    <changeSet author="psantos" id="create-job-execution-durations-table">
+    <changeSet author="psantos" id="create-job-durations-table">
         <preConditions onFail="MARK_RAN">
             <not>
-                <tableExists schemaName="alert" tableName="job_execution_durations"/>
+                <tableExists schemaName="alert" tableName="job_completion_durations"/>
             </not>
         </preConditions>
-        <createTable schemaName="alert" tableName="job_execution_durations">
+        <createTable schemaName="alert" tableName="job_completion_durations">
             <column name="job_config_id" type="UUID" defaultValueComputed="uuid_generate_v4()">
                 <constraints primaryKey="true"/>
             </column>
@@ -55,10 +55,10 @@
         <addForeignKeyConstraint
                 constraintName="job-execution-config-id-fk"
                 baseTableSchemaName="alert"
-                baseTableName="job_execution_durations"
+                baseTableName="job_completion_durations"
                 baseColumnNames="job_config_id"
                 referencedTableSchemaName="alert"
-                referencedTableName="job_execution_status"
+                referencedTableName="job_completion_status"
                 referencedColumnNames="job_config_id"
                 onDelete="CASCADE"
         />
@@ -72,7 +72,7 @@
         <addForeignKeyConstraint
                 constraintName="job-config-execution-status-fk"
                 baseTableSchemaName="alert"
-                baseTableName="job_execution_status"
+                baseTableName="job_completion_status"
                 baseColumnNames="job_config_id"
                 referencedTableSchemaName="alert"
                 referencedTableName="distribution_jobs"

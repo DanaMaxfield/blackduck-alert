@@ -10,8 +10,8 @@ import javax.persistence.Table;
 import com.synopsys.integration.alert.database.BaseEntity;
 
 @Entity
-@Table(schema = "alert", name = "job_execution_durations")
-public class JobExecutionStatusDurationsEntity extends BaseEntity {
+@Table(schema = "alert", name = "job_completion_durations")
+public class JobCompletionStatusDurationsEntity extends BaseEntity {
     private static final long serialVersionUID = 8165889267435905900L;
     @Id
     @Column(name = "job_config_id")
@@ -35,11 +35,11 @@ public class JobExecutionStatusDurationsEntity extends BaseEntity {
     @Column(name = "issue_resolving_duration_nanoseconds")
     private Long issueTransitionDuration;
 
-    public JobExecutionStatusDurationsEntity() {
+    public JobCompletionStatusDurationsEntity() {
         //default constructor for JPA
     }
 
-    public JobExecutionStatusDurationsEntity(
+    public JobCompletionStatusDurationsEntity(
         UUID jobConfigId,
         Long jobDurationNanosec,
         Long notificationProcessingDuration,

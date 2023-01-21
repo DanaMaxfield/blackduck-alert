@@ -25,7 +25,7 @@ public interface DistributionRepository extends JpaRepository<DistributionJobEnt
         value =
             "SELECT CAST(job.job_id as varchar) AS id, job.enabled, job.name, job.channel_descriptor_name, job.distribution_frequency, executionStatus.last_run AS time_last_sent, executionStatus.latest_status AS status"
                 + " FROM alert.distribution_jobs AS job"
-                + " LEFT JOIN alert.job_execution_status AS executionStatus ON executionStatus.job_config_id = job.job_id"
+                + " LEFT JOIN alert.job_completion_status AS executionStatus ON executionStatus.job_config_id = job.job_id"
                 + " WHERE job.channel_descriptor_name IN (:channelDescriptorNames)",
         nativeQuery = true
     )
@@ -35,7 +35,7 @@ public interface DistributionRepository extends JpaRepository<DistributionJobEnt
         value =
             "SELECT CAST(job.job_id as varchar) AS id, job.enabled, job.name, job.channel_descriptor_name, job.distribution_frequency, executionStatus.last_run AS time_last_sent, executionStatus.latest_status AS status"
                 + " FROM alert.distribution_jobs AS job"
-                + " LEFT JOIN alert.job_execution_status AS executionStatus ON executionStatus.job_config_id = job.job_id"
+                + " LEFT JOIN alert.job_completion_status AS executionStatus ON executionStatus.job_config_id = job.job_id"
                 + " WHERE job.channel_descriptor_name IN (:channelDescriptorNames) AND job.name LIKE %:searchTerm%",
         nativeQuery = true
     )

@@ -11,8 +11,8 @@ import javax.persistence.Table;
 import com.synopsys.integration.alert.database.BaseEntity;
 
 @Entity
-@Table(schema = "alert", name = "job_execution_status")
-public class JobExecutionStatusEntity extends BaseEntity {
+@Table(schema = "alert", name = "job_completion_status")
+public class JobCompletionStatusEntity extends BaseEntity {
     private static final long serialVersionUID = -3107164032971829096L;
     @Id
     @Column(name = "job_config_id")
@@ -30,11 +30,11 @@ public class JobExecutionStatusEntity extends BaseEntity {
     @Column(name = "last_run")
     private OffsetDateTime lastRun;
 
-    public JobExecutionStatusEntity() {
+    public JobCompletionStatusEntity() {
         // default constructor for JPA
     }
 
-    public JobExecutionStatusEntity(
+    public JobCompletionStatusEntity(
         UUID jobConfigId,
         Long notificationCount,
         Long successCount,

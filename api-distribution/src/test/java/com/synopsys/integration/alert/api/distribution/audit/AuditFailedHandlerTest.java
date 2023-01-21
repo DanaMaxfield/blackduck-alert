@@ -23,8 +23,8 @@ import com.synopsys.integration.alert.api.distribution.mock.MockAuditEntryReposi
 import com.synopsys.integration.alert.api.distribution.mock.MockAuditFailedEntryRepository;
 import com.synopsys.integration.alert.api.distribution.mock.MockAuditFailedNotificationRepository;
 import com.synopsys.integration.alert.api.distribution.mock.MockAuditNotificationRepository;
-import com.synopsys.integration.alert.api.distribution.mock.MockJobExecutionStatusDurationsRepository;
-import com.synopsys.integration.alert.api.distribution.mock.MockJobExecutionStatusRepository;
+import com.synopsys.integration.alert.api.distribution.mock.MockJobCompletionStatusDurationRepository;
+import com.synopsys.integration.alert.api.distribution.mock.MockJobCompletionStatusStatusRepository;
 import com.synopsys.integration.alert.api.distribution.mock.MockNotificationContentRepository;
 import com.synopsys.integration.alert.common.enumeration.AuditEntryStatus;
 import com.synopsys.integration.alert.common.enumeration.FrequencyType;
@@ -50,8 +50,8 @@ import com.synopsys.integration.alert.database.audit.AuditFailedNotificationRepo
 import com.synopsys.integration.alert.database.audit.AuditNotificationRelation;
 import com.synopsys.integration.alert.database.audit.AuditNotificationRelationPK;
 import com.synopsys.integration.alert.database.audit.AuditNotificationRepository;
-import com.synopsys.integration.alert.database.job.execution.JobExecutionDurationsRepository;
-import com.synopsys.integration.alert.database.job.execution.JobExecutionRepository;
+import com.synopsys.integration.alert.database.job.execution.JobCompletionStatusDurationRepository;
+import com.synopsys.integration.alert.database.job.execution.JobCompletionStatusRepository;
 import com.synopsys.integration.alert.database.notification.NotificationContentRepository;
 import com.synopsys.integration.alert.database.notification.NotificationEntity;
 import com.synopsys.integration.alert.descriptor.api.model.ChannelKeys;
@@ -81,10 +81,10 @@ class AuditFailedHandlerTest {
         auditFailedNotificationRepository = new MockAuditFailedNotificationRepository(AuditFailedNotificationEntity::getNotificationId);
         ConfigurationModelConfigurationAccessor configurationModelConfigurationAccessor = Mockito.mock(ConfigurationModelConfigurationAccessor.class);
         notificationAccessor = new DefaultNotificationAccessor(notificationContentRepository, auditEntryRepository, configurationModelConfigurationAccessor);
-        JobExecutionDurationsRepository jobExecutionDurationsRepository = new MockJobExecutionStatusDurationsRepository();
-        JobExecutionRepository jobExecutionRepository = new MockJobExecutionStatusRepository(jobExecutionDurationsRepository);
+        JobCompletionStatusDurationRepository jobCompletionStatusDurationRepository = new MockJobCompletionStatusDurationRepository();
+        JobCompletionStatusRepository jobCompletionStatusRepository = new MockJobCompletionStatusStatusRepository(jobCompletionStatusDurationRepository);
 
-        jobExecutionStatusAccessor = new DefaultJobExecutionStatusAccessor(jobExecutionRepository, jobExecutionDurationsRepository);
+        jobExecutionStatusAccessor = new DefaultJobExecutionStatusAccessor(jobCompletionStatusRepository, jobCompletionStatusDurationRepository);
         executingJobManager = new ExecutingJobManager(jobExecutionStatusAccessor);
     }
 
