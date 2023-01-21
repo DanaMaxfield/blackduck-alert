@@ -1,6 +1,85 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd">
+
+    <changeSet author="psantos" id="create-job-execution-table">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists schemaName="alert" tableName="job_execution"/>
+            </not>
+        </preConditions>
+        <createTable schemaName="alert" tableName="job_execution">
+            <column name="execution_id" type="UUID" defaultValueComputed="uuid_generate_v4()">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="job_config_id" type="UUID" defaultValueComputed="uuid_generate_v4()">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="VARCHAR"/>
+            <column name="start_time" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="end_time" type="TIMESTAMP">
+            </column>
+            <column name="processed_notification_count" type="BIGINT" defaultValue="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="total_notification_count" type="BIGINT" defaultValue="0">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="psantos" id="create-job-execution-duration-table">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists schemaName="alert" tableName="job_execution_duration"/>
+            </not>
+        </preConditions>
+        <createTable schemaName="alert" tableName="job_execution_duration">
+            <column name="execution_id" type="UUID" defaultValueComputed="uuid_generate_v4()">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="stage_id" type="VARCHAR"/>
+            <column name="start_time" type="TIMESTAMP">
+            </column>
+            <column name="end_time" type="TIMESTAMP">
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="psantos" id="create-job-execution-duration-foreign-key">
+        <preConditions>
+            <not>
+                <foreignKeyConstraintExists schemaName="alert" foreignKeyName="job-execution-duration-fk"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint
+                constraintName="job-execution-duration-fk"
+                baseTableSchemaName="alert"
+                baseTableName="job_execution_duration"
+                baseColumnNames="execution_id"
+                referencedTableSchemaName="alert"
+                referencedTableName="job_execution"
+                referencedColumnNames="execution_id"
+                onDelete="CASCADE"
+        />
+    </changeSet>
+    <changeSet author="psantos" id="create-job-config-execution-tables-foreign-key">
+        <preConditions>
+            <not>
+                <foreignKeyConstraintExists schemaName="alert" foreignKeyName="job-config-execution-fk"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint
+                constraintName="job-config-execution-fk"
+                baseTableSchemaName="alert"
+                baseTableName="job_execution"
+                baseColumnNames="job_config_id"
+                referencedTableSchemaName="alert"
+                referencedTableName="distribution_jobs"
+                referencedColumnNames="job_id"
+                onDelete="CASCADE"
+        />
+    </changeSet>
     <changeSet author="psantos" id="create-job-completion-status-table">
         <preConditions onFail="MARK_RAN">
             <not>
@@ -63,14 +142,14 @@
                 onDelete="CASCADE"
         />
     </changeSet>
-    <changeSet author="psantos" id="create-job-config-execution-tables-foreign-key">
+    <changeSet author="psantos" id="create-job-config-completion-tables-foreign-key">
         <preConditions>
             <not>
-                <foreignKeyConstraintExists schemaName="alert" foreignKeyName="job-config-execution-status-fk"/>
+                <foreignKeyConstraintExists schemaName="alert" foreignKeyName="job-config-completion-status-fk"/>
             </not>
         </preConditions>
         <addForeignKeyConstraint
-                constraintName="job-config-execution-status-fk"
+                constraintName="job-config-completion-status-fk"
                 baseTableSchemaName="alert"
                 baseTableName="job_completion_status"
                 baseColumnNames="job_config_id"
