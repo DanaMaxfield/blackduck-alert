@@ -1,8 +1,10 @@
 package com.synopsys.integration.alert.component.diagnostic.model;
 
+import com.synopsys.integration.alert.api.common.model.AlertSerializableModel;
 import com.synopsys.integration.alert.api.distribution.execution.JobStage;
 
-public class JobStageDiagnosticModel {
+public class JobStageDiagnosticModel extends AlertSerializableModel {
+    private static final long serialVersionUID = 2198695088623948684L;
     public final JobStage stage;
     public final String start;
     public final String end;

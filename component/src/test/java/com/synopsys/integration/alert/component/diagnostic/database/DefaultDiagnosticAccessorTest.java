@@ -13,7 +13,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
+import com.synopsys.integration.alert.api.distribution.execution.AggregatedExecutionResults;
 import com.synopsys.integration.alert.api.distribution.execution.ExecutingJobManager;
+import com.synopsys.integration.alert.api.distribution.execution.JobStage;
 import com.synopsys.integration.alert.common.enumeration.AuditEntryStatus;
 import com.synopsys.integration.alert.common.enumeration.FrequencyType;
 import com.synopsys.integration.alert.common.enumeration.ProcessingType;
@@ -23,6 +25,8 @@ import com.synopsys.integration.alert.common.persistence.model.job.DistributionJ
 import com.synopsys.integration.alert.common.persistence.model.job.DistributionJobModelBuilder;
 import com.synopsys.integration.alert.common.persistence.model.job.executions.JobCompletionStatusDurations;
 import com.synopsys.integration.alert.common.persistence.model.job.executions.JobCompletionStatusModel;
+import com.synopsys.integration.alert.common.persistence.model.job.executions.JobExecutionModel;
+import com.synopsys.integration.alert.common.persistence.model.job.executions.JobStageModel;
 import com.synopsys.integration.alert.common.rest.model.AlertPagedModel;
 import com.synopsys.integration.alert.common.rest.model.AlertPagedQueryDetails;
 import com.synopsys.integration.alert.common.util.DateUtils;
@@ -31,6 +35,9 @@ import com.synopsys.integration.alert.component.diagnostic.model.AuditDiagnostic
 import com.synopsys.integration.alert.component.diagnostic.model.DiagnosticModel;
 import com.synopsys.integration.alert.component.diagnostic.model.JobDiagnosticModel;
 import com.synopsys.integration.alert.component.diagnostic.model.JobDurationDiagnosticModel;
+import com.synopsys.integration.alert.component.diagnostic.model.JobExecutionDiagnosticModel;
+import com.synopsys.integration.alert.component.diagnostic.model.JobExecutionsDiagnosticModel;
+import com.synopsys.integration.alert.component.diagnostic.model.JobStageDiagnosticModel;
 import com.synopsys.integration.alert.component.diagnostic.model.JobStatusDiagnosticModel;
 import com.synopsys.integration.alert.component.diagnostic.model.NotificationDiagnosticModel;
 import com.synopsys.integration.alert.component.diagnostic.model.RabbitMQDiagnosticModel;
@@ -59,7 +66,7 @@ class DefaultDiagnosticAccessorTest {
         staticJobAccessor = Mockito.mock(StaticJobAccessor.class);
         jobCompletionStatusAccessor = Mockito.mock(JobCompletionStatusAccessor.class);
         jobExecutionAccessor = Mockito.mock(JobExecutionAccessor.class);
-        executingJobManager = new ExecutingJobManager(jobCompletionStatusAccessor, jobExecutionAccessor);
+        executingJobManager = Mockito.mock(ExecutingJobManager.class);
     }
 
     @Test
@@ -76,12 +83,14 @@ class DefaultDiagnosticAccessorTest {
         AuditDiagnosticModel auditDiagnosticModel = createAuditDiagnosticModel();
         RabbitMQDiagnosticModel rabbitMQDiagnosticModel = createRabbitMQDiagnosticModel();
         JobDiagnosticModel jobDiagnosticModel = createJobDiagnosticModel();
+        JobExecutionsDiagnosticModel jobExecutionsDiagnosticModel = createJobExecutionsDiagnosticModel();
         DiagnosticModel diagnosticModel = diagnosticAccessor.getDiagnosticInfo();
 
         assertEquals(notificationDiagnosticModel, diagnosticModel.getNotificationDiagnosticModel());
         assertEquals(auditDiagnosticModel, diagnosticModel.getAuditDiagnosticModel());
         assertEquals(rabbitMQDiagnosticModel, diagnosticModel.getRabbitMQDiagnosticModel());
         assertEquals(jobDiagnosticModel, diagnosticModel.getJobDiagnosticModel());
+        assertEquals(jobExecutionsDiagnosticModel, diagnosticModel.getExecutingJobsDiagnosticModel());
         assertSystemDiagnostics(diagnosticModel.getSystemDiagnosticModel());
     }
 
@@ -164,6 +173,86 @@ class DefaultDiagnosticAccessorTest {
             durationDiagnosticModel
         );
         return new JobDiagnosticModel(List.of(statusDiagnosticModel));
+    }
+
+    private JobExecutionsDiagnosticModel createJobExecutionsDiagnosticModel() {
+        long totalJobsInSystem = 1L;
+        long pendingCount = 1L;
+        long successCount = 0L;
+        long failureCount = 0L;
+        int processedNotificationCount = 10;
+        int totalNotificationCount = 100;
+
+        AggregatedExecutionResults results = new AggregatedExecutionResults(totalJobsInSystem, pendingCount, successCount, failureCount);
+
+        String channelName = ChannelKeys.SLACK.getUniversalKey();
+        OffsetDateTime startTime = DateUtils.createCurrentDateTimestamp();
+        String start = DateUtils.formatDateAsJsonString(startTime);
+        String end = "";
+
+        OffsetDateTime firstStageStart = DateUtils.createCurrentDateTimestamp();
+        OffsetDateTime firstStageEnd = DateUtils.createCurrentDateTimestamp();
+        JobStageDiagnosticModel firstStage = new JobStageDiagnosticModel(
+            JobStage.NOTIFICATION_PROCESSING,
+            DateUtils.formatDateAsJsonString(firstStageStart),
+            DateUtils.formatDateAsJsonString(firstStageEnd)
+        );
+
+        OffsetDateTime secondStageStart = DateUtils.createCurrentDateTimestamp();
+        OffsetDateTime secondStageEnd = DateUtils.createCurrentDateTimestamp();
+        JobStageDiagnosticModel secondStage = new JobStageDiagnosticModel(
+            JobStage.CHANNEL_PROCESSING,
+            DateUtils.formatDateAsJsonString(secondStageStart),
+            DateUtils.formatDateAsJsonString(secondStageEnd)
+        );
+        List<JobStageDiagnosticModel> stages = List.of(firstStage, secondStage);
+
+        JobExecutionDiagnosticModel model = new JobExecutionDiagnosticModel(
+            TEST_JOB_NAME,
+            channelName,
+            start,
+            end,
+            AuditEntryStatus.PENDING,
+            processedNotificationCount,
+            totalNotificationCount,
+            stages
+        );
+        List<JobExecutionDiagnosticModel> jobExecutionDiagnosticModels = List.of(model);
+        DistributionJobModelBuilder jobModelBuilder = DistributionJobModel.builder()
+            .jobId(UUID.randomUUID())
+            .name(TEST_JOB_NAME)
+            .processingType(ProcessingType.DEFAULT)
+            .distributionFrequency(FrequencyType.REAL_TIME)
+            .blackDuckGlobalConfigId(1L)
+            .createdAt(OffsetDateTime.now())
+            .channelDescriptorName(ChannelKeys.SLACK.getUniversalKey())
+            .notificationTypes(List.of("VULNERABILITY"));
+
+        DistributionJobModel distributionJobModel = jobModelBuilder.build();
+        Mockito.when(staticJobAccessor.getJobById(Mockito.any())).thenReturn(Optional.of(distributionJobModel));
+        JobExecutionModel jobExecutionModel = new JobExecutionModel(
+            UUID.randomUUID(),
+            distributionJobModel.getJobId(),
+            startTime,
+            null,
+            AuditEntryStatus.PENDING,
+            processedNotificationCount,
+            totalNotificationCount
+        );
+        JobStageModel firstJobStageModel = new JobStageModel(UUID.randomUUID(), jobExecutionModel.getExecutionId(), firstStage.getStage().name(), firstStageStart, firstStageEnd);
+        JobStageModel secondJobStageModel = new JobStageModel(
+            UUID.randomUUID(),
+            jobExecutionModel.getExecutionId(),
+            secondStage.getStage().name(),
+            secondStageStart,
+            secondStageEnd
+        );
+        Mockito.when(executingJobManager.aggregateExecutingJobData()).thenReturn(results);
+        AlertPagedModel<JobStageModel> jobStages = new AlertPagedModel<>(1, 0, 10, List.of(firstJobStageModel, secondJobStageModel));
+        Mockito.when(executingJobManager.getStages(Mockito.any(UUID.class), Mockito.any(AlertPagedQueryDetails.class))).thenReturn(jobStages);
+        AlertPagedModel<JobExecutionModel> executingJobs = new AlertPagedModel<>(1, 0, 1, List.of(jobExecutionModel));
+        Mockito.when(executingJobManager.getExecutingJobs(Mockito.anyInt(), Mockito.anyInt())).thenReturn(executingJobs);
+        return new JobExecutionsDiagnosticModel(totalJobsInSystem, pendingCount, successCount, failureCount, jobExecutionDiagnosticModels);
     }
 
     private void assertSystemDiagnostics(SystemDiagnosticModel systemDiagnosticModel) {

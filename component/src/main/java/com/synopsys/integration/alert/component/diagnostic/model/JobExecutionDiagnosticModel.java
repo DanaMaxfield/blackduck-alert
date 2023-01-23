@@ -2,9 +2,11 @@ package com.synopsys.integration.alert.component.diagnostic.model;
 
 import java.util.List;
 
+import com.synopsys.integration.alert.api.common.model.AlertSerializableModel;
 import com.synopsys.integration.alert.common.enumeration.AuditEntryStatus;
 
-public class JobExecutionDiagnosticModel {
+public class JobExecutionDiagnosticModel extends AlertSerializableModel {
+    private static final long serialVersionUID = -617549382100921292L;
     private final String jobName;
     private final String channelName;
     private final String start;

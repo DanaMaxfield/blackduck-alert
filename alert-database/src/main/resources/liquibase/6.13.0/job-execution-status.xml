@@ -49,16 +49,16 @@
             </column>
         </createTable>
     </changeSet>
-    <changeSet author="psantos" id="create-job-execution-duration-foreign-key">
+    <changeSet author="psantos" id="create-job-execution-stage-foreign-key">
         <preConditions>
             <not>
-                <foreignKeyConstraintExists schemaName="alert" foreignKeyName="job-execution-duration-fk"/>
+                <foreignKeyConstraintExists schemaName="alert" foreignKeyName="job-execution-stage-fk"/>
             </not>
         </preConditions>
         <addForeignKeyConstraint
-                constraintName="job-execution-duration-fk"
+                constraintName="job-execution-stage-fk"
                 baseTableSchemaName="alert"
-                baseTableName="job_execution_duration"
+                baseTableName="job_execution_stage"
                 baseColumnNames="execution_id"
                 referencedTableSchemaName="alert"
                 referencedTableName="job_execution"
