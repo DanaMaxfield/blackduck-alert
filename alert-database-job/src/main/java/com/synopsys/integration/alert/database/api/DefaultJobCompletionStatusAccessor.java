@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.synopsys.integration.alert.common.persistence.accessor.JobExecutionStatusAccessor;
+import com.synopsys.integration.alert.common.persistence.accessor.JobCompletionStatusAccessor;
 import com.synopsys.integration.alert.common.persistence.model.job.executions.JobExecutionStatusDurations;
 import com.synopsys.integration.alert.common.persistence.model.job.executions.JobExecutionStatusModel;
 import com.synopsys.integration.alert.common.rest.model.AlertPagedModel;
@@ -24,13 +24,13 @@ import com.synopsys.integration.alert.database.job.execution.JobCompletionStatus
 import com.synopsys.integration.alert.database.job.execution.JobCompletionStatusRepository;
 
 @Component
-public class DefaultJobExecutionStatusAccessor implements JobExecutionStatusAccessor {
+public class DefaultJobCompletionStatusAccessor implements JobCompletionStatusAccessor {
 
     private final JobCompletionStatusRepository jobCompletionStatusRepository;
     private final JobCompletionStatusDurationRepository jobCompletionStatusDurationRepository;
 
     @Autowired
-    public DefaultJobExecutionStatusAccessor(
+    public DefaultJobCompletionStatusAccessor(
         JobCompletionStatusRepository jobCompletionStatusRepository,
         JobCompletionStatusDurationRepository jobCompletionStatusDurationRepository
     ) {

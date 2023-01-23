@@ -13,7 +13,7 @@ import org.apache.commons.collections4.ListUtils;
 import org.springframework.stereotype.Component;
 
 import com.synopsys.integration.alert.common.enumeration.AuditEntryStatus;
-import com.synopsys.integration.alert.common.persistence.accessor.JobExecutionStatusAccessor;
+import com.synopsys.integration.alert.common.persistence.accessor.JobCompletionStatusAccessor;
 import com.synopsys.integration.alert.common.persistence.model.job.executions.JobExecutionStatusDurations;
 import com.synopsys.integration.alert.common.persistence.model.job.executions.JobExecutionStatusModel;
 import com.synopsys.integration.alert.common.rest.model.AlertPagedModel;
@@ -23,9 +23,9 @@ import com.synopsys.integration.alert.common.util.DateUtils;
 public class ExecutingJobManager {
     private final Map<UUID, ExecutingJob> executingJobMap = new ConcurrentHashMap<>();
 
-    private final JobExecutionStatusAccessor completedJobsAccessor;
+    private final JobCompletionStatusAccessor completedJobsAccessor;
 
-    public ExecutingJobManager(JobExecutionStatusAccessor completedJobsAccessor) {
+    public ExecutingJobManager(JobCompletionStatusAccessor completedJobsAccessor) {
         this.completedJobsAccessor = completedJobsAccessor;
     }
 

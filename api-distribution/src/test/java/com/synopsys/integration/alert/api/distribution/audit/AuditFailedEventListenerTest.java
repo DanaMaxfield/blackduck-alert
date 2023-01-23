@@ -35,14 +35,14 @@ import com.synopsys.integration.alert.common.enumeration.FrequencyType;
 import com.synopsys.integration.alert.common.enumeration.ProcessingType;
 import com.synopsys.integration.alert.common.persistence.accessor.ConfigurationModelConfigurationAccessor;
 import com.synopsys.integration.alert.common.persistence.accessor.JobAccessor;
-import com.synopsys.integration.alert.common.persistence.accessor.JobExecutionStatusAccessor;
+import com.synopsys.integration.alert.common.persistence.accessor.JobCompletionStatusAccessor;
 import com.synopsys.integration.alert.common.persistence.accessor.NotificationAccessor;
 import com.synopsys.integration.alert.common.persistence.accessor.ProcessingFailedAccessor;
 import com.synopsys.integration.alert.common.persistence.model.job.DistributionJobModel;
 import com.synopsys.integration.alert.common.persistence.model.job.DistributionJobModelBuilder;
 import com.synopsys.integration.alert.common.persistence.model.job.executions.JobExecutionStatusModel;
 import com.synopsys.integration.alert.common.util.DateUtils;
-import com.synopsys.integration.alert.database.api.DefaultJobExecutionStatusAccessor;
+import com.synopsys.integration.alert.database.api.DefaultJobCompletionStatusAccessor;
 import com.synopsys.integration.alert.database.api.DefaultNotificationAccessor;
 import com.synopsys.integration.alert.database.api.DefaultProcessingFailedAccessor;
 import com.synopsys.integration.alert.database.audit.AuditEntryEntity;
@@ -74,7 +74,7 @@ class AuditFailedEventListenerTest {
     private final AtomicLong notificationIdContainer = new AtomicLong(0);
     private NotificationAccessor notificationAccessor;
     private AuditFailedNotificationRepository auditFailedNotificationRepository;
-    private JobExecutionStatusAccessor jobExecutionStatusAccessor;
+    private JobCompletionStatusAccessor jobCompletionStatusAccessor;
 
     @BeforeEach
     public void init() {
@@ -88,8 +88,8 @@ class AuditFailedEventListenerTest {
         JobCompletionStatusDurationRepository jobCompletionStatusDurationRepository = new MockJobCompletionStatusDurationRepository();
         JobCompletionStatusRepository jobCompletionStatusRepository = new MockJobCompletionStatusStatusRepository(jobCompletionStatusDurationRepository);
 
-        jobExecutionStatusAccessor = new DefaultJobExecutionStatusAccessor(jobCompletionStatusRepository, jobCompletionStatusDurationRepository);
-        executingJobManager = new ExecutingJobManager(jobExecutionStatusAccessor);
+        jobCompletionStatusAccessor = new DefaultJobCompletionStatusAccessor(jobCompletionStatusRepository, jobCompletionStatusDurationRepository);
+        executingJobManager = new ExecutingJobManager(jobCompletionStatusAccessor);
     }
 
     private Long generateNotificationId(NotificationEntity entity) {
@@ -154,7 +154,7 @@ class AuditFailedEventListenerTest {
             assertEquals(stackTrace, entity.getErrorStackTrace().orElseThrow(() -> new AssertionError("Expected stack trace but none found")));
         }
 
-        JobExecutionStatusModel statusModel = jobExecutionStatusAccessor.getJobExecutionStatus(jobConfigId)
+        JobExecutionStatusModel statusModel = jobCompletionStatusAccessor.getJobExecutionStatus(jobConfigId)
             .orElseThrow(() -> new AssertionError("Executing Job cannot be missing from the test."));
         assertEquals(AuditEntryStatus.FAILURE.name(), statusModel.getLatestStatus());
         assertEquals(0, statusModel.getSuccessCount());

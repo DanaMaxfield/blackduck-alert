@@ -13,22 +13,22 @@ import org.junit.jupiter.api.Test;
 import com.synopsys.integration.alert.api.distribution.mock.MockJobCompletionStatusDurationRepository;
 import com.synopsys.integration.alert.api.distribution.mock.MockJobCompletionStatusStatusRepository;
 import com.synopsys.integration.alert.common.enumeration.AuditEntryStatus;
-import com.synopsys.integration.alert.common.persistence.accessor.JobExecutionStatusAccessor;
-import com.synopsys.integration.alert.database.api.DefaultJobExecutionStatusAccessor;
+import com.synopsys.integration.alert.common.persistence.accessor.JobCompletionStatusAccessor;
+import com.synopsys.integration.alert.database.api.DefaultJobCompletionStatusAccessor;
 import com.synopsys.integration.alert.database.job.execution.JobCompletionStatusDurationRepository;
 import com.synopsys.integration.alert.database.job.execution.JobCompletionStatusRepository;
 
 class ExecutingJobManagerTest {
 
-    private JobExecutionStatusAccessor createAccessor() {
+    private JobCompletionStatusAccessor createAccessor() {
         JobCompletionStatusDurationRepository durationsRepository = new MockJobCompletionStatusDurationRepository();
         JobCompletionStatusRepository jobCompletionStatusRepository = new MockJobCompletionStatusStatusRepository(durationsRepository);
-        return new DefaultJobExecutionStatusAccessor(jobCompletionStatusRepository, durationsRepository);
+        return new DefaultJobCompletionStatusAccessor(jobCompletionStatusRepository, durationsRepository);
     }
 
     @Test
     void createExecutingJobTest() {
-        JobExecutionStatusAccessor accessor = createAccessor();
+        JobCompletionStatusAccessor accessor = createAccessor();
         ExecutingJobManager jobManager = new ExecutingJobManager(accessor);
         UUID jobConfigId = UUID.randomUUID();
         ExecutingJob executingJob = jobManager.startJob(jobConfigId, 0);
@@ -38,7 +38,7 @@ class ExecutingJobManagerTest {
 
     @Test
     void removeExecutingJobTest() {
-        JobExecutionStatusAccessor accessor = createAccessor();
+        JobCompletionStatusAccessor accessor = createAccessor();
         ExecutingJobManager jobManager = new ExecutingJobManager(accessor);
         UUID jobConfigId = UUID.randomUUID();
         ExecutingJob executingJob = jobManager.startJob(jobConfigId, 0);
@@ -52,7 +52,7 @@ class ExecutingJobManagerTest {
 
     @Test
     void executingJobPendingTest() {
-        JobExecutionStatusAccessor accessor = createAccessor();
+        JobCompletionStatusAccessor accessor = createAccessor();
         ExecutingJobManager jobManager = new ExecutingJobManager(accessor);
         UUID jobConfigId = UUID.randomUUID();
         ExecutingJob executingJob = jobManager.startJob(jobConfigId, 1);
@@ -71,7 +71,7 @@ class ExecutingJobManagerTest {
 
     @Test
     void executingJobSucceededTest() {
-        JobExecutionStatusAccessor accessor = createAccessor();
+        JobCompletionStatusAccessor accessor = createAccessor();
         ExecutingJobManager jobManager = new ExecutingJobManager(accessor);
         UUID jobConfigId = UUID.randomUUID();
         ExecutingJob executingJob = jobManager.startJob(jobConfigId, 1);
@@ -91,7 +91,7 @@ class ExecutingJobManagerTest {
 
     @Test
     void executingJobFailedTest() {
-        JobExecutionStatusAccessor accessor = createAccessor();
+        JobCompletionStatusAccessor accessor = createAccessor();
         ExecutingJobManager jobManager = new ExecutingJobManager(accessor);
         UUID jobConfigId = UUID.randomUUID();
         ExecutingJob executingJob = jobManager.startJob(jobConfigId, 1);
@@ -111,7 +111,7 @@ class ExecutingJobManagerTest {
 
     @Test
     void addStageTest() {
-        JobExecutionStatusAccessor accessor = createAccessor();
+        JobCompletionStatusAccessor accessor = createAccessor();
         ExecutingJobManager jobManager = new ExecutingJobManager(accessor);
         UUID jobConfigId = UUID.randomUUID();
         ExecutingJob executingJob = jobManager.startJob(jobConfigId, 1);
@@ -129,7 +129,7 @@ class ExecutingJobManagerTest {
 
     @Test
     void stageMissingTest() {
-        JobExecutionStatusAccessor accessor = createAccessor();
+        JobCompletionStatusAccessor accessor = createAccessor();
         ExecutingJobManager jobManager = new ExecutingJobManager(accessor);
         UUID jobConfigId = UUID.randomUUID();
         ExecutingJob executingJob = jobManager.startJob(jobConfigId, 1);
@@ -142,7 +142,7 @@ class ExecutingJobManagerTest {
 
     @Test
     void addSameStageTest() {
-        JobExecutionStatusAccessor accessor = createAccessor();
+        JobCompletionStatusAccessor accessor = createAccessor();
         ExecutingJobManager jobManager = new ExecutingJobManager(accessor);
         UUID jobConfigId = UUID.randomUUID();
         ExecutingJob executingJob = jobManager.startJob(jobConfigId, 1);
@@ -162,7 +162,7 @@ class ExecutingJobManagerTest {
 
     @Test
     void multipleStagesTest() {
-        JobExecutionStatusAccessor accessor = createAccessor();
+        JobCompletionStatusAccessor accessor = createAccessor();
         ExecutingJobManager jobManager = new ExecutingJobManager(accessor);
         UUID jobConfigId = UUID.randomUUID();
         ExecutingJob executingJob = jobManager.startJob(jobConfigId, 1);

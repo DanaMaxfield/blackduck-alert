@@ -34,7 +34,7 @@ import com.synopsys.integration.alert.common.enumeration.FrequencyType;
 import com.synopsys.integration.alert.common.enumeration.ProcessingType;
 import com.synopsys.integration.alert.common.persistence.accessor.DistributionAccessor;
 import com.synopsys.integration.alert.common.persistence.accessor.JobAccessor;
-import com.synopsys.integration.alert.common.persistence.accessor.JobExecutionStatusAccessor;
+import com.synopsys.integration.alert.common.persistence.accessor.JobCompletionStatusAccessor;
 import com.synopsys.integration.alert.common.persistence.model.job.DistributionJobModel;
 import com.synopsys.integration.alert.common.persistence.model.job.DistributionJobRequestModel;
 import com.synopsys.integration.alert.common.persistence.model.job.details.DistributionJobDetailsModel;
@@ -76,7 +76,7 @@ public class DefaultDistributionAccessorTestIT {
     private ExecutingJobManager executingJobManager;
 
     @Autowired
-    private JobExecutionStatusAccessor jobExecutionStatusAccessor;
+    private JobCompletionStatusAccessor jobCompletionStatusAccessor;
 
     private final List<UUID> createdJobs = new LinkedList<>();
 
@@ -236,7 +236,7 @@ public class DefaultDistributionAccessorTestIT {
 
             assertEquals(distributionJobModel.getName(), distributionWithAuditInfo.getJobName());
 
-            Optional<JobExecutionStatusModel> jobExecutionStatusModel = jobExecutionStatusAccessor.getJobExecutionStatus(distributionWithAuditInfo.getJobId());
+            Optional<JobExecutionStatusModel> jobExecutionStatusModel = jobCompletionStatusAccessor.getJobExecutionStatus(distributionWithAuditInfo.getJobId());
             if (jobExecutionStatusModel.isPresent()) {
                 assertEquals(jobExecutionStatusModel.get().getLatestStatus(), distributionWithAuditInfo.getAuditStatus());
                 String jsonFormattedString = DateUtils.formatDate(jobExecutionStatusModel.get().getLastRun(), DateUtils.AUDIT_DATE_FORMAT);

@@ -7,7 +7,7 @@ import com.synopsys.integration.alert.common.persistence.model.job.executions.Jo
 import com.synopsys.integration.alert.common.rest.model.AlertPagedModel;
 import com.synopsys.integration.alert.common.rest.model.AlertPagedQueryDetails;
 
-public interface JobExecutionStatusAccessor {
+public interface JobCompletionStatusAccessor {
     Optional<JobExecutionStatusModel> getJobExecutionStatus(UUID jobConfigId);
 
     AlertPagedModel<JobExecutionStatusModel> getJobExecutionStatus(AlertPagedQueryDetails pagedQueryDetails);

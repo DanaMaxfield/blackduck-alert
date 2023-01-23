@@ -24,7 +24,7 @@ import com.synopsys.integration.alert.api.distribution.execution.ExecutingJobMan
 import com.synopsys.integration.alert.api.distribution.execution.ExecutingJobStage;
 import com.synopsys.integration.alert.common.enumeration.AuditEntryStatus;
 import com.synopsys.integration.alert.common.persistence.accessor.DiagnosticAccessor;
-import com.synopsys.integration.alert.common.persistence.accessor.JobExecutionStatusAccessor;
+import com.synopsys.integration.alert.common.persistence.accessor.JobCompletionStatusAccessor;
 import com.synopsys.integration.alert.common.persistence.model.job.DistributionJobModel;
 import com.synopsys.integration.alert.common.persistence.model.job.DistributionJobModelData;
 import com.synopsys.integration.alert.common.persistence.model.job.executions.JobExecutionStatusDurations;
@@ -56,7 +56,7 @@ public class DefaultDiagnosticAccessor implements DiagnosticAccessor {
 
     private final StaticJobAccessor jobAccessor;
     private final ExecutingJobManager executingJobManager;
-    private final JobExecutionStatusAccessor jobExecutionStatusAccessor;
+    private final JobCompletionStatusAccessor jobCompletionStatusAccessor;
 
     @Autowired
     public DefaultDiagnosticAccessor(
@@ -65,14 +65,14 @@ public class DefaultDiagnosticAccessor implements DiagnosticAccessor {
         RabbitMQDiagnosticUtility rabbitMQDiagnosticUtility,
         StaticJobAccessor staticJobAccessor,
         ExecutingJobManager executingJobManager,
-        JobExecutionStatusAccessor jobExecutionStatusAccessor
+        JobCompletionStatusAccessor jobCompletionStatusAccessor
     ) {
         this.notificationContentRepository = notificationContentRepository;
         this.auditEntryRepository = auditEntryRepository;
         this.rabbitMQDiagnosticUtility = rabbitMQDiagnosticUtility;
         this.jobAccessor = staticJobAccessor;
         this.executingJobManager = executingJobManager;
-        this.jobExecutionStatusAccessor = jobExecutionStatusAccessor;
+        this.jobCompletionStatusAccessor = jobCompletionStatusAccessor;
     }
 
     @Override
@@ -151,13 +151,13 @@ public class DefaultDiagnosticAccessor implements DiagnosticAccessor {
         List<JobStatusDiagnosticModel> jobStatusData = new LinkedList<>();
         int pageNumber = 0;
         int pageSize = 100;
-        AlertPagedModel<JobExecutionStatusModel> page = jobExecutionStatusAccessor.getJobExecutionStatus(new AlertPagedQueryDetails(pageNumber, pageSize));
+        AlertPagedModel<JobExecutionStatusModel> page = jobCompletionStatusAccessor.getJobExecutionStatus(new AlertPagedQueryDetails(pageNumber, pageSize));
         while (pageNumber < page.getTotalPages()) {
             jobStatusData.addAll(page.getModels().stream()
                 .map(this::convertJobStatusData)
                 .collect(Collectors.toList()));
             pageNumber++;
-            page = jobExecutionStatusAccessor.getJobExecutionStatus(new AlertPagedQueryDetails(pageNumber, pageSize));
+            page = jobCompletionStatusAccessor.getJobExecutionStatus(new AlertPagedQueryDetails(pageNumber, pageSize));
         }
 
         return new JobDiagnosticModel(jobStatusData);
