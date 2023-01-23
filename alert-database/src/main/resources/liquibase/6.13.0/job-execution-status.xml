@@ -29,15 +29,18 @@
             </column>
         </createTable>
     </changeSet>
-    <changeSet author="psantos" id="create-job-execution-duration-table">
+    <changeSet author="psantos" id="create-job-execution-stage-table">
         <preConditions onFail="MARK_RAN">
             <not>
-                <tableExists schemaName="alert" tableName="job_execution_duration"/>
+                <tableExists schemaName="alert" tableName="job_execution_stage"/>
             </not>
         </preConditions>
-        <createTable schemaName="alert" tableName="job_execution_duration">
-            <column name="execution_id" type="UUID" defaultValueComputed="uuid_generate_v4()">
+        <createTable schemaName="alert" tableName="job_execution_stage">
+            <column name="id" type="UUID" defaultValueComputed="uuid_generate_v4()">
                 <constraints primaryKey="true"/>
+            </column>
+            <column name="execution_id" type="UUID" defaultValueComputed="uuid_generate_v4()">
+                <constraints nullable="false"/>
             </column>
             <column name="stage_id" type="VARCHAR"/>
             <column name="start_time" type="TIMESTAMP">

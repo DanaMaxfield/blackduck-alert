@@ -4,7 +4,7 @@ import java.util.Optional;
 
 import com.synopsys.integration.alert.api.common.model.AlertSerializableModel;
 
-public class JobExecutionStatusDurations extends AlertSerializableModel {
+public class JobCompletionStatusDurations extends AlertSerializableModel {
     private static final long serialVersionUID = -5127766336418643920L;
     private final Long jobDurationMillisec;
     private final Long notificationProcessingDuration;
@@ -13,7 +13,7 @@ public class JobExecutionStatusDurations extends AlertSerializableModel {
     private final Long issueCommentingDuration;
     private final Long issueTransitionDuration;
 
-    public JobExecutionStatusDurations(
+    public JobCompletionStatusDurations(
         Long jobDurationMillisec,
         Long notificationProcessingDuration,
         Long channelProcessingDuration,

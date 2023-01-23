@@ -3,14 +3,14 @@ package com.synopsys.integration.alert.common.persistence.accessor;
 import java.util.Optional;
 import java.util.UUID;
 
-import com.synopsys.integration.alert.common.persistence.model.job.executions.JobExecutionStatusModel;
+import com.synopsys.integration.alert.common.persistence.model.job.executions.JobCompletionStatusModel;
 import com.synopsys.integration.alert.common.rest.model.AlertPagedModel;
 import com.synopsys.integration.alert.common.rest.model.AlertPagedQueryDetails;
 
 public interface JobCompletionStatusAccessor {
-    Optional<JobExecutionStatusModel> getJobExecutionStatus(UUID jobConfigId);
+    Optional<JobCompletionStatusModel> getJobExecutionStatus(UUID jobConfigId);
 
-    AlertPagedModel<JobExecutionStatusModel> getJobExecutionStatus(AlertPagedQueryDetails pagedQueryDetails);
+    AlertPagedModel<JobCompletionStatusModel> getJobExecutionStatus(AlertPagedQueryDetails pagedQueryDetails);
 
-    void saveExecutionStatus(JobExecutionStatusModel statusModel);
+    void saveExecutionStatus(JobCompletionStatusModel statusModel);
 }

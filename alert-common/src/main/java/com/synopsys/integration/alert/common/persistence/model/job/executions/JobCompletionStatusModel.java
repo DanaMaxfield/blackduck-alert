@@ -5,7 +5,7 @@ import java.util.UUID;
 
 import com.synopsys.integration.alert.api.common.model.AlertSerializableModel;
 
-public class JobExecutionStatusModel extends AlertSerializableModel {
+public class JobCompletionStatusModel extends AlertSerializableModel {
     private static final long serialVersionUID = -118491395692643581L;
     private final UUID jobConfigId;
     private final Long notificationCount;
@@ -13,16 +13,16 @@ public class JobExecutionStatusModel extends AlertSerializableModel {
     private final Long failureCount;
     private final String latestStatus;
     private final OffsetDateTime lastRun;
-    private final JobExecutionStatusDurations durations;
+    private final JobCompletionStatusDurations durations;
 
-    public JobExecutionStatusModel(
+    public JobCompletionStatusModel(
         UUID jobConfigId,
         Long notificationCount,
         Long successCount,
         Long failureCount,
         String latestStatus,
         OffsetDateTime lastRun,
-        JobExecutionStatusDurations durations
+        JobCompletionStatusDurations durations
     ) {
         this.jobConfigId = jobConfigId;
         this.notificationCount = notificationCount;
@@ -57,7 +57,7 @@ public class JobExecutionStatusModel extends AlertSerializableModel {
         return lastRun;
     }
 
-    public JobExecutionStatusDurations getDurations() {
+    public JobCompletionStatusDurations getDurations() {
         return durations;
     }
 }

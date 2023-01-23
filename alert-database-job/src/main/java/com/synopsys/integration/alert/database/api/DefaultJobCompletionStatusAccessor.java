@@ -14,8 +14,8 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.synopsys.integration.alert.common.persistence.accessor.JobCompletionStatusAccessor;
-import com.synopsys.integration.alert.common.persistence.model.job.executions.JobExecutionStatusDurations;
-import com.synopsys.integration.alert.common.persistence.model.job.executions.JobExecutionStatusModel;
+import com.synopsys.integration.alert.common.persistence.model.job.executions.JobCompletionStatusDurations;
+import com.synopsys.integration.alert.common.persistence.model.job.executions.JobCompletionStatusModel;
 import com.synopsys.integration.alert.common.rest.model.AlertPagedModel;
 import com.synopsys.integration.alert.common.rest.model.AlertPagedQueryDetails;
 import com.synopsys.integration.alert.database.job.execution.JobCompletionStatusDurationRepository;
@@ -40,13 +40,13 @@ public class DefaultJobCompletionStatusAccessor implements JobCompletionStatusAc
 
     @Override
     @Transactional(readOnly = true)
-    public Optional<JobExecutionStatusModel> getJobExecutionStatus(UUID jobConfigId) {
+    public Optional<JobCompletionStatusModel> getJobExecutionStatus(UUID jobConfigId) {
         return jobCompletionStatusRepository.findById(jobConfigId).map(this::convertToModel);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public AlertPagedModel<JobExecutionStatusModel> getJobExecutionStatus(AlertPagedQueryDetails pagedQueryDetails) {
+    public AlertPagedModel<JobCompletionStatusModel> getJobExecutionStatus(AlertPagedQueryDetails pagedQueryDetails) {
         Sort sort = (pagedQueryDetails.getSortName().isPresent() && pagedQueryDetails.getSortOrder().isPresent()) ?
             Sort.by(pagedQueryDetails.getSortOrder().get(), pagedQueryDetails.getSortName().get()) :
             Sort.unsorted();
@@ -58,23 +58,23 @@ public class DefaultJobCompletionStatusAccessor implements JobCompletionStatusAc
         } else {
             entities = jobCompletionStatusRepository.findAll(pageRequest);
         }
-        List<JobExecutionStatusModel> pageContents = entities.map(this::convertToModel).getContent();
+        List<JobCompletionStatusModel> pageContents = entities.map(this::convertToModel).getContent();
         return new AlertPagedModel<>(entities.getTotalPages(), pagedQueryDetails.getOffset(), pagedQueryDetails.getLimit(), pageContents);
     }
 
     @Override
     @Transactional(propagation = Propagation.REQUIRED)
-    public void saveExecutionStatus(JobExecutionStatusModel statusModel) {
+    public void saveExecutionStatus(JobCompletionStatusModel statusModel) {
         JobCompletionStatusDurationsEntity durations = convertDurationFromModel(statusModel.getJobConfigId(), statusModel.getDurations());
         JobCompletionStatusEntity jobExecutionStatus = convertFromModel(statusModel);
         jobCompletionStatusRepository.save(jobExecutionStatus);
         jobCompletionStatusDurationRepository.save(durations);
     }
 
-    private JobExecutionStatusModel convertToModel(JobCompletionStatusEntity entity) {
-        JobExecutionStatusDurations durations = convertDurationToModel(jobCompletionStatusDurationRepository.findById(entity.getJobConfigId())
+    private JobCompletionStatusModel convertToModel(JobCompletionStatusEntity entity) {
+        JobCompletionStatusDurations durations = convertDurationToModel(jobCompletionStatusDurationRepository.findById(entity.getJobConfigId())
             .orElseGet(() -> createEmptyDurations(entity.getJobConfigId())));
-        return new JobExecutionStatusModel(
+        return new JobCompletionStatusModel(
             entity.getJobConfigId(),
             entity.getNotificationCount(),
             entity.getSuccessCount(),
@@ -85,8 +85,8 @@ public class DefaultJobCompletionStatusAccessor implements JobCompletionStatusAc
         );
     }
 
-    private JobExecutionStatusDurations convertDurationToModel(JobCompletionStatusDurationsEntity entity) {
-        return new JobExecutionStatusDurations(
+    private JobCompletionStatusDurations convertDurationToModel(JobCompletionStatusDurationsEntity entity) {
+        return new JobCompletionStatusDurations(
             entity.getJobDurationNanosec(),
             entity.getNotificationProcessingDuration(),
             entity.getChannelProcessingDuration(),
@@ -96,7 +96,7 @@ public class DefaultJobCompletionStatusAccessor implements JobCompletionStatusAc
         );
     }
 
-    private JobCompletionStatusEntity convertFromModel(JobExecutionStatusModel model) {
+    private JobCompletionStatusEntity convertFromModel(JobCompletionStatusModel model) {
         return new JobCompletionStatusEntity(
             model.getJobConfigId(),
             model.getNotificationCount(),
@@ -107,7 +107,7 @@ public class DefaultJobCompletionStatusAccessor implements JobCompletionStatusAc
         );
     }
 
-    private JobCompletionStatusDurationsEntity convertDurationFromModel(UUID jobConfigId, JobExecutionStatusDurations model) {
+    private JobCompletionStatusDurationsEntity convertDurationFromModel(UUID jobConfigId, JobCompletionStatusDurations model) {
         return new JobCompletionStatusDurationsEntity(
             jobConfigId,
             model.getJobDurationMillisec(),

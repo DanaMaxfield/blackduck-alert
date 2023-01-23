@@ -20,8 +20,8 @@ import com.synopsys.integration.alert.common.enumeration.ProcessingType;
 import com.synopsys.integration.alert.common.persistence.accessor.JobCompletionStatusAccessor;
 import com.synopsys.integration.alert.common.persistence.model.job.DistributionJobModel;
 import com.synopsys.integration.alert.common.persistence.model.job.DistributionJobModelBuilder;
-import com.synopsys.integration.alert.common.persistence.model.job.executions.JobExecutionStatusDurations;
-import com.synopsys.integration.alert.common.persistence.model.job.executions.JobExecutionStatusModel;
+import com.synopsys.integration.alert.common.persistence.model.job.executions.JobCompletionStatusDurations;
+import com.synopsys.integration.alert.common.persistence.model.job.executions.JobCompletionStatusModel;
 import com.synopsys.integration.alert.common.rest.model.AlertPagedModel;
 import com.synopsys.integration.alert.common.rest.model.AlertPagedQueryDetails;
 import com.synopsys.integration.alert.common.util.DateUtils;
@@ -119,7 +119,7 @@ class DefaultDiagnosticAccessorTest {
         Long failureCount = 0L;
         String latestStatus = AuditEntryStatus.SUCCESS.name();
         OffsetDateTime lastRun = DateUtils.createCurrentDateTimestamp();
-        JobExecutionStatusDurations durations = new JobExecutionStatusDurations(
+        JobCompletionStatusDurations durations = new JobCompletionStatusDurations(
             Duration.between(lastRun, lastRun.minusSeconds(30)).toMillis(),
             Duration.between(lastRun, lastRun.minusMinutes(20)).toMillis(),
             Duration.between(lastRun, lastRun.minusMinutes(10)).toMillis(),
@@ -127,8 +127,8 @@ class DefaultDiagnosticAccessorTest {
             Duration.between(lastRun, lastRun.minusMinutes(4)).toMillis(),
             Duration.between(lastRun, lastRun.minusMinutes(1)).toMillis()
         );
-        JobExecutionStatusModel statusModel = new JobExecutionStatusModel(jobConfigId, notificationCount, successCount, failureCount, latestStatus, lastRun, durations);
-        AlertPagedModel<JobExecutionStatusModel> pageModel = new AlertPagedModel<>(1, 0, 10, List.of(statusModel));
+        JobCompletionStatusModel statusModel = new JobCompletionStatusModel(jobConfigId, notificationCount, successCount, failureCount, latestStatus, lastRun, durations);
+        AlertPagedModel<JobCompletionStatusModel> pageModel = new AlertPagedModel<>(1, 0, 10, List.of(statusModel));
         Mockito.when(jobCompletionStatusAccessor.getJobExecutionStatus(Mockito.any(AlertPagedQueryDetails.class))).thenReturn(pageModel);
 
         DistributionJobModelBuilder jobModelBuilder = DistributionJobModel.builder()

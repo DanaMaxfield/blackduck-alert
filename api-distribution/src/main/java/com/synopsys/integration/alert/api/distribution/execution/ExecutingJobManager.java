@@ -14,8 +14,8 @@ import org.springframework.stereotype.Component;
 
 import com.synopsys.integration.alert.common.enumeration.AuditEntryStatus;
 import com.synopsys.integration.alert.common.persistence.accessor.JobCompletionStatusAccessor;
-import com.synopsys.integration.alert.common.persistence.model.job.executions.JobExecutionStatusDurations;
-import com.synopsys.integration.alert.common.persistence.model.job.executions.JobExecutionStatusModel;
+import com.synopsys.integration.alert.common.persistence.model.job.executions.JobCompletionStatusDurations;
+import com.synopsys.integration.alert.common.persistence.model.job.executions.JobCompletionStatusModel;
 import com.synopsys.integration.alert.common.rest.model.AlertPagedModel;
 import com.synopsys.integration.alert.common.util.DateUtils;
 
@@ -119,10 +119,10 @@ public class ExecutingJobManager {
             .count();
     }
 
-    private JobExecutionStatusModel createStatusModel(ExecutingJob executingJob, AuditEntryStatus jobStatus) {
+    private JobCompletionStatusModel createStatusModel(ExecutingJob executingJob, AuditEntryStatus jobStatus) {
         UUID jobConfigId = executingJob.getJobConfigId();
-        JobExecutionStatusModel resultStatus;
-        Optional<JobExecutionStatusModel> status = completedJobsAccessor.getJobExecutionStatus(jobConfigId);
+        JobCompletionStatusModel resultStatus;
+        Optional<JobCompletionStatusModel> status = completedJobsAccessor.getJobExecutionStatus(jobConfigId);
         resultStatus = status
             .map(currentStatus -> updateCompletedJobStatus(executingJob, jobStatus, currentStatus))
             .orElseGet(() -> createInitialCompletedJobStatus(executingJob, jobStatus));
@@ -130,8 +130,8 @@ public class ExecutingJobManager {
         return resultStatus;
     }
 
-    private JobExecutionStatusModel updateCompletedJobStatus(ExecutingJob executingJob, AuditEntryStatus jobStatus, JobExecutionStatusModel currentStatus) {
-        JobExecutionStatusDurations currentDurations = currentStatus.getDurations();
+    private JobCompletionStatusModel updateCompletedJobStatus(ExecutingJob executingJob, AuditEntryStatus jobStatus, JobCompletionStatusModel currentStatus) {
+        JobCompletionStatusDurations currentDurations = currentStatus.getDurations();
         Long jobDuration = calculateNanoDuration(executingJob.getStart(), executingJob.getEnd().orElse(Instant.now()));
         Long processingStageDuration = calculateJobStageDuration(executingJob, JobStage.NOTIFICATION_PROCESSING);
         Long channelProcessingStageDuration = calculateJobStageDuration(executingJob, JobStage.CHANNEL_PROCESSING);
@@ -139,7 +139,7 @@ public class ExecutingJobManager {
         Long issueCommentingDuration = calculateJobStageDuration(executingJob, JobStage.ISSUE_COMMENTING);
         Long issueResolvingDuration = calculateJobStageDuration(executingJob, JobStage.ISSUE_RESOLVING);
 
-        JobExecutionStatusDurations durations = new JobExecutionStatusDurations(
+        JobCompletionStatusDurations durations = new JobCompletionStatusDurations(
             calculateAverage(currentDurations.getJobDurationMillisec(), jobDuration),
             calculateAverage(currentDurations.getNotificationProcessingDuration().orElse(0L), processingStageDuration),
             calculateAverage(currentDurations.getChannelProcessingDuration().orElse(0L), channelProcessingStageDuration),
@@ -159,7 +159,7 @@ public class ExecutingJobManager {
             failureCount = currentStatus.getFailureCount() + 1L;
         }
 
-        return new JobExecutionStatusModel(
+        return new JobCompletionStatusModel(
             executingJob.getJobConfigId(),
             calculateAverage(Integer.valueOf(executingJob.getProcessedNotificationCount()).longValue(), currentStatus.getNotificationCount()),
             successCount,
@@ -170,7 +170,7 @@ public class ExecutingJobManager {
         );
     }
 
-    private JobExecutionStatusModel createInitialCompletedJobStatus(ExecutingJob executingJob, AuditEntryStatus jobStatus) {
+    private JobCompletionStatusModel createInitialCompletedJobStatus(ExecutingJob executingJob, AuditEntryStatus jobStatus) {
         long successCount = 0L;
         long failureCount = 0L;
 
@@ -182,7 +182,7 @@ public class ExecutingJobManager {
             failureCount = 1L;
         }
 
-        JobExecutionStatusDurations durations = new JobExecutionStatusDurations(
+        JobCompletionStatusDurations durations = new JobCompletionStatusDurations(
             calculateNanoDuration(executingJob.getStart(), executingJob.getEnd().orElse(Instant.now())),
             calculateJobStageDuration(executingJob, JobStage.NOTIFICATION_PROCESSING),
             calculateJobStageDuration(executingJob, JobStage.CHANNEL_PROCESSING),
@@ -190,7 +190,7 @@ public class ExecutingJobManager {
             calculateJobStageDuration(executingJob, JobStage.ISSUE_COMMENTING),
             calculateJobStageDuration(executingJob, JobStage.ISSUE_RESOLVING)
         );
-        return new JobExecutionStatusModel(
+        return new JobCompletionStatusModel(
             executingJob.getJobConfigId(),
             Integer.valueOf(executingJob.getProcessedNotificationCount()).longValue(),
             successCount,

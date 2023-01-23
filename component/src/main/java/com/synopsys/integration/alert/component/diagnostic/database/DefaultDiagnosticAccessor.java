@@ -27,8 +27,8 @@ import com.synopsys.integration.alert.common.persistence.accessor.DiagnosticAcce
 import com.synopsys.integration.alert.common.persistence.accessor.JobCompletionStatusAccessor;
 import com.synopsys.integration.alert.common.persistence.model.job.DistributionJobModel;
 import com.synopsys.integration.alert.common.persistence.model.job.DistributionJobModelData;
-import com.synopsys.integration.alert.common.persistence.model.job.executions.JobExecutionStatusDurations;
-import com.synopsys.integration.alert.common.persistence.model.job.executions.JobExecutionStatusModel;
+import com.synopsys.integration.alert.common.persistence.model.job.executions.JobCompletionStatusDurations;
+import com.synopsys.integration.alert.common.persistence.model.job.executions.JobCompletionStatusModel;
 import com.synopsys.integration.alert.common.rest.model.AlertPagedModel;
 import com.synopsys.integration.alert.common.rest.model.AlertPagedQueryDetails;
 import com.synopsys.integration.alert.common.util.DateUtils;
@@ -151,7 +151,7 @@ public class DefaultDiagnosticAccessor implements DiagnosticAccessor {
         List<JobStatusDiagnosticModel> jobStatusData = new LinkedList<>();
         int pageNumber = 0;
         int pageSize = 100;
-        AlertPagedModel<JobExecutionStatusModel> page = jobCompletionStatusAccessor.getJobExecutionStatus(new AlertPagedQueryDetails(pageNumber, pageSize));
+        AlertPagedModel<JobCompletionStatusModel> page = jobCompletionStatusAccessor.getJobExecutionStatus(new AlertPagedQueryDetails(pageNumber, pageSize));
         while (pageNumber < page.getTotalPages()) {
             jobStatusData.addAll(page.getModels().stream()
                 .map(this::convertJobStatusData)
@@ -192,22 +192,22 @@ public class DefaultDiagnosticAccessor implements DiagnosticAccessor {
         );
     }
 
-    private JobStatusDiagnosticModel convertJobStatusData(JobExecutionStatusModel jobExecutionStatusModel) {
-        String jobName = getJobName(jobExecutionStatusModel.getJobConfigId());
+    private JobStatusDiagnosticModel convertJobStatusData(JobCompletionStatusModel jobCompletionStatusModel) {
+        String jobName = getJobName(jobCompletionStatusModel.getJobConfigId());
         return new JobStatusDiagnosticModel(
-            jobExecutionStatusModel.getJobConfigId(),
+            jobCompletionStatusModel.getJobConfigId(),
             jobName,
-            jobExecutionStatusModel.getNotificationCount(),
-            jobExecutionStatusModel.getSuccessCount(),
-            jobExecutionStatusModel.getFailureCount(),
-            jobExecutionStatusModel.getLatestStatus(),
-            DateUtils.formatDateAsJsonString(jobExecutionStatusModel.getLastRun()),
-            convertJobDurationData(jobExecutionStatusModel.getDurations())
+            jobCompletionStatusModel.getNotificationCount(),
+            jobCompletionStatusModel.getSuccessCount(),
+            jobCompletionStatusModel.getFailureCount(),
+            jobCompletionStatusModel.getLatestStatus(),
+            DateUtils.formatDateAsJsonString(jobCompletionStatusModel.getLastRun()),
+            convertJobDurationData(jobCompletionStatusModel.getDurations())
         );
 
     }
 
-    private JobDurationDiagnosticModel convertJobDurationData(JobExecutionStatusDurations jobDurationModel) {
+    private JobDurationDiagnosticModel convertJobDurationData(JobCompletionStatusDurations jobDurationModel) {
         return new JobDurationDiagnosticModel(
             DateUtils.formatDurationFromNanos(jobDurationModel.getJobDurationMillisec()),
             jobDurationModel.getNotificationProcessingDuration().map(DateUtils::formatDurationFromNanos).orElse(null),
