@@ -9,4 +9,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface JobExecutionRepository extends JpaRepository<JobExecutionEntity, UUID> {
     Page<JobExecutionEntity> findAllByStatusIn(Set<String> statuses, Pageable pageable);
+
+    long countAllByStatusIn(Set<String> statuses);
 }

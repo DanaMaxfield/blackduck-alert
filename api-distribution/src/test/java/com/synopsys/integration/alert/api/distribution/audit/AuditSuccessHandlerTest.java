@@ -10,35 +10,45 @@ import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.synopsys.integration.alert.api.distribution.execution.ExecutingJob;
 import com.synopsys.integration.alert.api.distribution.execution.ExecutingJobManager;
 import com.synopsys.integration.alert.api.distribution.mock.MockJobCompletionStatusDurationRepository;
 import com.synopsys.integration.alert.api.distribution.mock.MockJobCompletionStatusStatusRepository;
+import com.synopsys.integration.alert.api.distribution.mock.MockJobExecutionRepository;
+import com.synopsys.integration.alert.api.distribution.mock.MockJobExecutionStageRepository;
 import com.synopsys.integration.alert.common.enumeration.AuditEntryStatus;
 import com.synopsys.integration.alert.common.persistence.accessor.JobCompletionStatusAccessor;
+import com.synopsys.integration.alert.common.persistence.accessor.JobExecutionAccessor;
 import com.synopsys.integration.alert.common.persistence.model.job.executions.JobCompletionStatusModel;
+import com.synopsys.integration.alert.common.persistence.model.job.executions.JobExecutionModel;
 import com.synopsys.integration.alert.common.rest.model.AlertPagedQueryDetails;
 import com.synopsys.integration.alert.database.api.DefaultJobCompletionStatusAccessor;
+import com.synopsys.integration.alert.database.api.DefaultJobExecutionAccessor;
 import com.synopsys.integration.alert.database.job.execution.JobCompletionStatusDurationRepository;
 import com.synopsys.integration.alert.database.job.execution.JobCompletionStatusRepository;
+import com.synopsys.integration.alert.database.job.execution.JobExecutionRepository;
+import com.synopsys.integration.alert.database.job.execution.JobExecutionStageRepository;
 
 class AuditSuccessHandlerTest {
     private ExecutingJobManager executingJobManager;
     private JobCompletionStatusAccessor jobCompletionStatusAccessor;
+    private JobExecutionAccessor jobExecutionAccessor;
 
     @BeforeEach
     public void init() {
         JobCompletionStatusDurationRepository jobCompletionStatusDurationRepository = new MockJobCompletionStatusDurationRepository();
         JobCompletionStatusRepository jobCompletionStatusRepository = new MockJobCompletionStatusStatusRepository(jobCompletionStatusDurationRepository);
 
+        JobExecutionRepository jobExecutionRepository = new MockJobExecutionRepository();
+        JobExecutionStageRepository jobExecutionStageRepository = new MockJobExecutionStageRepository();
         jobCompletionStatusAccessor = new DefaultJobCompletionStatusAccessor(jobCompletionStatusRepository, jobCompletionStatusDurationRepository);
-        executingJobManager = new ExecutingJobManager(jobCompletionStatusAccessor);
+        jobExecutionAccessor = new DefaultJobExecutionAccessor(jobExecutionRepository, jobExecutionStageRepository);
+        executingJobManager = new ExecutingJobManager(jobCompletionStatusAccessor, jobExecutionAccessor);
     }
 
     @Test
     void handleEventTest() {
         UUID jobId = UUID.randomUUID();
-        ExecutingJob executingJob = executingJobManager.startJob(jobId, 0);
+        JobExecutionModel executingJob = executingJobManager.startJob(jobId, 0);
         UUID jobExecutionId = executingJob.getExecutionId();
         AuditSuccessHandler handler = new AuditSuccessHandler(executingJobManager);
         AuditSuccessEvent event = new AuditSuccessEvent(jobExecutionId, Set.of());
@@ -49,7 +59,7 @@ class AuditSuccessHandlerTest {
         assertEquals(1, statusModel.getSuccessCount());
         assertEquals(0, statusModel.getFailureCount());
         assertEquals(0, statusModel.getNotificationCount());
-        assertTrue(executingJobManager.getExecutingJob(jobExecutionId).isEmpty());
+        assertTrue(executingJobManager.getExecutingJob(jobExecutionId).isPresent());
     }
 
     @Test
@@ -60,7 +70,7 @@ class AuditSuccessHandlerTest {
         AuditSuccessHandler handler = new AuditSuccessHandler(executingJobManager);
         AuditSuccessEvent event = new AuditSuccessEvent(jobExecutionId, notificationIds);
         handler.handle(event);
-        Optional<ExecutingJob> executingJob = executingJobManager.getExecutingJob(jobExecutionId);
+        Optional<JobExecutionModel> executingJob = executingJobManager.getExecutingJob(jobExecutionId);
         assertTrue(executingJob.isEmpty());
         assertTrue(jobCompletionStatusAccessor.getJobExecutionStatus(pagedQueryDetails).getModels().isEmpty());
         assertTrue(executingJobManager.getExecutingJob(jobExecutionId).isEmpty());

@@ -18,6 +18,7 @@ import com.synopsys.integration.alert.common.enumeration.AuditEntryStatus;
 import com.synopsys.integration.alert.common.enumeration.FrequencyType;
 import com.synopsys.integration.alert.common.enumeration.ProcessingType;
 import com.synopsys.integration.alert.common.persistence.accessor.JobCompletionStatusAccessor;
+import com.synopsys.integration.alert.common.persistence.accessor.JobExecutionAccessor;
 import com.synopsys.integration.alert.common.persistence.model.job.DistributionJobModel;
 import com.synopsys.integration.alert.common.persistence.model.job.DistributionJobModelBuilder;
 import com.synopsys.integration.alert.common.persistence.model.job.executions.JobCompletionStatusDurations;
@@ -48,6 +49,7 @@ class DefaultDiagnosticAccessorTest {
     private ExecutingJobManager executingJobManager;
     private StaticJobAccessor staticJobAccessor;
     private JobCompletionStatusAccessor jobCompletionStatusAccessor;
+    private JobExecutionAccessor jobExecutionAccessor;
 
     @BeforeEach
     public void init() {
@@ -56,7 +58,8 @@ class DefaultDiagnosticAccessorTest {
         rabbitMQDiagnosticUtility = Mockito.mock(RabbitMQDiagnosticUtility.class);
         staticJobAccessor = Mockito.mock(StaticJobAccessor.class);
         jobCompletionStatusAccessor = Mockito.mock(JobCompletionStatusAccessor.class);
-        executingJobManager = new ExecutingJobManager(jobCompletionStatusAccessor);
+        jobExecutionAccessor = Mockito.mock(JobExecutionAccessor.class);
+        executingJobManager = new ExecutingJobManager(jobCompletionStatusAccessor, jobExecutionAccessor);
     }
 
     @Test

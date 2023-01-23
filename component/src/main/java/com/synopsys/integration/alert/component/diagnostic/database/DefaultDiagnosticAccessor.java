@@ -19,9 +19,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.synopsys.integration.alert.api.distribution.execution.AggregatedExecutionResults;
-import com.synopsys.integration.alert.api.distribution.execution.ExecutingJob;
 import com.synopsys.integration.alert.api.distribution.execution.ExecutingJobManager;
-import com.synopsys.integration.alert.api.distribution.execution.ExecutingJobStage;
+import com.synopsys.integration.alert.api.distribution.execution.JobStage;
 import com.synopsys.integration.alert.common.enumeration.AuditEntryStatus;
 import com.synopsys.integration.alert.common.persistence.accessor.DiagnosticAccessor;
 import com.synopsys.integration.alert.common.persistence.accessor.JobCompletionStatusAccessor;
@@ -29,6 +28,8 @@ import com.synopsys.integration.alert.common.persistence.model.job.DistributionJ
 import com.synopsys.integration.alert.common.persistence.model.job.DistributionJobModelData;
 import com.synopsys.integration.alert.common.persistence.model.job.executions.JobCompletionStatusDurations;
 import com.synopsys.integration.alert.common.persistence.model.job.executions.JobCompletionStatusModel;
+import com.synopsys.integration.alert.common.persistence.model.job.executions.JobExecutionModel;
+import com.synopsys.integration.alert.common.persistence.model.job.executions.JobStageModel;
 import com.synopsys.integration.alert.common.rest.model.AlertPagedModel;
 import com.synopsys.integration.alert.common.rest.model.AlertPagedQueryDetails;
 import com.synopsys.integration.alert.common.util.DateUtils;
@@ -135,7 +136,7 @@ public class DefaultDiagnosticAccessor implements DiagnosticAccessor {
         List<JobExecutionDiagnosticModel> jobExecutions = new LinkedList<>();
         int pageSize = 100;
         int pageNumber = 0;
-        AlertPagedModel<ExecutingJob> page = executingJobManager.getExecutingJobs(pageNumber, pageSize);
+        AlertPagedModel<JobExecutionModel> page = executingJobManager.getExecutingJobs(pageNumber, pageSize);
         while (pageNumber < page.getTotalPages()) {
             jobExecutions.addAll(page.getModels().stream()
                 .map(this::convertExecutionData)
@@ -163,16 +164,26 @@ public class DefaultDiagnosticAccessor implements DiagnosticAccessor {
         return new JobDiagnosticModel(jobStatusData);
     }
 
-    private JobExecutionDiagnosticModel convertExecutionData(ExecutingJob job) {
-        List<JobStageDiagnosticModel> stageData = job.getStages().values()
-            .stream()
-            .map(this::convertJobStageData)
-            .collect(Collectors.toList());
+    private JobExecutionDiagnosticModel convertExecutionData(JobExecutionModel job) {
+        List<JobStageDiagnosticModel> stageData = new LinkedList<>();
+        int limit = 10;
+        AlertPagedModel<JobStageModel> jobStages = executingJobManager.getStages(job.getExecutionId(), new AlertPagedQueryDetails(0, limit));
+
+        int page = jobStages.getCurrentPage();
+        while (page < jobStages.getTotalPages()) {
+            List<JobStageDiagnosticModel> convertedData = jobStages.getModels()
+                .stream()
+                .map(this::convertJobStageData)
+                .collect(Collectors.toList());
+            stageData.addAll(convertedData);
+            page++;
+            jobStages = executingJobManager.getStages(job.getExecutionId(), new AlertPagedQueryDetails(page, limit));
+        }
         Optional<DistributionJobModel> distributionJobModel = jobAccessor.getJobById(job.getJobConfigId());
         String jobName = distributionJobModel.map(DistributionJobModelData::getName).orElse(String.format("Unknown Job (%s)", job.getJobConfigId()));
         String channelName = distributionJobModel.map(DistributionJobModel::getChannelDescriptorName).orElse("Unknown Channel");
-        String start = DateUtils.formatDateAsJsonString(DateUtils.fromInstantUTC(job.getStart()));
-        String end = job.getEnd().map(instant -> DateUtils.formatDateAsJsonString(DateUtils.fromInstantUTC(instant))).orElse("");
+        String start = DateUtils.formatDateAsJsonString(job.getStart());
+        String end = job.getEnd().map(DateUtils::formatDateAsJsonString).orElse("");
 
         return new JobExecutionDiagnosticModel(jobName, channelName, start, end, job.getStatus(), job.getProcessedNotificationCount(), job.getTotalNotificationCount(), stageData);
     }
@@ -182,11 +193,11 @@ public class DefaultDiagnosticAccessor implements DiagnosticAccessor {
         return distributionJobModel.map(DistributionJobModelData::getName).orElse(String.format("Unknown Job (%s)", jobConfigId));
     }
 
-    private JobStageDiagnosticModel convertJobStageData(ExecutingJobStage executingJobStage) {
-        String start = DateUtils.formatDateAsJsonString(DateUtils.fromInstantUTC(executingJobStage.getStart()));
-        String end = executingJobStage.getEnd().map(instant -> DateUtils.formatDateAsJsonString(DateUtils.fromInstantUTC(instant))).orElse("");
+    private JobStageDiagnosticModel convertJobStageData(JobStageModel executingJobStage) {
+        String start = DateUtils.formatDateAsJsonString(executingJobStage.getStart());
+        String end = executingJobStage.getEnd().map(DateUtils::formatDateAsJsonString).orElse("");
         return new JobStageDiagnosticModel(
-            executingJobStage.getStage(),
+            JobStage.valueOf(executingJobStage.getName()),
             start,
             end
         );

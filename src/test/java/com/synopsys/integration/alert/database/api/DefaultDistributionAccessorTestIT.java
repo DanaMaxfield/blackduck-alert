@@ -26,7 +26,6 @@ import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.synopsys.integration.alert.api.distribution.execution.ExecutingJob;
 import com.synopsys.integration.alert.api.distribution.execution.ExecutingJobManager;
 import com.synopsys.integration.alert.common.descriptor.DescriptorMap;
 import com.synopsys.integration.alert.common.enumeration.AuditEntryStatus;
@@ -41,6 +40,7 @@ import com.synopsys.integration.alert.common.persistence.model.job.details.Distr
 import com.synopsys.integration.alert.common.persistence.model.job.details.MSTeamsJobDetailsModel;
 import com.synopsys.integration.alert.common.persistence.model.job.details.SlackJobDetailsModel;
 import com.synopsys.integration.alert.common.persistence.model.job.executions.JobCompletionStatusModel;
+import com.synopsys.integration.alert.common.persistence.model.job.executions.JobExecutionModel;
 import com.synopsys.integration.alert.common.rest.model.AlertPagedModel;
 import com.synopsys.integration.alert.common.rest.model.DistributionWithAuditInfo;
 import com.synopsys.integration.alert.common.util.DateUtils;
@@ -323,12 +323,12 @@ public class DefaultDistributionAccessorTestIT {
         createdJobs.add(fifthJobSaved.getJobId());
         createdJobs.add(sixthJobSaved.getJobId());
 
-        ExecutingJob executingJob1 = executingJobManager.startJob(firstJobSaved.getJobId(), 1);
-        ExecutingJob executingJob2 = executingJobManager.startJob(secondJobSaved.getJobId(), 2);
+        JobExecutionModel executingJob1 = executingJobManager.startJob(firstJobSaved.getJobId(), 1);
+        JobExecutionModel executingJob2 = executingJobManager.startJob(secondJobSaved.getJobId(), 2);
         executingJobManager.startJob(thirdJobSaved.getJobId(), 3);
-        ExecutingJob executingJob4 = executingJobManager.startJob(fourthJobSaved.getJobId(), 4);
-        ExecutingJob executingJob5 = executingJobManager.startJob(fifthJobSaved.getJobId(), 5);
-        ExecutingJob executingJob6 = executingJobManager.startJob(sixthJobSaved.getJobId(), 6);
+        JobExecutionModel executingJob4 = executingJobManager.startJob(fourthJobSaved.getJobId(), 4);
+        JobExecutionModel executingJob5 = executingJobManager.startJob(fifthJobSaved.getJobId(), 5);
+        JobExecutionModel executingJob6 = executingJobManager.startJob(sixthJobSaved.getJobId(), 6);
 
         executingJobManager.endJobWithSuccess(executingJob1.getExecutionId(), Instant.now());
         executingJobManager.endJobWithSuccess(executingJob2.getExecutionId(), Instant.now());

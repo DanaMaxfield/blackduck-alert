@@ -30,14 +30,6 @@ public class JobExecutionStageEntity extends BaseEntity {
         // default constructor for JPA
     }
 
-    public JobExecutionStageEntity(UUID executionId, String stage, OffsetDateTime start, OffsetDateTime end) {
-        this.id = UUID.randomUUID();
-        this.executionId = executionId;
-        this.stage = stage;
-        this.start = start;
-        this.end = end;
-    }
-
     public JobExecutionStageEntity(UUID id, UUID executionId, String stage, OffsetDateTime start, OffsetDateTime end) {
         this.id = id;
         this.executionId = executionId;

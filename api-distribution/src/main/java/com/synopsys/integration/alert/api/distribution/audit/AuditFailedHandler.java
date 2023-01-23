@@ -6,10 +6,10 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.synopsys.integration.alert.api.distribution.execution.ExecutingJob;
 import com.synopsys.integration.alert.api.distribution.execution.ExecutingJobManager;
 import com.synopsys.integration.alert.api.event.AlertEventHandler;
 import com.synopsys.integration.alert.common.persistence.accessor.ProcessingFailedAccessor;
+import com.synopsys.integration.alert.common.persistence.model.job.executions.JobExecutionModel;
 import com.synopsys.integration.alert.common.util.DateUtils;
 
 @Component
@@ -29,9 +29,9 @@ public class AuditFailedHandler implements AlertEventHandler<AuditFailedEvent> {
     @Override
     public void handle(AuditFailedEvent event) {
         UUID jobExecutionId = event.getJobExecutionId();
-        Optional<ExecutingJob> executingJobOptional = executingJobManager.getExecutingJob(jobExecutionId);
+        Optional<JobExecutionModel> executingJobOptional = executingJobManager.getExecutingJob(jobExecutionId);
         if (executingJobOptional.isPresent()) {
-            ExecutingJob executingJob = executingJobOptional.get();
+            JobExecutionModel executingJob = executingJobOptional.get();
             UUID jobConfigId = executingJob.getJobConfigId();
             if (event.getStackTrace().isPresent()) {
                 processingFailedAccessor.setAuditFailure(

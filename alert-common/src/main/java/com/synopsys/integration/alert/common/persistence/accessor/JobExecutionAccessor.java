@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.synopsys.integration.alert.common.enumeration.AuditEntryStatus;
 import com.synopsys.integration.alert.common.persistence.model.job.executions.JobExecutionModel;
 import com.synopsys.integration.alert.common.persistence.model.job.executions.JobStageModel;
 import com.synopsys.integration.alert.common.rest.model.AlertPagedModel;
@@ -18,7 +19,7 @@ public interface JobExecutionAccessor {
 
     void incrementNotificationCount(UUID jobExecutionId, int notificationCount);
 
-    Optional<JobExecutionModel> getExecutingJob(UUID jobExecutionId);
+    Optional<JobExecutionModel> getJobExecution(UUID jobExecutionId);
 
     AlertPagedModel<JobExecutionModel> getExecutingJobs(AlertPagedQueryDetails pagedQueryDetails);
 
@@ -26,9 +27,13 @@ public interface JobExecutionAccessor {
 
     AlertPagedModel<JobStageModel> getJobStages(UUID jobExecutionId, AlertPagedQueryDetails pagedQueryDetails);
 
+    Optional<JobStageModel> getJobStage(UUID jobExecutionId, String stageName);
+
     void startStage(UUID executionId, String name, Instant start);
 
-    void endStage(UUID executionId, Instant end);
+    void endStage(UUID executionId, String name, Instant end);
+
+    Long countJobsByStatus(AuditEntryStatus status);
 
     void purgeJob(UUID executionId);
 }

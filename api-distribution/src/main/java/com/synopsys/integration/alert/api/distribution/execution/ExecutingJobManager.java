@@ -2,127 +2,99 @@ package com.synopsys.integration.alert.api.distribution.execution;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.time.OffsetDateTime;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.commons.collections4.ListUtils;
 import org.springframework.stereotype.Component;
 
 import com.synopsys.integration.alert.common.enumeration.AuditEntryStatus;
 import com.synopsys.integration.alert.common.persistence.accessor.JobCompletionStatusAccessor;
+import com.synopsys.integration.alert.common.persistence.accessor.JobExecutionAccessor;
 import com.synopsys.integration.alert.common.persistence.model.job.executions.JobCompletionStatusDurations;
 import com.synopsys.integration.alert.common.persistence.model.job.executions.JobCompletionStatusModel;
+import com.synopsys.integration.alert.common.persistence.model.job.executions.JobExecutionModel;
+import com.synopsys.integration.alert.common.persistence.model.job.executions.JobStageModel;
 import com.synopsys.integration.alert.common.rest.model.AlertPagedModel;
+import com.synopsys.integration.alert.common.rest.model.AlertPagedQueryDetails;
 import com.synopsys.integration.alert.common.util.DateUtils;
 
 @Component
 public class ExecutingJobManager {
-    private final Map<UUID, ExecutingJob> executingJobMap = new ConcurrentHashMap<>();
 
-    private final JobCompletionStatusAccessor completedJobsAccessor;
+    private final JobCompletionStatusAccessor completedJobStatusAccessor;
+    private final JobExecutionAccessor jobExecutionAccessor;
 
-    public ExecutingJobManager(JobCompletionStatusAccessor completedJobsAccessor) {
-        this.completedJobsAccessor = completedJobsAccessor;
+    public ExecutingJobManager(JobCompletionStatusAccessor completedJobStatusAccessor, JobExecutionAccessor jobExecutionAccessor) {
+        this.completedJobStatusAccessor = completedJobStatusAccessor;
+        this.jobExecutionAccessor = jobExecutionAccessor;
     }
 
-    public ExecutingJob startJob(UUID jobConfigId, int totalNotificationCount) {
-        ExecutingJob job = ExecutingJob.startJob(jobConfigId, totalNotificationCount);
-        executingJobMap.putIfAbsent(job.getExecutionId(), job);
-        return job;
+    public JobExecutionModel startJob(UUID jobConfigId, int totalNotificationCount) {
+        return jobExecutionAccessor.startJob(jobConfigId, totalNotificationCount);
     }
 
     public void endJobWithSuccess(UUID executionId, Instant endTime) {
-        Optional<ExecutingJob> executingJob = Optional.ofNullable(executingJobMap.getOrDefault(executionId, null));
+        jobExecutionAccessor.endJobWithSuccess(executionId, endTime);
+        Optional<JobExecutionModel> executingJob = jobExecutionAccessor.getJobExecution(executionId);
         executingJob.ifPresent(execution -> {
-            execution.jobSucceeded(endTime);
-            completedJobsAccessor.saveExecutionStatus(createStatusModel(execution, AuditEntryStatus.SUCCESS));
-            purgeJob(executionId);
+            completedJobStatusAccessor.saveExecutionStatus(createStatusModel(execution, AuditEntryStatus.SUCCESS));
         });
     }
 
     public void endJobWithFailure(UUID executionId, Instant endTime) {
-        Optional<ExecutingJob> executingJob = Optional.ofNullable(executingJobMap.getOrDefault(executionId, null));
+        jobExecutionAccessor.endJobWithFailure(executionId, endTime);
+        Optional<JobExecutionModel> executingJob = jobExecutionAccessor.getJobExecution(executionId);
         executingJob.ifPresent(execution -> {
-            execution.jobFailed(endTime);
-            completedJobsAccessor.saveExecutionStatus(createStatusModel(execution, AuditEntryStatus.FAILURE));
-            purgeJob(executionId);
+            completedJobStatusAccessor.saveExecutionStatus(createStatusModel(execution, AuditEntryStatus.FAILURE));
         });
     }
 
     public void incrementNotificationCount(UUID jobExecutionId, int notificationCount) {
-        Optional<ExecutingJob> executingJob = getExecutingJob(jobExecutionId);
-        executingJob.ifPresent(execution -> execution.updateNotificationCount(notificationCount));
+        jobExecutionAccessor.incrementNotificationCount(jobExecutionId, notificationCount);
     }
 
-    public Optional<ExecutingJob> getExecutingJob(UUID jobExecutionId) {
-        return Optional.ofNullable(executingJobMap.getOrDefault(jobExecutionId, null));
+    public Optional<JobExecutionModel> getExecutingJob(UUID jobExecutionId) {
+        return jobExecutionAccessor.getJobExecution(jobExecutionId);
     }
 
-    public AlertPagedModel<ExecutingJob> getExecutingJobs(int pageNumber, int pageSize) {
-        List<List<ExecutingJob>> pages = ListUtils.partition(new ArrayList<>(executingJobMap.values()), pageSize);
-        List<ExecutingJob> pageOfData = List.of();
-        if (!pages.isEmpty() && pageNumber < pages.size()) {
-            pageOfData = pages.get(pageNumber);
-        }
-        return new AlertPagedModel<>(pages.size(), pageNumber, pageSize, pageOfData);
+    public AlertPagedModel<JobExecutionModel> getExecutingJobs(int pageNumber, int pageSize) {
+        return jobExecutionAccessor.getExecutingJobs(new AlertPagedQueryDetails(pageNumber, pageSize));
+    }
+
+    public AlertPagedModel<JobStageModel> getStages(UUID executionId, AlertPagedQueryDetails pagedQueryDetails) {
+        return jobExecutionAccessor.getJobStages(executionId, pagedQueryDetails);
     }
 
     public void startStage(UUID executionId, JobStage stage, Instant start) {
-        Optional<ExecutingJob> executingJob = Optional.ofNullable(executingJobMap.getOrDefault(executionId, null));
-        executingJob.ifPresent(job -> {
-            job.addStage(new ExecutingJobStage(executionId, stage, start));
-        });
+        jobExecutionAccessor.startStage(executionId, stage.name(), start);
     }
 
     public void endStage(UUID executionId, JobStage stage, Instant end) {
-        Optional<ExecutingJob> executingJob = Optional.ofNullable(executingJobMap.getOrDefault(executionId, null));
-        executingJob
-            .flatMap(job -> job.getStage(stage))
-            .ifPresent(jobStage -> jobStage.endStage(end));
+        jobExecutionAccessor.endStage(executionId, stage.name(), end);
     }
 
     public void purgeJob(UUID executionId) {
-        boolean remove = executingJobMap.containsKey(executionId);
-        if (remove) {
-            executingJobMap.remove(executionId);
-        }
+        jobExecutionAccessor.purgeJob(executionId);
     }
 
     public AggregatedExecutionResults aggregateExecutingJobData() {
-        Long pendingCount = countPendingJobs();
-        Long successCount = countSuccessfulJobs();
-        Long failedJobs = countFailedJobs();
-        Long totalJobs = Long.valueOf(executingJobMap.size());
+        Long pendingCount = countJobsByStatus(AuditEntryStatus.PENDING);
+        Long successCount = countJobsByStatus(AuditEntryStatus.SUCCESS);
+        Long failedJobs = countJobsByStatus(AuditEntryStatus.FAILURE);
+        long totalJobs = pendingCount + successCount + failedJobs;
 
         return new AggregatedExecutionResults(totalJobs, pendingCount, successCount, failedJobs);
     }
 
-    private Long countSuccessfulJobs() {
-        return countJobsByStatus(AuditEntryStatus.SUCCESS);
+    private Long countJobsByStatus(AuditEntryStatus status) {
+        return jobExecutionAccessor.countJobsByStatus(status);
     }
 
-    private Long countFailedJobs() {
-        return countJobsByStatus(AuditEntryStatus.FAILURE);
-    }
-
-    private Long countPendingJobs() {
-        return countJobsByStatus(AuditEntryStatus.PENDING);
-    }
-
-    private Long countJobsByStatus(AuditEntryStatus entryStatus) {
-        return executingJobMap.values().stream()
-            .filter(executingJob -> executingJob.getStatus().equals(entryStatus))
-            .count();
-    }
-
-    private JobCompletionStatusModel createStatusModel(ExecutingJob executingJob, AuditEntryStatus jobStatus) {
+    private JobCompletionStatusModel createStatusModel(JobExecutionModel executingJob, AuditEntryStatus jobStatus) {
         UUID jobConfigId = executingJob.getJobConfigId();
         JobCompletionStatusModel resultStatus;
-        Optional<JobCompletionStatusModel> status = completedJobsAccessor.getJobExecutionStatus(jobConfigId);
+        Optional<JobCompletionStatusModel> status = completedJobStatusAccessor.getJobExecutionStatus(jobConfigId);
         resultStatus = status
             .map(currentStatus -> updateCompletedJobStatus(executingJob, jobStatus, currentStatus))
             .orElseGet(() -> createInitialCompletedJobStatus(executingJob, jobStatus));
@@ -130,9 +102,9 @@ public class ExecutingJobManager {
         return resultStatus;
     }
 
-    private JobCompletionStatusModel updateCompletedJobStatus(ExecutingJob executingJob, AuditEntryStatus jobStatus, JobCompletionStatusModel currentStatus) {
+    private JobCompletionStatusModel updateCompletedJobStatus(JobExecutionModel executingJob, AuditEntryStatus jobStatus, JobCompletionStatusModel currentStatus) {
         JobCompletionStatusDurations currentDurations = currentStatus.getDurations();
-        Long jobDuration = calculateNanoDuration(executingJob.getStart(), executingJob.getEnd().orElse(Instant.now()));
+        Long jobDuration = calculateNanoDuration(executingJob.getStart().toInstant(), executingJob.getEnd().map(OffsetDateTime::toInstant).orElse(Instant.now()));
         Long processingStageDuration = calculateJobStageDuration(executingJob, JobStage.NOTIFICATION_PROCESSING);
         Long channelProcessingStageDuration = calculateJobStageDuration(executingJob, JobStage.CHANNEL_PROCESSING);
         Long issueCreationDuration = calculateJobStageDuration(executingJob, JobStage.ISSUE_CREATION);
@@ -165,12 +137,12 @@ public class ExecutingJobManager {
             successCount,
             failureCount,
             jobStatus.name(),
-            DateUtils.fromInstantUTC(executingJob.getEnd().orElse(Instant.now())),
+            DateUtils.fromInstantUTC(executingJob.getEnd().map(OffsetDateTime::toInstant).orElse(Instant.now())),
             durations
         );
     }
 
-    private JobCompletionStatusModel createInitialCompletedJobStatus(ExecutingJob executingJob, AuditEntryStatus jobStatus) {
+    private JobCompletionStatusModel createInitialCompletedJobStatus(JobExecutionModel executingJob, AuditEntryStatus jobStatus) {
         long successCount = 0L;
         long failureCount = 0L;
 
@@ -183,7 +155,7 @@ public class ExecutingJobManager {
         }
 
         JobCompletionStatusDurations durations = new JobCompletionStatusDurations(
-            calculateNanoDuration(executingJob.getStart(), executingJob.getEnd().orElse(Instant.now())),
+            calculateNanoDuration(executingJob.getStart().toInstant(), executingJob.getEnd().map(OffsetDateTime::toInstant).orElse(Instant.now())),
             calculateJobStageDuration(executingJob, JobStage.NOTIFICATION_PROCESSING),
             calculateJobStageDuration(executingJob, JobStage.CHANNEL_PROCESSING),
             calculateJobStageDuration(executingJob, JobStage.ISSUE_CREATION),
@@ -196,7 +168,7 @@ public class ExecutingJobManager {
             successCount,
             failureCount,
             jobStatus.name(),
-            DateUtils.fromInstantUTC(executingJob.getEnd().orElse(Instant.now())),
+            DateUtils.fromInstantUTC(executingJob.getEnd().map(OffsetDateTime::toInstant).orElse(Instant.now())),
             durations
         );
     }
@@ -208,11 +180,15 @@ public class ExecutingJobManager {
         return (firstValue + secondValue) / 2;
     }
 
-    private Long calculateJobStageDuration(ExecutingJob executingJob, JobStage stage) {
-        return executingJob.getStage(stage)
-            .filter(executingJobStage -> executingJobStage.getEnd().isPresent())
-            .map(executedStage -> calculateNanoDuration(executedStage.getStart(), executedStage.getEnd().orElse(Instant.now())))
+    private Long calculateJobStageDuration(JobExecutionModel executionModel, JobStage jobStage) {
+        Optional<JobStageModel> jobStageModel = jobExecutionAccessor.getJobStage(executionModel.getExecutionId(), jobStage.name());
+        return jobStageModel
+            .map(this::calculateJobStageDuration)
             .orElse(0L);
+    }
+
+    private Long calculateJobStageDuration(JobStageModel stageModel) {
+        return calculateNanoDuration(stageModel.getStart().toInstant(), stageModel.getEnd().orElse(DateUtils.createCurrentDateTimestamp()).toInstant());
     }
 
     private Long calculateNanoDuration(Instant start, Instant end) {

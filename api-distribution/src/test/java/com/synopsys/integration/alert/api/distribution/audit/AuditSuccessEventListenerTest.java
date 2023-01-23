@@ -13,16 +13,22 @@ import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
 
 import com.google.gson.Gson;
-import com.synopsys.integration.alert.api.distribution.execution.ExecutingJob;
 import com.synopsys.integration.alert.api.distribution.execution.ExecutingJobManager;
 import com.synopsys.integration.alert.api.distribution.mock.MockJobCompletionStatusDurationRepository;
 import com.synopsys.integration.alert.api.distribution.mock.MockJobCompletionStatusStatusRepository;
+import com.synopsys.integration.alert.api.distribution.mock.MockJobExecutionRepository;
+import com.synopsys.integration.alert.api.distribution.mock.MockJobExecutionStageRepository;
 import com.synopsys.integration.alert.common.enumeration.AuditEntryStatus;
 import com.synopsys.integration.alert.common.persistence.accessor.JobCompletionStatusAccessor;
+import com.synopsys.integration.alert.common.persistence.accessor.JobExecutionAccessor;
 import com.synopsys.integration.alert.common.persistence.model.job.executions.JobCompletionStatusModel;
+import com.synopsys.integration.alert.common.persistence.model.job.executions.JobExecutionModel;
 import com.synopsys.integration.alert.database.api.DefaultJobCompletionStatusAccessor;
+import com.synopsys.integration.alert.database.api.DefaultJobExecutionAccessor;
 import com.synopsys.integration.alert.database.job.execution.JobCompletionStatusDurationRepository;
 import com.synopsys.integration.alert.database.job.execution.JobCompletionStatusRepository;
+import com.synopsys.integration.alert.database.job.execution.JobExecutionRepository;
+import com.synopsys.integration.alert.database.job.execution.JobExecutionStageRepository;
 
 class AuditSuccessEventListenerTest {
     private final Gson gson = new Gson();
@@ -37,8 +43,12 @@ class AuditSuccessEventListenerTest {
         JobCompletionStatusDurationRepository jobCompletionStatusDurationRepository = new MockJobCompletionStatusDurationRepository();
         JobCompletionStatusRepository jobCompletionStatusRepository = new MockJobCompletionStatusStatusRepository(jobCompletionStatusDurationRepository);
 
+        JobExecutionRepository jobExecutionRepository = new MockJobExecutionRepository();
+        JobExecutionStageRepository jobExecutionStageRepository = new MockJobExecutionStageRepository();
+
         jobCompletionStatusAccessor = new DefaultJobCompletionStatusAccessor(jobCompletionStatusRepository, jobCompletionStatusDurationRepository);
-        executingJobManager = new ExecutingJobManager(jobCompletionStatusAccessor);
+        JobExecutionAccessor jobExecutionAccessor = new DefaultJobExecutionAccessor(jobExecutionRepository, jobExecutionStageRepository);
+        executingJobManager = new ExecutingJobManager(jobCompletionStatusAccessor, jobExecutionAccessor);
         handler = new AuditSuccessHandler(executingJobManager);
     }
 
@@ -46,7 +56,7 @@ class AuditSuccessEventListenerTest {
     void onMessageTest() {
         UUID jobId = UUID.randomUUID();
         Set<Long> notificationIds = Set.of(1L, 2L, 3L);
-        ExecutingJob executingJob = executingJobManager.startJob(jobId, notificationIds.size());
+        JobExecutionModel executingJob = executingJobManager.startJob(jobId, notificationIds.size());
         UUID executingJobId = executingJob.getExecutionId();
 
         AuditSuccessEventListener listener = new AuditSuccessEventListener(gson, taskExecutor, handler);
@@ -60,6 +70,6 @@ class AuditSuccessEventListenerTest {
         assertEquals(1, statusModel.getSuccessCount());
         assertEquals(0, statusModel.getFailureCount());
         assertEquals(0, statusModel.getNotificationCount());
-        assertTrue(executingJobManager.getExecutingJob(executingJobId).isEmpty());
+        assertTrue(executingJobManager.getExecutingJob(executingJobId).isPresent());
     }
 }

@@ -19,7 +19,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.synopsys.integration.alert.api.distribution.execution.ExecutingJob;
 import com.synopsys.integration.alert.api.distribution.execution.ExecutingJobManager;
 import com.synopsys.integration.alert.api.distribution.execution.JobStage;
 import com.synopsys.integration.alert.api.event.AlertEventHandler;
@@ -29,6 +28,7 @@ import com.synopsys.integration.alert.common.persistence.accessor.JobNotificatio
 import com.synopsys.integration.alert.common.persistence.accessor.NotificationAccessor;
 import com.synopsys.integration.alert.common.persistence.model.job.DistributionJobModel;
 import com.synopsys.integration.alert.common.persistence.model.job.JobToNotificationMappingModel;
+import com.synopsys.integration.alert.common.persistence.model.job.executions.JobExecutionModel;
 import com.synopsys.integration.alert.common.rest.model.AlertNotificationModel;
 import com.synopsys.integration.alert.common.rest.model.AlertPagedModel;
 import com.synopsys.integration.alert.processor.api.JobNotificationContentProcessor;
@@ -88,7 +88,7 @@ public class ProcessingJobEventHandler implements AlertEventHandler<JobProcessin
             Optional<DistributionJobModel> jobModel = jobAccessor.getJobById(jobId);
             if (jobModel.isPresent()) {
                 int totalNotificationCount = jobNotificationMappingAccessor.getNotificationCountForJob(correlationId, jobId);
-                ExecutingJob executingJob = executingJobManager.startJob(jobId, totalNotificationCount);
+                JobExecutionModel executingJob = executingJobManager.startJob(jobId, totalNotificationCount);
                 executingJobManager.startStage(executingJob.getExecutionId(), JobStage.NOTIFICATION_PROCESSING, Instant.now());
                 DistributionJobModel jobConfiguration = jobModel.get();
                 ProcessedProviderMessageHolder processedMessageHolder = jobNotificationContentProcessor.processNotifications(

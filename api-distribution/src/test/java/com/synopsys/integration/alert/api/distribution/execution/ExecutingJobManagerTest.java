@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -12,50 +14,62 @@ import org.junit.jupiter.api.Test;
 
 import com.synopsys.integration.alert.api.distribution.mock.MockJobCompletionStatusDurationRepository;
 import com.synopsys.integration.alert.api.distribution.mock.MockJobCompletionStatusStatusRepository;
+import com.synopsys.integration.alert.api.distribution.mock.MockJobExecutionRepository;
+import com.synopsys.integration.alert.api.distribution.mock.MockJobExecutionStageRepository;
 import com.synopsys.integration.alert.common.enumeration.AuditEntryStatus;
 import com.synopsys.integration.alert.common.persistence.accessor.JobCompletionStatusAccessor;
+import com.synopsys.integration.alert.common.persistence.accessor.JobExecutionAccessor;
+import com.synopsys.integration.alert.common.persistence.model.job.executions.JobExecutionModel;
+import com.synopsys.integration.alert.common.persistence.model.job.executions.JobStageModel;
+import com.synopsys.integration.alert.common.rest.model.AlertPagedQueryDetails;
 import com.synopsys.integration.alert.database.api.DefaultJobCompletionStatusAccessor;
+import com.synopsys.integration.alert.database.api.DefaultJobExecutionAccessor;
 import com.synopsys.integration.alert.database.job.execution.JobCompletionStatusDurationRepository;
 import com.synopsys.integration.alert.database.job.execution.JobCompletionStatusRepository;
+import com.synopsys.integration.alert.database.job.execution.JobExecutionRepository;
+import com.synopsys.integration.alert.database.job.execution.JobExecutionStageRepository;
 
 class ExecutingJobManagerTest {
 
-    private JobCompletionStatusAccessor createAccessor() {
+    private ExecutingJobManager createManager() {
         JobCompletionStatusDurationRepository durationsRepository = new MockJobCompletionStatusDurationRepository();
         JobCompletionStatusRepository jobCompletionStatusRepository = new MockJobCompletionStatusStatusRepository(durationsRepository);
-        return new DefaultJobCompletionStatusAccessor(jobCompletionStatusRepository, durationsRepository);
+        JobCompletionStatusAccessor completionStatusAccessor = new DefaultJobCompletionStatusAccessor(jobCompletionStatusRepository, durationsRepository);
+        JobExecutionRepository jobExecutionRepository = new MockJobExecutionRepository();
+        JobExecutionStageRepository jobExecutionStageRepository = new MockJobExecutionStageRepository();
+        JobExecutionAccessor jobExecutionAccessor = new DefaultJobExecutionAccessor(jobExecutionRepository, jobExecutionStageRepository);
+
+        return new ExecutingJobManager(completionStatusAccessor, jobExecutionAccessor);
     }
 
     @Test
     void createExecutingJobTest() {
-        JobCompletionStatusAccessor accessor = createAccessor();
-        ExecutingJobManager jobManager = new ExecutingJobManager(accessor);
+        ExecutingJobManager jobManager = createManager();
+
         UUID jobConfigId = UUID.randomUUID();
-        ExecutingJob executingJob = jobManager.startJob(jobConfigId, 0);
+        JobExecutionModel executingJob = jobManager.startJob(jobConfigId, 0);
         assertNotNull(executingJob);
         assertEquals(jobConfigId, executingJob.getJobConfigId());
     }
 
     @Test
     void removeExecutingJobTest() {
-        JobCompletionStatusAccessor accessor = createAccessor();
-        ExecutingJobManager jobManager = new ExecutingJobManager(accessor);
+        ExecutingJobManager jobManager = createManager();
+
         UUID jobConfigId = UUID.randomUUID();
-        ExecutingJob executingJob = jobManager.startJob(jobConfigId, 0);
+        JobExecutionModel executingJob = jobManager.startJob(jobConfigId, 0);
         jobManager.endJobWithSuccess(jobConfigId, Instant.now());
-        ExecutingJob savedJob = jobManager.getExecutingJob(executingJob.getExecutionId()).orElse(null);
         jobManager.purgeJob(executingJob.getExecutionId());
-        assertNotNull(savedJob);
-        assertEquals(executingJob.getExecutionId(), savedJob.getExecutionId());
-        assertTrue(jobManager.getExecutingJob(savedJob.getExecutionId()).isEmpty());
+        Optional<JobExecutionModel> savedJob = jobManager.getExecutingJob(executingJob.getExecutionId());
+        assertTrue(savedJob.isEmpty());
     }
 
     @Test
     void executingJobPendingTest() {
-        JobCompletionStatusAccessor accessor = createAccessor();
-        ExecutingJobManager jobManager = new ExecutingJobManager(accessor);
+        ExecutingJobManager jobManager = createManager();
+
         UUID jobConfigId = UUID.randomUUID();
-        ExecutingJob executingJob = jobManager.startJob(jobConfigId, 1);
+        JobExecutionModel executingJob = jobManager.startJob(jobConfigId, 1);
         AggregatedExecutionResults results = jobManager.aggregateExecutingJobData();
         assertNotNull(executingJob);
         assertEquals(jobConfigId, executingJob.getJobConfigId());
@@ -71,17 +85,17 @@ class ExecutingJobManagerTest {
 
     @Test
     void executingJobSucceededTest() {
-        JobCompletionStatusAccessor accessor = createAccessor();
-        ExecutingJobManager jobManager = new ExecutingJobManager(accessor);
+        ExecutingJobManager jobManager = createManager();
+
         UUID jobConfigId = UUID.randomUUID();
-        ExecutingJob executingJob = jobManager.startJob(jobConfigId, 1);
-        ExecutingJob savedJob = jobManager.getExecutingJob(executingJob.getExecutionId()).orElseThrow(() -> new AssertionError("Job with execution ID not found."));
-        savedJob.jobSucceeded(Instant.now());
+        JobExecutionModel executingJob = jobManager.startJob(jobConfigId, 1);
+        jobManager.endJobWithSuccess(executingJob.getExecutionId(), Instant.now());
+        JobExecutionModel savedJob = jobManager.getExecutingJob(executingJob.getExecutionId()).orElseThrow(() -> new AssertionError("Job with execution ID not found."));
         AggregatedExecutionResults results = jobManager.aggregateExecutingJobData();
         assertEquals(jobConfigId, savedJob.getJobConfigId());
         assertEquals(AuditEntryStatus.SUCCESS, savedJob.getStatus());
-        assertNotNull(executingJob.getStart());
-        assertNotNull(executingJob.getEnd().orElseThrow(() -> new AssertionError("End time should be present for a completed job.")));
+        assertNotNull(savedJob.getStart());
+        assertNotNull(savedJob.getEnd().orElseThrow(() -> new AssertionError("End time should be present for a completed job.")));
 
         assertEquals(0, results.getPendingJobs());
         assertEquals(1, results.getSuccessFulJobs());
@@ -91,17 +105,17 @@ class ExecutingJobManagerTest {
 
     @Test
     void executingJobFailedTest() {
-        JobCompletionStatusAccessor accessor = createAccessor();
-        ExecutingJobManager jobManager = new ExecutingJobManager(accessor);
+        ExecutingJobManager jobManager = createManager();
+
         UUID jobConfigId = UUID.randomUUID();
-        ExecutingJob executingJob = jobManager.startJob(jobConfigId, 1);
-        ExecutingJob savedJob = jobManager.getExecutingJob(executingJob.getExecutionId()).orElseThrow(() -> new AssertionError("Job with execution ID not found."));
-        savedJob.jobFailed(Instant.now());
+        JobExecutionModel executingJob = jobManager.startJob(jobConfigId, 1);
+        jobManager.endJobWithFailure(executingJob.getExecutionId(), Instant.now());
+        JobExecutionModel savedJob = jobManager.getExecutingJob(executingJob.getExecutionId()).orElseThrow(() -> new AssertionError("Job with execution ID not found."));
         AggregatedExecutionResults results = jobManager.aggregateExecutingJobData();
         assertEquals(jobConfigId, savedJob.getJobConfigId());
-        assertEquals(AuditEntryStatus.FAILURE, executingJob.getStatus());
-        assertNotNull(executingJob.getStart());
-        assertNotNull(executingJob.getEnd().orElseThrow(() -> new AssertionError("End time should be present for a completed job.")));
+        assertEquals(AuditEntryStatus.FAILURE, savedJob.getStatus());
+        assertNotNull(savedJob.getStart());
+        assertNotNull(savedJob.getEnd().orElseThrow(() -> new AssertionError("End time should be present for a completed job.")));
 
         assertEquals(0, results.getPendingJobs());
         assertEquals(0, results.getSuccessFulJobs());
@@ -111,69 +125,89 @@ class ExecutingJobManagerTest {
 
     @Test
     void addStageTest() {
-        JobCompletionStatusAccessor accessor = createAccessor();
-        ExecutingJobManager jobManager = new ExecutingJobManager(accessor);
-        UUID jobConfigId = UUID.randomUUID();
-        ExecutingJob executingJob = jobManager.startJob(jobConfigId, 1);
-        ExecutingJobStage executingJobStage = new ExecutingJobStage(executingJob.getExecutionId(), JobStage.NOTIFICATION_PROCESSING, Instant.now());
-        executingJob.addStage(executingJobStage);
-        executingJobStage.endStage(Instant.now());
-        ExecutingJobStage storedStage = executingJob.getStage(JobStage.NOTIFICATION_PROCESSING)
-            .orElseThrow(() -> new AssertionError("Job Stage is missing when it should be present."));
-        assertEquals(executingJobStage, storedStage);
-        assertEquals(executingJob.getExecutionId(), executingJobStage.getExecutionId());
-        assertEquals(JobStage.NOTIFICATION_PROCESSING, executingJobStage.getStage());
-        assertNotNull(executingJobStage.getStart());
-        assertNotNull(executingJobStage.getEnd());
-    }
+        ExecutingJobManager jobManager = createManager();
 
-    @Test
-    void stageMissingTest() {
-        JobCompletionStatusAccessor accessor = createAccessor();
-        ExecutingJobManager jobManager = new ExecutingJobManager(accessor);
         UUID jobConfigId = UUID.randomUUID();
-        ExecutingJob executingJob = jobManager.startJob(jobConfigId, 1);
-        ExecutingJobStage executingJobStage = new ExecutingJobStage(executingJob.getExecutionId(), JobStage.NOTIFICATION_PROCESSING, Instant.now());
-        executingJob.addStage(executingJobStage);
-        executingJobStage.endStage(Instant.now());
-        Optional<ExecutingJobStage> missingStage = executingJob.getStage(JobStage.CHANNEL_PROCESSING);
-        assertTrue(missingStage.isEmpty());
+        JobExecutionModel executingJob = jobManager.startJob(jobConfigId, 1);
+        jobManager.startStage(executingJob.getExecutionId(), JobStage.NOTIFICATION_PROCESSING, Instant.now());
+        jobManager.endStage(executingJob.getExecutionId(), JobStage.NOTIFICATION_PROCESSING, Instant.now());
+        JobStageModel storedStage = jobManager.getStages(executingJob.getExecutionId(), new AlertPagedQueryDetails(0, 1)).getModels()
+            .stream()
+            .findFirst()
+            .orElseThrow(() -> new AssertionError("Job Stage is missing when it should be present."));
+        assertEquals(executingJob.getExecutionId(), storedStage.getExecutionId());
+        assertEquals(JobStage.NOTIFICATION_PROCESSING.name(), storedStage.getName());
+        assertNotNull(storedStage.getStart());
+        assertNotNull(storedStage.getEnd());
     }
 
     @Test
     void addSameStageTest() {
-        JobCompletionStatusAccessor accessor = createAccessor();
-        ExecutingJobManager jobManager = new ExecutingJobManager(accessor);
+        ExecutingJobManager jobManager = createManager();
+
         UUID jobConfigId = UUID.randomUUID();
-        ExecutingJob executingJob = jobManager.startJob(jobConfigId, 1);
-        ExecutingJobStage firstStage = new ExecutingJobStage(executingJob.getExecutionId(), JobStage.NOTIFICATION_PROCESSING, Instant.now());
-        executingJob.addStage(firstStage);
-        firstStage.endStage(Instant.now());
+        Instant firstStageStart = Instant.now();
+        Instant firstStageEnd = Instant.now();
+        Instant secondStageStart = Instant.now();
+        Instant secondStageEnd = Instant.now();
+        JobExecutionModel executingJob = jobManager.startJob(jobConfigId, 1);
+        jobManager.startStage(executingJob.getExecutionId(), JobStage.NOTIFICATION_PROCESSING, firstStageStart);
+        jobManager.endStage(executingJob.getExecutionId(), JobStage.NOTIFICATION_PROCESSING, firstStageEnd);
 
-        ExecutingJobStage secondStage = new ExecutingJobStage(executingJob.getExecutionId(), JobStage.NOTIFICATION_PROCESSING, Instant.now());
-        executingJob.addStage(secondStage);
-        secondStage.endStage(Instant.now());
+        jobManager.startStage(executingJob.getExecutionId(), JobStage.NOTIFICATION_PROCESSING, secondStageStart);
+        jobManager.endStage(executingJob.getExecutionId(), JobStage.NOTIFICATION_PROCESSING, secondStageEnd);
 
-        ExecutingJobStage storedStage = executingJob.getStage(JobStage.NOTIFICATION_PROCESSING)
-            .orElseThrow(() -> new AssertionError("Job Stage is missing when it should be present."));
-        assertEquals(firstStage, storedStage);
-        assertEquals(1, executingJob.getStages().size());
+        List<JobStageModel> storedStages = jobManager.getStages(executingJob.getExecutionId(), new AlertPagedQueryDetails(0, 1)).getModels();
+        assertEquals(1, storedStages.size());
+        JobStageModel storedStage = storedStages.get(0);
+        assertEquals(executingJob.getExecutionId(), storedStage.getExecutionId());
+        assertEquals(JobStage.NOTIFICATION_PROCESSING.name(), storedStage.getName());
+        assertNotNull(storedStage.getStart());
+        assertNotNull(storedStage.getEnd());
+        assertTrue(firstStageStart.isBefore(storedStage.getStart().toInstant()));
+        assertTrue(firstStageEnd.isBefore(storedStage.getEnd().map(OffsetDateTime::toInstant).orElseThrow(() -> new AssertionError("End time should be present."))));
     }
 
     @Test
     void multipleStagesTest() {
-        JobCompletionStatusAccessor accessor = createAccessor();
-        ExecutingJobManager jobManager = new ExecutingJobManager(accessor);
+        ExecutingJobManager jobManager = createManager();
+
         UUID jobConfigId = UUID.randomUUID();
-        ExecutingJob executingJob = jobManager.startJob(jobConfigId, 1);
-        ExecutingJobStage mappingStage = new ExecutingJobStage(executingJob.getExecutionId(), JobStage.NOTIFICATION_PROCESSING, Instant.now());
-        executingJob.addStage(mappingStage);
-        mappingStage.endStage(Instant.now());
-        ExecutingJobStage processingStage = new ExecutingJobStage(executingJob.getExecutionId(), JobStage.CHANNEL_PROCESSING, Instant.now());
-        executingJob.addStage(processingStage);
-        processingStage.endStage(Instant.now());
-        assertTrue(executingJob.getStage(JobStage.NOTIFICATION_PROCESSING).isPresent());
-        assertTrue(executingJob.getStage(JobStage.CHANNEL_PROCESSING).isPresent());
-        assertEquals(2, executingJob.getStages().size());
+        JobExecutionModel executingJob = jobManager.startJob(jobConfigId, 1);
+        Instant firstStageStart = Instant.now();
+        Instant firstStageEnd = Instant.now();
+        Instant secondStageStart = Instant.now();
+        Instant secondStageEnd = Instant.now();
+        jobManager.startStage(executingJob.getExecutionId(), JobStage.NOTIFICATION_PROCESSING, firstStageStart);
+        jobManager.endStage(executingJob.getExecutionId(), JobStage.NOTIFICATION_PROCESSING, firstStageEnd);
+
+        jobManager.startStage(executingJob.getExecutionId(), JobStage.CHANNEL_PROCESSING, secondStageStart);
+        jobManager.endStage(executingJob.getExecutionId(), JobStage.CHANNEL_PROCESSING, secondStageEnd);
+
+        List<JobStageModel> storedStages = jobManager.getStages(executingJob.getExecutionId(), new AlertPagedQueryDetails(0, 10)).getModels();
+        assertEquals(2, storedStages.size());
+        JobStageModel storedStage = storedStages
+            .stream()
+            .filter(model -> model.getName().equals(JobStage.NOTIFICATION_PROCESSING.name()))
+            .findFirst()
+            .orElseThrow(() -> new AssertionError("stage expected but not found"));
+        assertEquals(executingJob.getExecutionId(), storedStage.getExecutionId());
+        assertEquals(JobStage.NOTIFICATION_PROCESSING.name(), storedStage.getName());
+        assertNotNull(storedStage.getStart());
+        assertNotNull(storedStage.getEnd());
+        assertEquals(firstStageStart, storedStage.getStart().toInstant());
+        assertEquals(firstStageEnd, storedStage.getEnd().map(OffsetDateTime::toInstant).orElseThrow(() -> new AssertionError("End time should be present.")));
+
+        storedStage = storedStages
+            .stream()
+            .filter(model -> model.getName().equals(JobStage.CHANNEL_PROCESSING.name()))
+            .findFirst()
+            .orElseThrow(() -> new AssertionError("stage expected but not found"));
+        assertEquals(executingJob.getExecutionId(), storedStage.getExecutionId());
+        assertEquals(JobStage.CHANNEL_PROCESSING.name(), storedStage.getName());
+        assertNotNull(storedStage.getStart());
+        assertNotNull(storedStage.getEnd());
+        assertEquals(secondStageStart, storedStage.getStart().toInstant());
+        assertEquals(secondStageEnd, storedStage.getEnd().map(OffsetDateTime::toInstant).orElseThrow(() -> new AssertionError("End time should be present.")));
     }
 }

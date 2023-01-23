@@ -1,9 +1,11 @@
 package com.synopsys.integration.alert.common.persistence.model.job.executions;
 
 import java.time.OffsetDateTime;
+import java.util.Optional;
 import java.util.UUID;
 
 import com.synopsys.integration.alert.api.common.model.AlertSerializableModel;
+import com.synopsys.integration.alert.common.enumeration.AuditEntryStatus;
 
 public class JobExecutionModel extends AlertSerializableModel {
 
@@ -12,7 +14,7 @@ public class JobExecutionModel extends AlertSerializableModel {
     private final UUID jobConfigId;
     private final OffsetDateTime start;
     private final OffsetDateTime end;
-    private final String status;
+    private final AuditEntryStatus status;
     private final int processedNotificationCount;
     private final int totalNotificationCount;
 
@@ -21,7 +23,7 @@ public class JobExecutionModel extends AlertSerializableModel {
         UUID jobConfigId,
         OffsetDateTime start,
         OffsetDateTime end,
-        String status,
+        AuditEntryStatus status,
         int processedNotificationCount,
         int totalNotificationCount
     ) {
@@ -46,11 +48,11 @@ public class JobExecutionModel extends AlertSerializableModel {
         return start;
     }
 
-    public OffsetDateTime getEnd() {
-        return end;
+    public Optional<OffsetDateTime> getEnd() {
+        return Optional.ofNullable(end);
     }
 
-    public String getStatus() {
+    public AuditEntryStatus getStatus() {
         return status;
     }
 

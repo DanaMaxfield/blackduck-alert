@@ -11,6 +11,7 @@ import org.mockito.Mockito;
 import com.synopsys.integration.alert.api.distribution.execution.ExecutingJobManager;
 import com.synopsys.integration.alert.common.persistence.accessor.JobAccessor;
 import com.synopsys.integration.alert.common.persistence.accessor.JobCompletionStatusAccessor;
+import com.synopsys.integration.alert.common.persistence.accessor.JobExecutionAccessor;
 import com.synopsys.integration.alert.common.persistence.accessor.JobNotificationMappingAccessor;
 import com.synopsys.integration.alert.common.persistence.accessor.NotificationAccessor;
 import com.synopsys.integration.alert.processor.api.JobNotificationContentProcessor;
@@ -37,7 +38,8 @@ class ProcessingJobEventHandlerTest {
         JobNotificationMappingAccessor jobNotificationMappingAccessor = Mockito.mock(JobNotificationMappingAccessor.class);
         ProviderMessageExtractionDelegator providerMessageExtractionDelegator = Mockito.mock(ProviderMessageExtractionDelegator.class);
         JobCompletionStatusAccessor completeJobAccessor = Mockito.mock(JobCompletionStatusAccessor.class);
-        ExecutingJobManager executingJobManager = new ExecutingJobManager(completeJobAccessor);
+        JobExecutionAccessor jobExecutionAccessor = Mockito.mock(JobExecutionAccessor.class);
+        ExecutingJobManager executingJobManager = new ExecutingJobManager(completeJobAccessor, jobExecutionAccessor);
 
         JobNotificationContentProcessor jobNotificationContentProcessor = new JobNotificationContentProcessor(
             notificationDetailExtractionDelegator,

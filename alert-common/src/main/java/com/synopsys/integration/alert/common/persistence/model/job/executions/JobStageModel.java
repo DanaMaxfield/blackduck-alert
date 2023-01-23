@@ -1,6 +1,7 @@
 package com.synopsys.integration.alert.common.persistence.model.job.executions;
 
 import java.time.OffsetDateTime;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.lang.Nullable;
@@ -41,7 +42,7 @@ public class JobStageModel extends AlertSerializableModel {
         return start;
     }
 
-    public OffsetDateTime getEnd() {
-        return end;
+    public Optional<OffsetDateTime> getEnd() {
+        return Optional.ofNullable(end);
     }
 }
