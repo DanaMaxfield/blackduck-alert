@@ -1,6 +1,7 @@
 package com.synopsys.integration.alert.common.persistence.accessor;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -25,13 +26,13 @@ public interface JobExecutionAccessor {
 
     AlertPagedModel<JobExecutionModel> getCompletedJobs(AlertPagedQueryDetails pagedQueryDetails);
 
-    AlertPagedModel<JobStageModel> getJobStages(UUID jobExecutionId, AlertPagedQueryDetails pagedQueryDetails);
+    List<JobStageModel> getJobStages(UUID jobExecutionId);
 
     Optional<JobStageModel> getJobStage(UUID jobExecutionId, String stageName);
 
-    void startStage(UUID executionId, String name, Instant start);
+    void startStage(UUID executionId, int stageId, Instant start);
 
-    void endStage(UUID executionId, String name, Instant end);
+    void endStage(UUID executionId, int stageId, Instant end);
 
     Long countJobsByStatus(AuditEntryStatus status);
 

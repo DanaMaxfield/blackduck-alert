@@ -2,6 +2,41 @@
 <databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd">
 
+    <changeSet author="psantos" id="create-job-stage-table">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists schemaName="alert" tableName="job_stage"/>
+            </not>
+        </preConditions>
+        <createTable schemaName="alert" tableName="job_stage">
+            <column name="id" type="BIGINT" defaultValueComputed="uuid_generate_v4()">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="name" type="VARCHAR" defaultValueComputed="">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <insert tableName="job_stage">
+            <column name="id" value="0"/>
+            <column name="name" value="NOTIFICATION_PROCESSING"/>
+        </insert>
+        <insert tableName="job_stage">
+            <column name="id" value="1"/>
+            <column name="name" value="CHANNEL_PROCESSING"/>
+        </insert>
+        <insert tableName="job_stage">
+            <column name="id" value="2"/>
+            <column name="name" value="ISSUE_CREATION"/>
+        </insert>
+        <insert tableName="job_stage">
+            <column name="id" value="3"/>
+            <column name="name" value="ISSUE_COMMENTING"/>
+        </insert>
+        <insert tableName="job_stage">
+            <column name="id" value="4"/>
+            <column name="name" value="ISSUE_RESOLVING"/>
+        </insert>
+    </changeSet>
     <changeSet author="psantos" id="create-job-execution-table">
         <preConditions onFail="MARK_RAN">
             <not>
@@ -39,7 +74,7 @@
             <column name="execution_id" type="UUID" defaultValueComputed="uuid_generate_v4()">
                 <constraints nullable="false"/>
             </column>
-            <column name="stage_id" type="VARCHAR">
+            <column name="stage_id" type="BIGINT">
                 <constraints nullable="false"/>
             </column>
             <column name="start_time" type="TIMESTAMP">
@@ -112,36 +147,71 @@
             </column>
         </createTable>
     </changeSet>
-    <changeSet author="psantos" id="create-job-completion-durations-table">
+    <changeSet author="psantos" id="create-job-completion-stage-table">
         <preConditions onFail="MARK_RAN">
             <not>
-                <tableExists schemaName="alert" tableName="job_completion_durations"/>
+                <tableExists schemaName="alert" tableName="job_completion_stage"/>
             </not>
         </preConditions>
-        <createTable schemaName="alert" tableName="job_completion_durations">
+        <createTable schemaName="alert" tableName="job_completion_stage">
             <column name="job_config_id" type="UUID" defaultValueComputed="uuid_generate_v4()">
-                <constraints primaryKey="true"/>
-            </column>
-            <column name="job_duration_nanoseconds" type="BIGINT">
                 <constraints nullable="false"/>
             </column>
-            <column name="notification_processing_duration_nanoseconds" type="BIGINT"/>
-            <column name="channel_processing_duration_nanoseconds" type="BIGINT"/>
-            <column name="issue_creation_duration_nanoseconds" type="BIGINT"/>
-            <column name="issue_commenting_duration_nanoseconds" type="BIGINT"/>
-            <column name="issue_resolving_duration_nanoseconds" type="BIGINT"/>
+            <column name="stage_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="duration_nanosecond" type="BIGINT"/>
         </createTable>
+        <addPrimaryKey schemaName="alert"
+                       tableName="job_completion_stage"
+                       columnNames="job_config_id, stage_id"
+                       constraintName="job-completion-stage-PK"
+        />
     </changeSet>
-    <changeSet author="psantos" id="create-execution-tables-foreign-key">
+    <changeSet author="psantos" id="create-job-stage-execution-tables-foreign-key">
         <preConditions>
             <not>
-                <foreignKeyConstraintExists schemaName="alert" foreignKeyName="job-execution-config-id-fk"/>
+                <foreignKeyConstraintExists schemaName="alert" foreignKeyName="job-stage-execution-fk"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint
+                constraintName="job-stage-execution-fk"
+                baseTableSchemaName="alert"
+                baseTableName="job_execution_stage"
+                baseColumnNames="stage_id"
+                referencedTableSchemaName="alert"
+                referencedTableName="job_stage"
+                referencedColumnNames="stage_id"
+                onDelete="CASCADE"
+        />
+    </changeSet>
+    <changeSet author="psantos" id="create-job-stage-completion-tables-foreign-key">
+        <preConditions>
+            <not>
+                <foreignKeyConstraintExists schemaName="alert" foreignKeyName="job-stage-completion-fk"/>
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint
+                constraintName="job-stage-completion-fk"
+                baseTableSchemaName="alert"
+                baseTableName="job_completion_stage"
+                baseColumnNames="stage_id"
+                referencedTableSchemaName="alert"
+                referencedTableName="job_stage"
+                referencedColumnNames="stage_id"
+                onDelete="CASCADE"
+        />
+    </changeSet>
+    <changeSet author="psantos" id="create-completion-tables-foreign-key">
+        <preConditions>
+            <not>
+                <foreignKeyConstraintExists schemaName="alert" foreignKeyName="job-completion-config-id-fk"/>
             </not>
         </preConditions>
         <addForeignKeyConstraint
                 constraintName="job-execution-config-id-fk"
                 baseTableSchemaName="alert"
-                baseTableName="job_completion_durations"
+                baseTableName="job_completion_stage"
                 baseColumnNames="job_config_id"
                 referencedTableSchemaName="alert"
                 referencedTableName="job_completion_status"

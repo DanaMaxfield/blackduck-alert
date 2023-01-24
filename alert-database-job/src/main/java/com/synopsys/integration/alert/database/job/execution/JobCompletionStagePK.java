@@ -3,20 +3,20 @@ package com.synopsys.integration.alert.database.job.execution;
 import java.io.Serializable;
 import java.util.UUID;
 
-public class JobExecutionStagePK implements Serializable {
+public class JobCompletionStagePK implements Serializable {
     private UUID executionId;
     private int stage;
 
-    public JobExecutionStagePK() {
+    public JobCompletionStagePK() {
         //JPA constructor
     }
 
-    public JobExecutionStagePK(UUID executionId, int stage) {
+    public JobCompletionStagePK(UUID executionId, int stage) {
         this.executionId = executionId;
         this.stage = stage;
     }
 
-    public UUID getExecutionId() {
+    public UUID getJobConfigId() {
         return executionId;
     }
 
@@ -24,7 +24,7 @@ public class JobExecutionStagePK implements Serializable {
         return stage;
     }
 
-    public void setExecutionId(UUID executionId) {
+    public void setJobConfigId(UUID executionId) {
         this.executionId = executionId;
     }
 

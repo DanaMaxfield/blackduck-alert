@@ -3,6 +3,7 @@ package com.synopsys.integration.alert.database.api;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,13 +14,15 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.synopsys.integration.alert.common.enumeration.AuditEntryStatus;
 import com.synopsys.integration.alert.common.persistence.accessor.JobCompletionStatusAccessor;
-import com.synopsys.integration.alert.common.persistence.model.job.executions.JobCompletionStatusDurations;
+import com.synopsys.integration.alert.common.persistence.model.job.executions.JobCompletionStageModel;
 import com.synopsys.integration.alert.common.persistence.model.job.executions.JobCompletionStatusModel;
 import com.synopsys.integration.alert.common.rest.model.AlertPagedModel;
 import com.synopsys.integration.alert.common.rest.model.AlertPagedQueryDetails;
+import com.synopsys.integration.alert.database.job.execution.JobCompletionStageEntity;
+import com.synopsys.integration.alert.database.job.execution.JobCompletionStageRepository;
 import com.synopsys.integration.alert.database.job.execution.JobCompletionStatusDurationRepository;
-import com.synopsys.integration.alert.database.job.execution.JobCompletionStatusDurationsEntity;
 import com.synopsys.integration.alert.database.job.execution.JobCompletionStatusEntity;
 import com.synopsys.integration.alert.database.job.execution.JobCompletionStatusRepository;
 
@@ -28,14 +31,17 @@ public class DefaultJobCompletionStatusAccessor implements JobCompletionStatusAc
 
     private final JobCompletionStatusRepository jobCompletionStatusRepository;
     private final JobCompletionStatusDurationRepository jobCompletionStatusDurationRepository;
+    private final JobCompletionStageRepository jobCompletionStageRepository;
 
     @Autowired
     public DefaultJobCompletionStatusAccessor(
         JobCompletionStatusRepository jobCompletionStatusRepository,
-        JobCompletionStatusDurationRepository jobCompletionStatusDurationRepository
+        JobCompletionStatusDurationRepository jobCompletionStatusDurationRepository,
+        JobCompletionStageRepository jobCompletionStageRepository
     ) {
         this.jobCompletionStatusRepository = jobCompletionStatusRepository;
         this.jobCompletionStatusDurationRepository = jobCompletionStatusDurationRepository;
+        this.jobCompletionStageRepository = jobCompletionStageRepository;
     }
 
     @Override
@@ -64,35 +70,34 @@ public class DefaultJobCompletionStatusAccessor implements JobCompletionStatusAc
 
     @Override
     @Transactional(propagation = Propagation.REQUIRED)
-    public void saveExecutionStatus(JobCompletionStatusModel statusModel) {
-        JobCompletionStatusDurationsEntity durations = convertDurationFromModel(statusModel.getJobConfigId(), statusModel.getDurations());
-        JobCompletionStatusEntity jobExecutionStatus = convertFromModel(statusModel);
+    public void saveExecutionStatus(JobCompletionStatusModel latestData) {
+        JobCompletionStatusModel updatedModel = createAggregatedStatusModel(latestData);
+        JobCompletionStatusEntity jobExecutionStatus = convertFromModel(updatedModel);
         jobCompletionStatusRepository.save(jobExecutionStatus);
-        jobCompletionStatusDurationRepository.save(durations);
+    }
+
+    @Override
+    public List<JobCompletionStageModel> getJobStageData(UUID jobConfigId) {
+        return jobCompletionStageRepository.findAllByJobConfigId(jobConfigId)
+            .stream()
+            .map(this::convertToStageModel)
+            .collect(Collectors.toList());
+    }
+
+    @Override
+    public void saveJobStageData(JobCompletionStageModel jobCompletionStageModel) {
+        JobCompletionStageModel updatedModel = createAggregatedStageModel(jobCompletionStageModel);
+        jobCompletionStageRepository.save(convertFromStageModel(updatedModel));
     }
 
     private JobCompletionStatusModel convertToModel(JobCompletionStatusEntity entity) {
-        JobCompletionStatusDurations durations = convertDurationToModel(jobCompletionStatusDurationRepository.findById(entity.getJobConfigId())
-            .orElseGet(() -> createEmptyDurations(entity.getJobConfigId())));
         return new JobCompletionStatusModel(
             entity.getJobConfigId(),
             entity.getNotificationCount(),
             entity.getSuccessCount(),
             entity.getFailureCount(),
             entity.getLatestStatus(),
-            entity.getLastRun(),
-            durations
-        );
-    }
-
-    private JobCompletionStatusDurations convertDurationToModel(JobCompletionStatusDurationsEntity entity) {
-        return new JobCompletionStatusDurations(
-            entity.getJobDurationNanosec(),
-            entity.getNotificationProcessingDuration(),
-            entity.getChannelProcessingDuration(),
-            entity.getIssueCreationDuration(),
-            entity.getIssueCommentingDuration(),
-            entity.getIssueTransitionDuration()
+            entity.getLastRun()
         );
     }
 
@@ -107,27 +112,93 @@ public class DefaultJobCompletionStatusAccessor implements JobCompletionStatusAc
         );
     }
 
-    private JobCompletionStatusDurationsEntity convertDurationFromModel(UUID jobConfigId, JobCompletionStatusDurations model) {
-        return new JobCompletionStatusDurationsEntity(
-            jobConfigId,
-            model.getJobDurationMillisec(),
-            model.getNotificationProcessingDuration().orElse(null),
-            model.getChannelProcessingDuration().orElse(null),
-            model.getIssueCreationDuration().orElse(null),
-            model.getIssueCommentingDuration().orElse(null),
-            model.getIssueTransitionDuration().orElse(null)
+    private JobCompletionStageModel convertToStageModel(JobCompletionStageEntity entity) {
+        return new JobCompletionStageModel(entity.getJobConfigId(), entity.getStage(), entity.getDurationNano());
+    }
+
+    private JobCompletionStageEntity convertFromStageModel(JobCompletionStageModel model) {
+        return new JobCompletionStageEntity(model.getJobConfigId(), model.getStageId(), model.getDurationNano());
+    }
+
+    private JobCompletionStatusModel createAggregatedStatusModel(JobCompletionStatusModel latestData) {
+        UUID jobConfigId = latestData.getJobConfigId();
+        JobCompletionStatusModel resultStatus;
+        Optional<JobCompletionStatusModel> status = getJobExecutionStatus(jobConfigId);
+        resultStatus = status
+            .map(savedStatus -> updateCompletedJobStatus(latestData, savedStatus))
+            .orElseGet(() -> createInitialCompletedJobStatus(latestData));
+
+        return resultStatus;
+    }
+
+    private JobCompletionStatusModel updateCompletedJobStatus(JobCompletionStatusModel latestData, JobCompletionStatusModel savedStatus) {
+        long successCount = 0L;
+        long failureCount = 0L;
+        AuditEntryStatus jobStatus = AuditEntryStatus.valueOf(latestData.getLatestStatus());
+
+        if (jobStatus == AuditEntryStatus.SUCCESS) {
+            successCount = savedStatus.getSuccessCount() + 1L;
+        }
+
+        if (jobStatus == AuditEntryStatus.FAILURE) {
+            failureCount = savedStatus.getFailureCount() + 1L;
+        }
+
+        return new JobCompletionStatusModel(
+            latestData.getJobConfigId(),
+            calculateAverage(latestData.getNotificationCount(), savedStatus.getNotificationCount()),
+            successCount,
+            failureCount,
+            jobStatus.name(),
+            latestData.getLastRun()
         );
     }
 
-    private JobCompletionStatusDurationsEntity createEmptyDurations(UUID jobConfigId) {
-        return new JobCompletionStatusDurationsEntity(
-            jobConfigId,
-            0L,
-            null,
-            null,
-            null,
-            null,
-            null
+    private JobCompletionStatusModel createInitialCompletedJobStatus(JobCompletionStatusModel latestData) {
+        long successCount = 0L;
+        long failureCount = 0L;
+        AuditEntryStatus jobStatus = AuditEntryStatus.valueOf(latestData.getLatestStatus());
+
+        if (jobStatus == AuditEntryStatus.SUCCESS) {
+            successCount = 1L;
+        }
+
+        if (jobStatus == AuditEntryStatus.FAILURE) {
+            failureCount = 1L;
+        }
+
+        return new JobCompletionStatusModel(
+            latestData.getJobConfigId(),
+            latestData.getNotificationCount(),
+            successCount,
+            failureCount,
+            jobStatus.name(),
+            latestData.getLastRun()
         );
+    }
+
+    private JobCompletionStageModel createAggregatedStageModel(JobCompletionStageModel latestData) {
+        UUID jobConfigId = latestData.getJobConfigId();
+        Integer stageId = latestData.getStageId();
+
+        Optional<JobCompletionStageEntity> currentStageData = jobCompletionStageRepository.findByJobConfigIdAndStage(jobConfigId, stageId);
+        return currentStageData
+            .map(savedStatus -> updateCompletedStageData(latestData, savedStatus))
+            .orElse(latestData);
+    }
+
+    private JobCompletionStageModel updateCompletedStageData(JobCompletionStageModel latestData, JobCompletionStageEntity currentSavedData) {
+        return new JobCompletionStageModel(
+            currentSavedData.getJobConfigId(),
+            currentSavedData.getStage(),
+            calculateAverage(latestData.getDurationNano(), currentSavedData.getDurationNano())
+        );
+    }
+
+    private Long calculateAverage(Long firstValue, Long secondValue) {
+        if (firstValue < 1 || secondValue < 1) {
+            return 0L;
+        }
+        return (firstValue + secondValue) / 2;
     }
 }

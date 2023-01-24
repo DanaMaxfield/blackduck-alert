@@ -239,16 +239,16 @@ class DefaultDiagnosticAccessorTest {
             processedNotificationCount,
             totalNotificationCount
         );
-        JobStageModel firstJobStageModel = new JobStageModel(jobExecutionModel.getExecutionId(), firstStage.getStage().name(), firstStageStart, firstStageEnd);
+        JobStageModel firstJobStageModel = new JobStageModel(jobExecutionModel.getExecutionId(), firstStage.getStage().getStageId(), firstStageStart, firstStageEnd);
         JobStageModel secondJobStageModel = new JobStageModel(
             jobExecutionModel.getExecutionId(),
-            secondStage.getStage().name(),
+            secondStage.getStage().getStageId(),
             secondStageStart,
             secondStageEnd
         );
         Mockito.when(executingJobManager.aggregateExecutingJobData()).thenReturn(results);
-        AlertPagedModel<JobStageModel> jobStages = new AlertPagedModel<>(1, 0, 10, List.of(firstJobStageModel, secondJobStageModel));
-        Mockito.when(executingJobManager.getStages(Mockito.any(UUID.class), Mockito.any(AlertPagedQueryDetails.class))).thenReturn(jobStages);
+        List<JobStageModel> jobStages = List.of(firstJobStageModel, secondJobStageModel);
+        Mockito.when(executingJobManager.getStages(Mockito.any(UUID.class))).thenReturn(jobStages);
         AlertPagedModel<JobExecutionModel> executingJobs = new AlertPagedModel<>(1, 0, 1, List.of(jobExecutionModel));
         Mockito.when(executingJobManager.getExecutingJobs(Mockito.anyInt(), Mockito.anyInt())).thenReturn(executingJobs);
         return new JobExecutionsDiagnosticModel(totalJobsInSystem, pendingCount, successCount, failureCount, jobExecutionDiagnosticModels);

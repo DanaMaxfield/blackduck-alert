@@ -12,6 +12,7 @@ import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 
+import com.synopsys.integration.alert.api.distribution.mock.MockJobCompletionStageRepository;
 import com.synopsys.integration.alert.api.distribution.mock.MockJobCompletionStatusDurationRepository;
 import com.synopsys.integration.alert.api.distribution.mock.MockJobCompletionStatusStatusRepository;
 import com.synopsys.integration.alert.api.distribution.mock.MockJobExecutionRepository;
@@ -21,9 +22,9 @@ import com.synopsys.integration.alert.common.persistence.accessor.JobCompletionS
 import com.synopsys.integration.alert.common.persistence.accessor.JobExecutionAccessor;
 import com.synopsys.integration.alert.common.persistence.model.job.executions.JobExecutionModel;
 import com.synopsys.integration.alert.common.persistence.model.job.executions.JobStageModel;
-import com.synopsys.integration.alert.common.rest.model.AlertPagedQueryDetails;
 import com.synopsys.integration.alert.database.api.DefaultJobCompletionStatusAccessor;
 import com.synopsys.integration.alert.database.api.DefaultJobExecutionAccessor;
+import com.synopsys.integration.alert.database.job.execution.JobCompletionStageRepository;
 import com.synopsys.integration.alert.database.job.execution.JobCompletionStatusDurationRepository;
 import com.synopsys.integration.alert.database.job.execution.JobCompletionStatusRepository;
 import com.synopsys.integration.alert.database.job.execution.JobExecutionRepository;
@@ -34,7 +35,12 @@ class ExecutingJobManagerTest {
     private ExecutingJobManager createManager() {
         JobCompletionStatusDurationRepository durationsRepository = new MockJobCompletionStatusDurationRepository();
         JobCompletionStatusRepository jobCompletionStatusRepository = new MockJobCompletionStatusStatusRepository(durationsRepository);
-        JobCompletionStatusAccessor completionStatusAccessor = new DefaultJobCompletionStatusAccessor(jobCompletionStatusRepository, durationsRepository);
+        JobCompletionStageRepository jobCompletionStageRepository = new MockJobCompletionStageRepository();
+        JobCompletionStatusAccessor completionStatusAccessor = new DefaultJobCompletionStatusAccessor(
+            jobCompletionStatusRepository,
+            durationsRepository,
+            jobCompletionStageRepository
+        );
         JobExecutionRepository jobExecutionRepository = new MockJobExecutionRepository();
         JobExecutionStageRepository jobExecutionStageRepository = new MockJobExecutionStageRepository();
         JobExecutionAccessor jobExecutionAccessor = new DefaultJobExecutionAccessor(jobExecutionRepository, jobExecutionStageRepository);
@@ -131,12 +137,12 @@ class ExecutingJobManagerTest {
         JobExecutionModel executingJob = jobManager.startJob(jobConfigId, 1);
         jobManager.startStage(executingJob.getExecutionId(), JobStage.NOTIFICATION_PROCESSING, Instant.now());
         jobManager.endStage(executingJob.getExecutionId(), JobStage.NOTIFICATION_PROCESSING, Instant.now());
-        JobStageModel storedStage = jobManager.getStages(executingJob.getExecutionId(), new AlertPagedQueryDetails(0, 1)).getModels()
+        JobStageModel storedStage = jobManager.getStages(executingJob.getExecutionId())
             .stream()
             .findFirst()
             .orElseThrow(() -> new AssertionError("Job Stage is missing when it should be present."));
         assertEquals(executingJob.getExecutionId(), storedStage.getExecutionId());
-        assertEquals(JobStage.NOTIFICATION_PROCESSING.name(), storedStage.getName());
+        assertEquals(JobStage.NOTIFICATION_PROCESSING.name(), storedStage.getStageId());
         assertNotNull(storedStage.getStart());
         assertNotNull(storedStage.getEnd());
     }
@@ -157,11 +163,11 @@ class ExecutingJobManagerTest {
         jobManager.startStage(executingJob.getExecutionId(), JobStage.NOTIFICATION_PROCESSING, secondStageStart);
         jobManager.endStage(executingJob.getExecutionId(), JobStage.NOTIFICATION_PROCESSING, secondStageEnd);
 
-        List<JobStageModel> storedStages = jobManager.getStages(executingJob.getExecutionId(), new AlertPagedQueryDetails(0, 1)).getModels();
+        List<JobStageModel> storedStages = jobManager.getStages(executingJob.getExecutionId());
         assertEquals(1, storedStages.size());
         JobStageModel storedStage = storedStages.get(0);
         assertEquals(executingJob.getExecutionId(), storedStage.getExecutionId());
-        assertEquals(JobStage.NOTIFICATION_PROCESSING.name(), storedStage.getName());
+        assertEquals(JobStage.NOTIFICATION_PROCESSING.name(), storedStage.getStageId());
         assertNotNull(storedStage.getStart());
         assertNotNull(storedStage.getEnd());
         assertTrue(firstStageStart.isBefore(storedStage.getStart().toInstant()));
@@ -184,15 +190,15 @@ class ExecutingJobManagerTest {
         jobManager.startStage(executingJob.getExecutionId(), JobStage.CHANNEL_PROCESSING, secondStageStart);
         jobManager.endStage(executingJob.getExecutionId(), JobStage.CHANNEL_PROCESSING, secondStageEnd);
 
-        List<JobStageModel> storedStages = jobManager.getStages(executingJob.getExecutionId(), new AlertPagedQueryDetails(0, 10)).getModels();
+        List<JobStageModel> storedStages = jobManager.getStages(executingJob.getExecutionId());
         assertEquals(2, storedStages.size());
         JobStageModel storedStage = storedStages
             .stream()
-            .filter(model -> model.getName().equals(JobStage.NOTIFICATION_PROCESSING.name()))
+            .filter(model -> model.getStageId() == JobStage.NOTIFICATION_PROCESSING.getStageId())
             .findFirst()
             .orElseThrow(() -> new AssertionError("stage expected but not found"));
         assertEquals(executingJob.getExecutionId(), storedStage.getExecutionId());
-        assertEquals(JobStage.NOTIFICATION_PROCESSING.name(), storedStage.getName());
+        assertEquals(JobStage.NOTIFICATION_PROCESSING.getStageId(), storedStage.getStageId());
         assertNotNull(storedStage.getStart());
         assertNotNull(storedStage.getEnd());
         assertEquals(firstStageStart, storedStage.getStart().toInstant());
@@ -200,11 +206,11 @@ class ExecutingJobManagerTest {
 
         storedStage = storedStages
             .stream()
-            .filter(model -> model.getName().equals(JobStage.CHANNEL_PROCESSING.name()))
+            .filter(model -> model.getStageId() == JobStage.CHANNEL_PROCESSING.getStageId())
             .findFirst()
             .orElseThrow(() -> new AssertionError("stage expected but not found"));
         assertEquals(executingJob.getExecutionId(), storedStage.getExecutionId());
-        assertEquals(JobStage.CHANNEL_PROCESSING.name(), storedStage.getName());
+        assertEquals(JobStage.CHANNEL_PROCESSING.name(), storedStage.getStageId());
         assertNotNull(storedStage.getStart());
         assertNotNull(storedStage.getEnd());
         assertEquals(secondStageStart, storedStage.getStart().toInstant());

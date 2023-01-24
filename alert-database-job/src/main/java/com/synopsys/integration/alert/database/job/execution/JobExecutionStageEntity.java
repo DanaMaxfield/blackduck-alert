@@ -21,7 +21,7 @@ public class JobExecutionStageEntity extends BaseEntity {
     private UUID executionId;
     @Id
     @Column(name = "stage_id")
-    private String stage;
+    private int stage;
     @Column(name = "start_time")
     private OffsetDateTime start;
     @Column(name = "end_time")
@@ -31,7 +31,7 @@ public class JobExecutionStageEntity extends BaseEntity {
         // default constructor for JPA
     }
 
-    public JobExecutionStageEntity(UUID executionId, String stage, OffsetDateTime start, OffsetDateTime end) {
+    public JobExecutionStageEntity(UUID executionId, int stage, OffsetDateTime start, OffsetDateTime end) {
         this.executionId = executionId;
         this.stage = stage;
         this.start = start;
@@ -42,7 +42,7 @@ public class JobExecutionStageEntity extends BaseEntity {
         return executionId;
     }
 
-    public String getStage() {
+    public int getStage() {
         return stage;
     }
 

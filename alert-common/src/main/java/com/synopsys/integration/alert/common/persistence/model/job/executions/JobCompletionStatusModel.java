@@ -21,8 +21,7 @@ public class JobCompletionStatusModel extends AlertSerializableModel {
         Long successCount,
         Long failureCount,
         String latestStatus,
-        OffsetDateTime lastRun,
-        JobCompletionStatusDurations durations
+        OffsetDateTime lastRun
     ) {
         this.jobConfigId = jobConfigId;
         this.notificationCount = notificationCount;
@@ -30,7 +29,7 @@ public class JobCompletionStatusModel extends AlertSerializableModel {
         this.failureCount = failureCount;
         this.latestStatus = latestStatus;
         this.lastRun = lastRun;
-        this.durations = durations;
+        this.durations = null;
     }
 
     public UUID getJobConfigId() {

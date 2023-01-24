@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.synopsys.integration.alert.common.enumeration.AuditEntryStatus;
@@ -39,7 +40,7 @@ public class DefaultJobExecutionAccessor implements JobExecutionAccessor {
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRED)
     public JobExecutionModel startJob(UUID jobConfigId, int totalNotificationCount) {
         JobExecutionEntity entity = new JobExecutionEntity(
             UUID.randomUUID(),
@@ -55,13 +56,13 @@ public class DefaultJobExecutionAccessor implements JobExecutionAccessor {
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRED)
     public void endJobWithSuccess(UUID executionId, Instant endTime) {
         endJobWIthStatus(executionId, endTime, AuditEntryStatus.SUCCESS);
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRED)
     public void endJobWithFailure(UUID executionId, Instant endTime) {
         endJobWIthStatus(executionId, endTime, AuditEntryStatus.FAILURE);
     }
@@ -85,7 +86,7 @@ public class DefaultJobExecutionAccessor implements JobExecutionAccessor {
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRED)
     public void incrementNotificationCount(UUID jobExecutionId, int notificationCount) {
         Optional<JobExecutionEntity> searchedEntity = jobExecutionRepository.findById(jobExecutionId);
         if (searchedEntity.isPresent()) {
@@ -104,13 +105,13 @@ public class DefaultJobExecutionAccessor implements JobExecutionAccessor {
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public Optional<JobExecutionModel> getJobExecution(UUID jobExecutionId) {
         return jobExecutionRepository.findById(jobExecutionId).map(this::convertToExecutionModel);
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public AlertPagedModel<JobExecutionModel> getExecutingJobs(AlertPagedQueryDetails pagedQueryDetails) {
         PageRequest pageRequest = PageRequest.of(pagedQueryDetails.getOffset(), pagedQueryDetails.getLimit());
         Page<JobExecutionEntity> page = jobExecutionRepository.findAllByStatusIn(Set.of(AuditEntryStatus.PENDING.name()), pageRequest);
@@ -122,7 +123,7 @@ public class DefaultJobExecutionAccessor implements JobExecutionAccessor {
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public AlertPagedModel<JobExecutionModel> getCompletedJobs(AlertPagedQueryDetails pagedQueryDetails) {
         PageRequest pageRequest = PageRequest.of(pagedQueryDetails.getOffset(), pagedQueryDetails.getLimit());
         Page<JobExecutionEntity> page = jobExecutionRepository.findAllByStatusIn(Set.of(AuditEntryStatus.FAILURE.name(), AuditEntryStatus.SUCCESS.name()), pageRequest);
@@ -134,33 +135,31 @@ public class DefaultJobExecutionAccessor implements JobExecutionAccessor {
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public Long countJobsByStatus(AuditEntryStatus status) {
         return jobExecutionRepository.countAllByStatusIn(Set.of(status.name()));
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public Optional<JobStageModel> getJobStage(UUID jobExecutionId, String stageName) {
         return Optional.empty();
     }
 
     @Override
-    @Transactional
-    public AlertPagedModel<JobStageModel> getJobStages(UUID jobExecutionId, AlertPagedQueryDetails pagedQueryDetails) {
-        PageRequest pageRequest = PageRequest.of(pagedQueryDetails.getOffset(), pagedQueryDetails.getLimit());
-        Page<JobExecutionStageEntity> page = jobExecutionStageRepository.findAllByExecutionId(jobExecutionId, pageRequest);
-        List<JobStageModel> data = page
+    @Transactional(readOnly = true)
+    public List<JobStageModel> getJobStages(UUID jobExecutionId) {
+        List<JobExecutionStageEntity> stages = jobExecutionStageRepository.findAllByExecutionId(jobExecutionId);
+        return stages
             .stream()
             .map(this::convertToStageModel)
             .collect(Collectors.toList());
-        return new AlertPagedModel<>(page.getTotalPages(), page.getNumber(), page.getNumberOfElements(), data);
     }
 
     @Override
-    @Transactional
-    public void startStage(UUID executionId, String name, Instant start) {
-        Optional<JobExecutionStageEntity> stageData = jobExecutionStageRepository.findByExecutionIdAndStage(executionId, name);
+    @Transactional(propagation = Propagation.REQUIRED)
+    public void startStage(UUID executionId, int stageId, Instant start) {
+        Optional<JobExecutionStageEntity> stageData = jobExecutionStageRepository.findByExecutionIdAndStage(executionId, stageId);
         if (stageData.isPresent()) {
             JobExecutionStageEntity stage = stageData.get();
             JobExecutionStageEntity updatedStage = new JobExecutionStageEntity(
@@ -171,14 +170,14 @@ public class DefaultJobExecutionAccessor implements JobExecutionAccessor {
             );
             jobExecutionStageRepository.save(updatedStage);
         } else {
-            jobExecutionStageRepository.save(new JobExecutionStageEntity(executionId, name, DateUtils.fromInstantUTC(start), null));
+            jobExecutionStageRepository.save(new JobExecutionStageEntity(executionId, stageId, DateUtils.fromInstantUTC(start), null));
         }
     }
 
     @Override
-    @Transactional
-    public void endStage(UUID executionId, String stageName, Instant end) {
-        Optional<JobExecutionStageEntity> stageData = jobExecutionStageRepository.findByExecutionIdAndStage(executionId, stageName);
+    @Transactional(propagation = Propagation.REQUIRED)
+    public void endStage(UUID executionId, int stageId, Instant end) {
+        Optional<JobExecutionStageEntity> stageData = jobExecutionStageRepository.findByExecutionIdAndStage(executionId, stageId);
         if (stageData.isPresent()) {
             JobExecutionStageEntity stage = stageData.get();
             JobExecutionStageEntity updatedStage = new JobExecutionStageEntity(
@@ -192,7 +191,7 @@ public class DefaultJobExecutionAccessor implements JobExecutionAccessor {
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRED)
     public void purgeJob(UUID executionId) {
         jobExecutionRepository.deleteById(executionId);
     }

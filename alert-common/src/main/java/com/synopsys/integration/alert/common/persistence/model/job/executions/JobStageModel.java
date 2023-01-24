@@ -12,13 +12,13 @@ public class JobStageModel extends AlertSerializableModel {
 
     private static final long serialVersionUID = -3731652313267969148L;
     private final UUID executionId;
-    private final String name;
+    private final int stageId;
     private final OffsetDateTime start;
     private final OffsetDateTime end;
 
-    public JobStageModel(UUID executionId, String name, OffsetDateTime start, @Nullable OffsetDateTime end) {
+    public JobStageModel(UUID executionId, int stageId, OffsetDateTime start, @Nullable OffsetDateTime end) {
         this.executionId = executionId;
-        this.name = name;
+        this.stageId = stageId;
         this.start = start;
         this.end = end;
     }
@@ -27,8 +27,8 @@ public class JobStageModel extends AlertSerializableModel {
         return executionId;
     }
 
-    public String getName() {
-        return name;
+    public int getStageId() {
+        return stageId;
     }
 
     public OffsetDateTime getStart() {

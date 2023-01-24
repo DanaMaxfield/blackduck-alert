@@ -165,20 +165,12 @@ public class DefaultDiagnosticAccessor implements DiagnosticAccessor {
     }
 
     private JobExecutionDiagnosticModel convertExecutionData(JobExecutionModel job) {
-        List<JobStageDiagnosticModel> stageData = new LinkedList<>();
-        int limit = 10;
-        AlertPagedModel<JobStageModel> jobStages = executingJobManager.getStages(job.getExecutionId(), new AlertPagedQueryDetails(0, limit));
+        List<JobStageModel> jobStages = executingJobManager.getStages(job.getExecutionId());
+        List<JobStageDiagnosticModel> stageData = new LinkedList<>(jobStages
+            .stream()
+            .map(this::convertJobStageData)
+            .collect(Collectors.toList()));
 
-        int page = jobStages.getCurrentPage();
-        while (page < jobStages.getTotalPages()) {
-            List<JobStageDiagnosticModel> convertedData = jobStages.getModels()
-                .stream()
-                .map(this::convertJobStageData)
-                .collect(Collectors.toList());
-            stageData.addAll(convertedData);
-            page++;
-            jobStages = executingJobManager.getStages(job.getExecutionId(), new AlertPagedQueryDetails(page, limit));
-        }
         Optional<DistributionJobModel> distributionJobModel = jobAccessor.getJobById(job.getJobConfigId());
         String jobName = distributionJobModel.map(DistributionJobModelData::getName).orElse(String.format("Unknown Job (%s)", job.getJobConfigId()));
         String channelName = distributionJobModel.map(DistributionJobModel::getChannelDescriptorName).orElse("Unknown Channel");
@@ -197,7 +189,7 @@ public class DefaultDiagnosticAccessor implements DiagnosticAccessor {
         String start = DateUtils.formatDateAsJsonString(executingJobStage.getStart());
         String end = executingJobStage.getEnd().map(DateUtils::formatDateAsJsonString).orElse("");
         return new JobStageDiagnosticModel(
-            JobStage.valueOf(executingJobStage.getName()),
+            JobStage.findByStageId(executingJobStage.getStageId()),
             start,
             end
         );
