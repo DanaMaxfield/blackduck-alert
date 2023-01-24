@@ -11,6 +11,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import com.synopsys.integration.alert.api.distribution.execution.ExecutingJobManager;
+import com.synopsys.integration.alert.api.distribution.mock.MockJobCompletionStageRepository;
 import com.synopsys.integration.alert.api.distribution.mock.MockJobCompletionStatusDurationRepository;
 import com.synopsys.integration.alert.api.distribution.mock.MockJobCompletionStatusStatusRepository;
 import com.synopsys.integration.alert.api.distribution.mock.MockJobExecutionRepository;
@@ -23,6 +24,7 @@ import com.synopsys.integration.alert.common.persistence.model.job.executions.Jo
 import com.synopsys.integration.alert.common.rest.model.AlertPagedQueryDetails;
 import com.synopsys.integration.alert.database.api.DefaultJobCompletionStatusAccessor;
 import com.synopsys.integration.alert.database.api.DefaultJobExecutionAccessor;
+import com.synopsys.integration.alert.database.job.execution.JobCompletionStageRepository;
 import com.synopsys.integration.alert.database.job.execution.JobCompletionStatusDurationRepository;
 import com.synopsys.integration.alert.database.job.execution.JobCompletionStatusRepository;
 import com.synopsys.integration.alert.database.job.execution.JobExecutionRepository;
@@ -37,10 +39,10 @@ class AuditSuccessHandlerTest {
     public void init() {
         JobCompletionStatusDurationRepository jobCompletionStatusDurationRepository = new MockJobCompletionStatusDurationRepository();
         JobCompletionStatusRepository jobCompletionStatusRepository = new MockJobCompletionStatusStatusRepository(jobCompletionStatusDurationRepository);
-
+        JobCompletionStageRepository jobCompletionStageRepository = new MockJobCompletionStageRepository();
         JobExecutionRepository jobExecutionRepository = new MockJobExecutionRepository();
         JobExecutionStageRepository jobExecutionStageRepository = new MockJobExecutionStageRepository();
-        jobCompletionStatusAccessor = new DefaultJobCompletionStatusAccessor(jobCompletionStatusRepository, jobCompletionStatusDurationRepository);
+        jobCompletionStatusAccessor = new DefaultJobCompletionStatusAccessor(jobCompletionStatusRepository, jobCompletionStatusDurationRepository, jobCompletionStageRepository);
         jobExecutionAccessor = new DefaultJobExecutionAccessor(jobExecutionRepository, jobExecutionStageRepository);
         executingJobManager = new ExecutingJobManager(jobCompletionStatusAccessor, jobExecutionAccessor);
     }

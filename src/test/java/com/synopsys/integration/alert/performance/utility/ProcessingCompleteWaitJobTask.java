@@ -163,12 +163,8 @@ public class ProcessingCompleteWaitJobTask implements WaitJobCondition {
                     jobStatus.getFailureCount()
                 ));
                 JobDurationDiagnosticModel jobDurationModel = jobStatus.getDurations();
-                intLogger.info(String.format("    Job Duration: %s", jobDurationModel.getJobDuration()));
-                intLogger.info(String.format("    Notification Processing Duration: %s", jobDurationModel.getNotificationProcessingDuration()));
-                intLogger.info(String.format("    Channel Processing Duration: %s", jobDurationModel.getChannelProcessingDuration()));
-                intLogger.info(String.format("    Issue Creation Duration: %s", jobDurationModel.getIssueCreationDuration()));
-                intLogger.info(String.format("    Issue Commenting Duration: %s", jobDurationModel.getIssueCommentingDuration()));
-                intLogger.info(String.format("    Issue Transition Duration: %s", jobDurationModel.getIssueTransitionDuration()));
+                jobDurationModel.getStageDurations().forEach(stage ->
+                    intLogger.info(String.format("    %s: %s", stage.getName(), stage.getDuration())));
             });
         intLogger.info("Performance: Job Diagnosticis");
         intLogger.info("Performance: Executing Job Diagnosticis");

@@ -23,7 +23,6 @@ import com.synopsys.integration.alert.common.persistence.accessor.JobCompletionS
 import com.synopsys.integration.alert.common.persistence.accessor.JobExecutionAccessor;
 import com.synopsys.integration.alert.common.persistence.model.job.DistributionJobModel;
 import com.synopsys.integration.alert.common.persistence.model.job.DistributionJobModelBuilder;
-import com.synopsys.integration.alert.common.persistence.model.job.executions.JobCompletionStatusDurations;
 import com.synopsys.integration.alert.common.persistence.model.job.executions.JobCompletionStatusModel;
 import com.synopsys.integration.alert.common.persistence.model.job.executions.JobExecutionModel;
 import com.synopsys.integration.alert.common.persistence.model.job.executions.JobStageModel;
@@ -36,8 +35,9 @@ import com.synopsys.integration.alert.component.diagnostic.model.DiagnosticModel
 import com.synopsys.integration.alert.component.diagnostic.model.JobDiagnosticModel;
 import com.synopsys.integration.alert.component.diagnostic.model.JobDurationDiagnosticModel;
 import com.synopsys.integration.alert.component.diagnostic.model.JobExecutionDiagnosticModel;
+import com.synopsys.integration.alert.component.diagnostic.model.JobExecutionStageDiagnosticModel;
 import com.synopsys.integration.alert.component.diagnostic.model.JobExecutionsDiagnosticModel;
-import com.synopsys.integration.alert.component.diagnostic.model.JobStageDiagnosticModel;
+import com.synopsys.integration.alert.component.diagnostic.model.JobStageStatusDiagnosticModel;
 import com.synopsys.integration.alert.component.diagnostic.model.JobStatusDiagnosticModel;
 import com.synopsys.integration.alert.component.diagnostic.model.NotificationDiagnosticModel;
 import com.synopsys.integration.alert.component.diagnostic.model.RabbitMQDiagnosticModel;
@@ -131,15 +131,8 @@ class DefaultDiagnosticAccessorTest {
         Long failureCount = 0L;
         String latestStatus = AuditEntryStatus.SUCCESS.name();
         OffsetDateTime lastRun = DateUtils.createCurrentDateTimestamp();
-        JobCompletionStatusDurations durations = new JobCompletionStatusDurations(
-            Duration.between(lastRun, lastRun.minusSeconds(30)).toMillis(),
-            Duration.between(lastRun, lastRun.minusMinutes(20)).toMillis(),
-            Duration.between(lastRun, lastRun.minusMinutes(10)).toMillis(),
-            Duration.between(lastRun, lastRun.minusMinutes(5)).toMillis(),
-            Duration.between(lastRun, lastRun.minusMinutes(4)).toMillis(),
-            Duration.between(lastRun, lastRun.minusMinutes(1)).toMillis()
-        );
-        JobCompletionStatusModel statusModel = new JobCompletionStatusModel(jobConfigId, notificationCount, successCount, failureCount, latestStatus, lastRun, durations);
+
+        JobCompletionStatusModel statusModel = new JobCompletionStatusModel(jobConfigId, notificationCount, successCount, failureCount, latestStatus, lastRun);
         AlertPagedModel<JobCompletionStatusModel> pageModel = new AlertPagedModel<>(1, 0, 10, List.of(statusModel));
         Mockito.when(jobCompletionStatusAccessor.getJobExecutionStatus(Mockito.any(AlertPagedQueryDetails.class))).thenReturn(pageModel);
 
@@ -155,12 +148,14 @@ class DefaultDiagnosticAccessorTest {
 
         Mockito.when(staticJobAccessor.getJobById(Mockito.any())).thenReturn(Optional.of(jobModelBuilder.build()));
         JobDurationDiagnosticModel durationDiagnosticModel = new JobDurationDiagnosticModel(
-            DateUtils.formatDurationFromNanos(durations.getJobDurationMillisec()),
-            durations.getNotificationProcessingDuration().map(DateUtils::formatDurationFromNanos).orElse(null),
-            durations.getChannelProcessingDuration().map(DateUtils::formatDurationFromNanos).orElse(null),
-            durations.getIssueCreationDuration().map(DateUtils::formatDurationFromNanos).orElse(null),
-            durations.getIssueCommentingDuration().map(DateUtils::formatDurationFromNanos).orElse(null),
-            durations.getIssueTransitionDuration().map(DateUtils::formatDurationFromNanos).orElse(null)
+            List.of(new JobStageStatusDiagnosticModel(
+                    JobStage.NOTIFICATION_PROCESSING.name(),
+                    DateUtils.formatDurationFromNanos(1000000L)
+                ), new JobStageStatusDiagnosticModel(
+                    JobStage.CHANNEL_PROCESSING.name(),
+                    DateUtils.formatDurationFromNanos(300000L)
+                )
+            )
         );
         JobStatusDiagnosticModel statusDiagnosticModel = new JobStatusDiagnosticModel(
             jobConfigId,
@@ -192,7 +187,7 @@ class DefaultDiagnosticAccessorTest {
 
         OffsetDateTime firstStageStart = DateUtils.createCurrentDateTimestamp();
         OffsetDateTime firstStageEnd = DateUtils.createCurrentDateTimestamp();
-        JobStageDiagnosticModel firstStage = new JobStageDiagnosticModel(
+        JobExecutionStageDiagnosticModel firstStage = new JobExecutionStageDiagnosticModel(
             JobStage.NOTIFICATION_PROCESSING,
             DateUtils.formatDateAsJsonString(firstStageStart),
             DateUtils.formatDateAsJsonString(firstStageEnd)
@@ -200,12 +195,12 @@ class DefaultDiagnosticAccessorTest {
 
         OffsetDateTime secondStageStart = DateUtils.createCurrentDateTimestamp();
         OffsetDateTime secondStageEnd = DateUtils.createCurrentDateTimestamp();
-        JobStageDiagnosticModel secondStage = new JobStageDiagnosticModel(
+        JobExecutionStageDiagnosticModel secondStage = new JobExecutionStageDiagnosticModel(
             JobStage.CHANNEL_PROCESSING,
             DateUtils.formatDateAsJsonString(secondStageStart),
             DateUtils.formatDateAsJsonString(secondStageEnd)
         );
-        List<JobStageDiagnosticModel> stages = List.of(firstStage, secondStage);
+        List<JobExecutionStageDiagnosticModel> stages = List.of(firstStage, secondStage);
 
         JobExecutionDiagnosticModel model = new JobExecutionDiagnosticModel(
             TEST_JOB_NAME,

@@ -15,7 +15,7 @@ public class JobExecutionDiagnosticModel extends AlertSerializableModel {
     private final int processedNotificationCount;
     private final int totalNotificationCount;
 
-    private final List<JobStageDiagnosticModel> stages;
+    private final List<JobExecutionStageDiagnosticModel> stages;
 
     public JobExecutionDiagnosticModel(
         String jobName,
@@ -25,7 +25,7 @@ public class JobExecutionDiagnosticModel extends AlertSerializableModel {
         AuditEntryStatus status,
         int processedNotificationCount,
         int totalNotificationCount,
-        List<JobStageDiagnosticModel> stages
+        List<JobExecutionStageDiagnosticModel> stages
     ) {
         this.jobName = jobName;
         this.channelName = channelName;
@@ -65,7 +65,7 @@ public class JobExecutionDiagnosticModel extends AlertSerializableModel {
         return totalNotificationCount;
     }
 
-    public List<JobStageDiagnosticModel> getStages() {
+    public List<JobExecutionStageDiagnosticModel> getStages() {
         return stages;
     }
 }

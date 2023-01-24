@@ -26,7 +26,7 @@ import com.synopsys.integration.alert.common.persistence.accessor.DiagnosticAcce
 import com.synopsys.integration.alert.common.persistence.accessor.JobCompletionStatusAccessor;
 import com.synopsys.integration.alert.common.persistence.model.job.DistributionJobModel;
 import com.synopsys.integration.alert.common.persistence.model.job.DistributionJobModelData;
-import com.synopsys.integration.alert.common.persistence.model.job.executions.JobCompletionStatusDurations;
+import com.synopsys.integration.alert.common.persistence.model.job.executions.JobCompletionStageModel;
 import com.synopsys.integration.alert.common.persistence.model.job.executions.JobCompletionStatusModel;
 import com.synopsys.integration.alert.common.persistence.model.job.executions.JobExecutionModel;
 import com.synopsys.integration.alert.common.persistence.model.job.executions.JobStageModel;
@@ -38,8 +38,9 @@ import com.synopsys.integration.alert.component.diagnostic.model.DiagnosticModel
 import com.synopsys.integration.alert.component.diagnostic.model.JobDiagnosticModel;
 import com.synopsys.integration.alert.component.diagnostic.model.JobDurationDiagnosticModel;
 import com.synopsys.integration.alert.component.diagnostic.model.JobExecutionDiagnosticModel;
+import com.synopsys.integration.alert.component.diagnostic.model.JobExecutionStageDiagnosticModel;
 import com.synopsys.integration.alert.component.diagnostic.model.JobExecutionsDiagnosticModel;
-import com.synopsys.integration.alert.component.diagnostic.model.JobStageDiagnosticModel;
+import com.synopsys.integration.alert.component.diagnostic.model.JobStageStatusDiagnosticModel;
 import com.synopsys.integration.alert.component.diagnostic.model.JobStatusDiagnosticModel;
 import com.synopsys.integration.alert.component.diagnostic.model.NotificationDiagnosticModel;
 import com.synopsys.integration.alert.component.diagnostic.model.RabbitMQDiagnosticModel;
@@ -166,7 +167,7 @@ public class DefaultDiagnosticAccessor implements DiagnosticAccessor {
 
     private JobExecutionDiagnosticModel convertExecutionData(JobExecutionModel job) {
         List<JobStageModel> jobStages = executingJobManager.getStages(job.getExecutionId());
-        List<JobStageDiagnosticModel> stageData = new LinkedList<>(jobStages
+        List<JobExecutionStageDiagnosticModel> stageData = new LinkedList<>(jobStages
             .stream()
             .map(this::convertJobStageData)
             .collect(Collectors.toList()));
@@ -185,10 +186,10 @@ public class DefaultDiagnosticAccessor implements DiagnosticAccessor {
         return distributionJobModel.map(DistributionJobModelData::getName).orElse(String.format("Unknown Job (%s)", jobConfigId));
     }
 
-    private JobStageDiagnosticModel convertJobStageData(JobStageModel executingJobStage) {
+    private JobExecutionStageDiagnosticModel convertJobStageData(JobStageModel executingJobStage) {
         String start = DateUtils.formatDateAsJsonString(executingJobStage.getStart());
         String end = executingJobStage.getEnd().map(DateUtils::formatDateAsJsonString).orElse("");
-        return new JobStageDiagnosticModel(
+        return new JobExecutionStageDiagnosticModel(
             JobStage.findByStageId(executingJobStage.getStageId()),
             start,
             end
@@ -196,6 +197,7 @@ public class DefaultDiagnosticAccessor implements DiagnosticAccessor {
     }
 
     private JobStatusDiagnosticModel convertJobStatusData(JobCompletionStatusModel jobCompletionStatusModel) {
+        JobDurationDiagnosticModel jobDurationDiagnosticModel = new JobDurationDiagnosticModel(convertStageData(jobCompletionStatusAccessor.getJobStageData(jobCompletionStatusModel.getJobConfigId())));
         String jobName = getJobName(jobCompletionStatusModel.getJobConfigId());
         return new JobStatusDiagnosticModel(
             jobCompletionStatusModel.getJobConfigId(),
@@ -205,19 +207,14 @@ public class DefaultDiagnosticAccessor implements DiagnosticAccessor {
             jobCompletionStatusModel.getFailureCount(),
             jobCompletionStatusModel.getLatestStatus(),
             DateUtils.formatDateAsJsonString(jobCompletionStatusModel.getLastRun()),
-            convertJobDurationData(jobCompletionStatusModel.getDurations())
+            jobDurationDiagnosticModel
         );
 
     }
 
-    private JobDurationDiagnosticModel convertJobDurationData(JobCompletionStatusDurations jobDurationModel) {
-        return new JobDurationDiagnosticModel(
-            DateUtils.formatDurationFromNanos(jobDurationModel.getJobDurationMillisec()),
-            jobDurationModel.getNotificationProcessingDuration().map(DateUtils::formatDurationFromNanos).orElse(null),
-            jobDurationModel.getChannelProcessingDuration().map(DateUtils::formatDurationFromNanos).orElse(null),
-            jobDurationModel.getIssueCreationDuration().map(DateUtils::formatDurationFromNanos).orElse(null),
-            jobDurationModel.getIssueCommentingDuration().map(DateUtils::formatDurationFromNanos).orElse(null),
-            jobDurationModel.getIssueTransitionDuration().map(DateUtils::formatDurationFromNanos).orElse(null)
-        );
+    private List<JobStageStatusDiagnosticModel> convertStageData(List<JobCompletionStageModel> jobDurationModel) {
+        return jobDurationModel.stream()
+            .map(stage -> new JobStageStatusDiagnosticModel(JobStage.findByStageId(stage.getStageId()).name(), DateUtils.formatDurationFromNanos(stage.getDurationNano())))
+            .collect(Collectors.toList());
     }
 }
