@@ -3,7 +3,10 @@ package com.synopsys.integration.alert.database.job.execution;
 import java.io.Serializable;
 import java.util.UUID;
 
-public class JobExecutionStagePK implements Serializable {
+import com.synopsys.integration.util.Stringable;
+
+public class JobExecutionStagePK extends Stringable implements Serializable {
+    private static final long serialVersionUID = -4271124930513120155L;
     private UUID executionId;
     private int stage;
 

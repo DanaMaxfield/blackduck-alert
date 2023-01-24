@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd">
-
     <changeSet author="psantos" id="create-job-stage-table">
         <preConditions onFail="MARK_RAN">
             <not>
@@ -9,30 +8,40 @@
             </not>
         </preConditions>
         <createTable schemaName="alert" tableName="job_stage">
-            <column name="id" type="BIGINT" defaultValueComputed="uuid_generate_v4()">
+            <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true"/>
             </column>
-            <column name="name" type="VARCHAR" defaultValueComputed="">
+            <column name="name" type="VARCHAR">
                 <constraints nullable="false"/>
             </column>
         </createTable>
-        <insert tableName="job_stage">
+    </changeSet>
+    <changeSet author="psantos" id="insert-job-stages">
+        <preConditions onFail="MARK_RAN">
+            <or>
+                <rowCount schemaName="alert" tableName="job_stage" expectedRows="0"/>
+                <not>
+                    <rowCount schemaName="alert" tableName="job_stage" expectedRows="5"/>
+                </not>
+            </or>
+        </preConditions>
+        <insert schemaName="alert" tableName="job_stage">
             <column name="id" value="0"/>
             <column name="name" value="NOTIFICATION_PROCESSING"/>
         </insert>
-        <insert tableName="job_stage">
+        <insert schemaName="alert" tableName="job_stage">
             <column name="id" value="1"/>
             <column name="name" value="CHANNEL_PROCESSING"/>
         </insert>
-        <insert tableName="job_stage">
+        <insert schemaName="alert" tableName="job_stage">
             <column name="id" value="2"/>
             <column name="name" value="ISSUE_CREATION"/>
         </insert>
-        <insert tableName="job_stage">
+        <insert schemaName="alert" tableName="job_stage">
             <column name="id" value="3"/>
             <column name="name" value="ISSUE_COMMENTING"/>
         </insert>
-        <insert tableName="job_stage">
+        <insert schemaName="alert" tableName="job_stage">
             <column name="id" value="4"/>
             <column name="name" value="ISSUE_RESOLVING"/>
         </insert>
@@ -181,7 +190,7 @@
                 baseColumnNames="stage_id"
                 referencedTableSchemaName="alert"
                 referencedTableName="job_stage"
-                referencedColumnNames="stage_id"
+                referencedColumnNames="id"
                 onDelete="CASCADE"
         />
     </changeSet>
@@ -198,7 +207,7 @@
                 baseColumnNames="stage_id"
                 referencedTableSchemaName="alert"
                 referencedTableName="job_stage"
-                referencedColumnNames="stage_id"
+                referencedColumnNames="id"
                 onDelete="CASCADE"
         />
     </changeSet>

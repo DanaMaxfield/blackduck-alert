@@ -12,7 +12,7 @@ import com.synopsys.integration.alert.database.BaseEntity;
 
 @Entity
 @IdClass(JobCompletionStagePK.class)
-@Table(schema = "alert", name = "job_execution_stage")
+@Table(schema = "alert", name = "job_completion_stage")
 public class JobCompletionStageEntity extends BaseEntity {
     private static final long serialVersionUID = -5033287979526840338L;
     @Id

@@ -142,7 +142,7 @@ class ExecutingJobManagerTest {
             .findFirst()
             .orElseThrow(() -> new AssertionError("Job Stage is missing when it should be present."));
         assertEquals(executingJob.getExecutionId(), storedStage.getExecutionId());
-        assertEquals(JobStage.NOTIFICATION_PROCESSING.name(), storedStage.getStageId());
+        assertEquals(JobStage.NOTIFICATION_PROCESSING.getStageId(), storedStage.getStageId());
         assertNotNull(storedStage.getStart());
         assertNotNull(storedStage.getEnd());
     }
@@ -167,7 +167,7 @@ class ExecutingJobManagerTest {
         assertEquals(1, storedStages.size());
         JobStageModel storedStage = storedStages.get(0);
         assertEquals(executingJob.getExecutionId(), storedStage.getExecutionId());
-        assertEquals(JobStage.NOTIFICATION_PROCESSING.name(), storedStage.getStageId());
+        assertEquals(JobStage.NOTIFICATION_PROCESSING.getStageId(), storedStage.getStageId());
         assertNotNull(storedStage.getStart());
         assertNotNull(storedStage.getEnd());
         assertTrue(firstStageStart.isBefore(storedStage.getStart().toInstant()));
@@ -210,7 +210,7 @@ class ExecutingJobManagerTest {
             .findFirst()
             .orElseThrow(() -> new AssertionError("stage expected but not found"));
         assertEquals(executingJob.getExecutionId(), storedStage.getExecutionId());
-        assertEquals(JobStage.CHANNEL_PROCESSING.name(), storedStage.getStageId());
+        assertEquals(JobStage.CHANNEL_PROCESSING.getStageId(), storedStage.getStageId());
         assertNotNull(storedStage.getStart());
         assertNotNull(storedStage.getEnd());
         assertEquals(secondStageStart, storedStage.getStart().toInstant());
