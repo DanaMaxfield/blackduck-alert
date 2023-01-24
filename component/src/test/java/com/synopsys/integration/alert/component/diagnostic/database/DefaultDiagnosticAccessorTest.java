@@ -239,9 +239,8 @@ class DefaultDiagnosticAccessorTest {
             processedNotificationCount,
             totalNotificationCount
         );
-        JobStageModel firstJobStageModel = new JobStageModel(UUID.randomUUID(), jobExecutionModel.getExecutionId(), firstStage.getStage().name(), firstStageStart, firstStageEnd);
+        JobStageModel firstJobStageModel = new JobStageModel(jobExecutionModel.getExecutionId(), firstStage.getStage().name(), firstStageStart, firstStageEnd);
         JobStageModel secondJobStageModel = new JobStageModel(
-            UUID.randomUUID(),
             jobExecutionModel.getExecutionId(),
             secondStage.getStage().name(),
             secondStageStart,

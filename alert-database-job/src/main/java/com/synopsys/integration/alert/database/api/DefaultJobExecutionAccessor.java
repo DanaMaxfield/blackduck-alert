@@ -164,7 +164,6 @@ public class DefaultJobExecutionAccessor implements JobExecutionAccessor {
         if (stageData.isPresent()) {
             JobExecutionStageEntity stage = stageData.get();
             JobExecutionStageEntity updatedStage = new JobExecutionStageEntity(
-                stage.getId(),
                 stage.getExecutionId(),
                 stage.getStage(),
                 DateUtils.fromInstantUTC(start),
@@ -172,7 +171,7 @@ public class DefaultJobExecutionAccessor implements JobExecutionAccessor {
             );
             jobExecutionStageRepository.save(updatedStage);
         } else {
-            jobExecutionStageRepository.save(new JobExecutionStageEntity(UUID.randomUUID(), executionId, name, DateUtils.fromInstantUTC(start), null));
+            jobExecutionStageRepository.save(new JobExecutionStageEntity(executionId, name, DateUtils.fromInstantUTC(start), null));
         }
     }
 
@@ -183,7 +182,6 @@ public class DefaultJobExecutionAccessor implements JobExecutionAccessor {
         if (stageData.isPresent()) {
             JobExecutionStageEntity stage = stageData.get();
             JobExecutionStageEntity updatedStage = new JobExecutionStageEntity(
-                stage.getId(),
                 stage.getExecutionId(),
                 stage.getStage(),
                 stage.getStart(),
@@ -212,6 +210,6 @@ public class DefaultJobExecutionAccessor implements JobExecutionAccessor {
     }
 
     private JobStageModel convertToStageModel(JobExecutionStageEntity entity) {
-        return new JobStageModel(entity.getId(), entity.getExecutionId(), entity.getStage(), entity.getStart(), entity.getEnd());
+        return new JobStageModel(entity.getExecutionId(), entity.getStage(), entity.getStart(), entity.getEnd());
     }
 }

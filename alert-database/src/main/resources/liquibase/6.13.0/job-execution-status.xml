@@ -36,18 +36,22 @@
             </not>
         </preConditions>
         <createTable schemaName="alert" tableName="job_execution_stage">
-            <column name="id" type="UUID" defaultValueComputed="uuid_generate_v4()">
-                <constraints primaryKey="true"/>
-            </column>
             <column name="execution_id" type="UUID" defaultValueComputed="uuid_generate_v4()">
                 <constraints nullable="false"/>
             </column>
-            <column name="stage_id" type="VARCHAR"/>
+            <column name="stage_id" type="VARCHAR">
+                <constraints nullable="false"/>
+            </column>
             <column name="start_time" type="TIMESTAMP">
             </column>
             <column name="end_time" type="TIMESTAMP">
             </column>
         </createTable>
+        <addPrimaryKey schemaName="alert"
+                       tableName="job_execution_stage"
+                       columnNames="execution_id, stage_id"
+                       constraintName="job-execution-stage-PK"
+        />
     </changeSet>
     <changeSet author="psantos" id="create-job-execution-stage-foreign-key">
         <preConditions>
@@ -108,7 +112,7 @@
             </column>
         </createTable>
     </changeSet>
-    <changeSet author="psantos" id="create-job-durations-table">
+    <changeSet author="psantos" id="create-job-completion-durations-table">
         <preConditions onFail="MARK_RAN">
             <not>
                 <tableExists schemaName="alert" tableName="job_completion_durations"/>

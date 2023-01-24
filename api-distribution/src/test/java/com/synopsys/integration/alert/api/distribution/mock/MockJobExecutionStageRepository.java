@@ -12,13 +12,18 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
 import com.synopsys.integration.alert.database.job.execution.JobExecutionStageEntity;
+import com.synopsys.integration.alert.database.job.execution.JobExecutionStagePK;
 import com.synopsys.integration.alert.database.job.execution.JobExecutionStageRepository;
 import com.synopsys.integration.alert.test.common.database.MockRepositoryContainer;
 
-public class MockJobExecutionStageRepository extends MockRepositoryContainer<UUID, JobExecutionStageEntity> implements JobExecutionStageRepository {
+public class MockJobExecutionStageRepository extends MockRepositoryContainer<JobExecutionStagePK, JobExecutionStageEntity> implements JobExecutionStageRepository {
 
     public MockJobExecutionStageRepository() {
-        super(JobExecutionStageEntity::getId);
+        super(MockJobExecutionStageRepository::createPrimaryKey);
+    }
+
+    private static JobExecutionStagePK createPrimaryKey(JobExecutionStageEntity entity) {
+        return new JobExecutionStagePK(entity.getExecutionId(), entity.getStage());
     }
 
     @Override

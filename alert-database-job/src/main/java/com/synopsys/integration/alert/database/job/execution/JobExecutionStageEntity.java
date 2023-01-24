@@ -6,19 +6,20 @@ import java.util.UUID;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.IdClass;
 import javax.persistence.Table;
 
 import com.synopsys.integration.alert.database.BaseEntity;
 
 @Entity
+@IdClass(JobExecutionStagePK.class)
 @Table(schema = "alert", name = "job_execution_stage")
 public class JobExecutionStageEntity extends BaseEntity {
     private static final long serialVersionUID = -5052694730138984687L;
     @Id
-    @Column(name = "id")
-    private UUID id;
     @Column(name = "execution_id")
     private UUID executionId;
+    @Id
     @Column(name = "stage_id")
     private String stage;
     @Column(name = "start_time")
@@ -30,16 +31,11 @@ public class JobExecutionStageEntity extends BaseEntity {
         // default constructor for JPA
     }
 
-    public JobExecutionStageEntity(UUID id, UUID executionId, String stage, OffsetDateTime start, OffsetDateTime end) {
-        this.id = id;
+    public JobExecutionStageEntity(UUID executionId, String stage, OffsetDateTime start, OffsetDateTime end) {
         this.executionId = executionId;
         this.stage = stage;
         this.start = start;
         this.end = end;
-    }
-
-    public UUID getId() {
-        return id;
     }
 
     public UUID getExecutionId() {
