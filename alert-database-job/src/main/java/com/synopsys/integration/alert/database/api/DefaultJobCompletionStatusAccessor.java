@@ -22,7 +22,6 @@ import com.synopsys.integration.alert.common.rest.model.AlertPagedModel;
 import com.synopsys.integration.alert.common.rest.model.AlertPagedQueryDetails;
 import com.synopsys.integration.alert.database.job.execution.JobCompletionStageEntity;
 import com.synopsys.integration.alert.database.job.execution.JobCompletionStageRepository;
-import com.synopsys.integration.alert.database.job.execution.JobCompletionStatusDurationRepository;
 import com.synopsys.integration.alert.database.job.execution.JobCompletionStatusEntity;
 import com.synopsys.integration.alert.database.job.execution.JobCompletionStatusRepository;
 
@@ -30,17 +29,14 @@ import com.synopsys.integration.alert.database.job.execution.JobCompletionStatus
 public class DefaultJobCompletionStatusAccessor implements JobCompletionStatusAccessor {
 
     private final JobCompletionStatusRepository jobCompletionStatusRepository;
-    private final JobCompletionStatusDurationRepository jobCompletionStatusDurationRepository;
     private final JobCompletionStageRepository jobCompletionStageRepository;
 
     @Autowired
     public DefaultJobCompletionStatusAccessor(
         JobCompletionStatusRepository jobCompletionStatusRepository,
-        JobCompletionStatusDurationRepository jobCompletionStatusDurationRepository,
         JobCompletionStageRepository jobCompletionStageRepository
     ) {
         this.jobCompletionStatusRepository = jobCompletionStatusRepository;
-        this.jobCompletionStatusDurationRepository = jobCompletionStatusDurationRepository;
         this.jobCompletionStageRepository = jobCompletionStageRepository;
     }
 
@@ -77,6 +73,7 @@ public class DefaultJobCompletionStatusAccessor implements JobCompletionStatusAc
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<JobCompletionStageModel> getJobStageData(UUID jobConfigId) {
         return jobCompletionStageRepository.findAllByJobConfigId(jobConfigId)
             .stream()
@@ -85,6 +82,7 @@ public class DefaultJobCompletionStatusAccessor implements JobCompletionStatusAc
     }
 
     @Override
+    @Transactional(propagation = Propagation.REQUIRED)
     public void saveJobStageData(JobCompletionStageModel jobCompletionStageModel) {
         JobCompletionStageModel updatedModel = createAggregatedStageModel(jobCompletionStageModel);
         jobCompletionStageRepository.save(convertFromStageModel(updatedModel));
@@ -97,7 +95,8 @@ public class DefaultJobCompletionStatusAccessor implements JobCompletionStatusAc
             entity.getSuccessCount(),
             entity.getFailureCount(),
             entity.getLatestStatus(),
-            entity.getLastRun()
+            entity.getLastRun(),
+            entity.getDurationNanos()
         );
     }
 
@@ -108,7 +107,8 @@ public class DefaultJobCompletionStatusAccessor implements JobCompletionStatusAc
             model.getSuccessCount(),
             model.getFailureCount(),
             model.getLatestStatus(),
-            model.getLastRun()
+            model.getLastRun(),
+            model.getDurationNanos()
         );
     }
 
@@ -150,7 +150,8 @@ public class DefaultJobCompletionStatusAccessor implements JobCompletionStatusAc
             successCount,
             failureCount,
             jobStatus.name(),
-            latestData.getLastRun()
+            latestData.getLastRun(),
+            calculateAverage(latestData.getDurationNanos(), savedStatus.getDurationNanos())
         );
     }
 
@@ -173,7 +174,8 @@ public class DefaultJobCompletionStatusAccessor implements JobCompletionStatusAc
             successCount,
             failureCount,
             jobStatus.name(),
-            latestData.getLastRun()
+            latestData.getLastRun(),
+            latestData.getDurationNanos()
         );
     }
 

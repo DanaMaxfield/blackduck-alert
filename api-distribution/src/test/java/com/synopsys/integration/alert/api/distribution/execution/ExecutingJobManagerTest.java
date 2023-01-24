@@ -13,7 +13,6 @@ import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
 import com.synopsys.integration.alert.api.distribution.mock.MockJobCompletionStageRepository;
-import com.synopsys.integration.alert.api.distribution.mock.MockJobCompletionStatusDurationRepository;
 import com.synopsys.integration.alert.api.distribution.mock.MockJobCompletionStatusStatusRepository;
 import com.synopsys.integration.alert.api.distribution.mock.MockJobExecutionRepository;
 import com.synopsys.integration.alert.api.distribution.mock.MockJobExecutionStageRepository;
@@ -25,7 +24,6 @@ import com.synopsys.integration.alert.common.persistence.model.job.executions.Jo
 import com.synopsys.integration.alert.database.api.DefaultJobCompletionStatusAccessor;
 import com.synopsys.integration.alert.database.api.DefaultJobExecutionAccessor;
 import com.synopsys.integration.alert.database.job.execution.JobCompletionStageRepository;
-import com.synopsys.integration.alert.database.job.execution.JobCompletionStatusDurationRepository;
 import com.synopsys.integration.alert.database.job.execution.JobCompletionStatusRepository;
 import com.synopsys.integration.alert.database.job.execution.JobExecutionRepository;
 import com.synopsys.integration.alert.database.job.execution.JobExecutionStageRepository;
@@ -33,12 +31,10 @@ import com.synopsys.integration.alert.database.job.execution.JobExecutionStageRe
 class ExecutingJobManagerTest {
 
     private ExecutingJobManager createManager() {
-        JobCompletionStatusDurationRepository durationsRepository = new MockJobCompletionStatusDurationRepository();
-        JobCompletionStatusRepository jobCompletionStatusRepository = new MockJobCompletionStatusStatusRepository(durationsRepository);
+        JobCompletionStatusRepository jobCompletionStatusRepository = new MockJobCompletionStatusStatusRepository();
         JobCompletionStageRepository jobCompletionStageRepository = new MockJobCompletionStageRepository();
         JobCompletionStatusAccessor completionStatusAccessor = new DefaultJobCompletionStatusAccessor(
             jobCompletionStatusRepository,
-            durationsRepository,
             jobCompletionStageRepository
         );
         JobExecutionRepository jobExecutionRepository = new MockJobExecutionRepository();
@@ -76,17 +72,12 @@ class ExecutingJobManagerTest {
 
         UUID jobConfigId = UUID.randomUUID();
         JobExecutionModel executingJob = jobManager.startJob(jobConfigId, 1);
-        AggregatedExecutionResults results = jobManager.aggregateExecutingJobData();
         assertNotNull(executingJob);
         assertEquals(jobConfigId, executingJob.getJobConfigId());
         assertEquals(AuditEntryStatus.PENDING, executingJob.getStatus());
         assertNotNull(executingJob.getStart());
         assertTrue(executingJob.getEnd().isEmpty());
-
-        assertEquals(1, results.getPendingJobs());
-        assertEquals(0, results.getSuccessFulJobs());
-        assertEquals(0, results.getFailedJobs());
-        assertEquals(1, results.getTotalJobsInSystem());
+        assertEquals(1, jobManager.getExecutingJobs(0, 10).getModels().size());
     }
 
     @Test
@@ -97,16 +88,10 @@ class ExecutingJobManagerTest {
         JobExecutionModel executingJob = jobManager.startJob(jobConfigId, 1);
         jobManager.endJobWithSuccess(executingJob.getExecutionId(), Instant.now());
         JobExecutionModel savedJob = jobManager.getExecutingJob(executingJob.getExecutionId()).orElseThrow(() -> new AssertionError("Job with execution ID not found."));
-        AggregatedExecutionResults results = jobManager.aggregateExecutingJobData();
         assertEquals(jobConfigId, savedJob.getJobConfigId());
         assertEquals(AuditEntryStatus.SUCCESS, savedJob.getStatus());
         assertNotNull(savedJob.getStart());
         assertNotNull(savedJob.getEnd().orElseThrow(() -> new AssertionError("End time should be present for a completed job.")));
-
-        assertEquals(0, results.getPendingJobs());
-        assertEquals(1, results.getSuccessFulJobs());
-        assertEquals(0, results.getFailedJobs());
-        assertEquals(1, results.getTotalJobsInSystem());
     }
 
     @Test
@@ -117,16 +102,10 @@ class ExecutingJobManagerTest {
         JobExecutionModel executingJob = jobManager.startJob(jobConfigId, 1);
         jobManager.endJobWithFailure(executingJob.getExecutionId(), Instant.now());
         JobExecutionModel savedJob = jobManager.getExecutingJob(executingJob.getExecutionId()).orElseThrow(() -> new AssertionError("Job with execution ID not found."));
-        AggregatedExecutionResults results = jobManager.aggregateExecutingJobData();
         assertEquals(jobConfigId, savedJob.getJobConfigId());
         assertEquals(AuditEntryStatus.FAILURE, savedJob.getStatus());
         assertNotNull(savedJob.getStart());
         assertNotNull(savedJob.getEnd().orElseThrow(() -> new AssertionError("End time should be present for a completed job.")));
-
-        assertEquals(0, results.getPendingJobs());
-        assertEquals(0, results.getSuccessFulJobs());
-        assertEquals(1, results.getFailedJobs());
-        assertEquals(1, results.getTotalJobsInSystem());
     }
 
     @Test

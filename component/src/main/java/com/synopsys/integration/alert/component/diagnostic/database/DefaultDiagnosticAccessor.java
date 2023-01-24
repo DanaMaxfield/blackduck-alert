@@ -18,7 +18,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.synopsys.integration.alert.api.distribution.execution.AggregatedExecutionResults;
 import com.synopsys.integration.alert.api.distribution.execution.ExecutingJobManager;
 import com.synopsys.integration.alert.api.distribution.execution.JobStage;
 import com.synopsys.integration.alert.common.enumeration.AuditEntryStatus;
@@ -122,13 +121,8 @@ public class DefaultDiagnosticAccessor implements DiagnosticAccessor {
     }
 
     private JobExecutionsDiagnosticModel getExecutingJobDiagnosticModel() {
-        AggregatedExecutionResults executionResults = executingJobManager.aggregateExecutingJobData();
         List<JobExecutionDiagnosticModel> jobExecutions = getExecutionData();
         return new JobExecutionsDiagnosticModel(
-            executionResults.getTotalJobsInSystem(),
-            executionResults.getPendingJobs(),
-            executionResults.getSuccessFulJobs(),
-            executionResults.getFailedJobs(),
             jobExecutions
         );
     }
@@ -197,7 +191,10 @@ public class DefaultDiagnosticAccessor implements DiagnosticAccessor {
     }
 
     private JobStatusDiagnosticModel convertJobStatusData(JobCompletionStatusModel jobCompletionStatusModel) {
-        JobDurationDiagnosticModel jobDurationDiagnosticModel = new JobDurationDiagnosticModel(convertStageData(jobCompletionStatusAccessor.getJobStageData(jobCompletionStatusModel.getJobConfigId())));
+        JobDurationDiagnosticModel jobDurationDiagnosticModel = new JobDurationDiagnosticModel(
+            DateUtils.formatDurationFromNanos(jobCompletionStatusModel.getDurationNanos()),
+            convertStageData(jobCompletionStatusAccessor.getJobStageData(jobCompletionStatusModel.getJobConfigId()))
+        );
         String jobName = getJobName(jobCompletionStatusModel.getJobConfigId());
         return new JobStatusDiagnosticModel(
             jobCompletionStatusModel.getJobConfigId(),

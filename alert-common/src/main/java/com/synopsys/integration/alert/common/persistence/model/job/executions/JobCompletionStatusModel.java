@@ -13,7 +13,7 @@ public class JobCompletionStatusModel extends AlertSerializableModel {
     private final Long failureCount;
     private final String latestStatus;
     private final OffsetDateTime lastRun;
-    private final JobCompletionStatusDurations durations;
+    private final Long durationNanos;
 
     public JobCompletionStatusModel(
         UUID jobConfigId,
@@ -21,7 +21,8 @@ public class JobCompletionStatusModel extends AlertSerializableModel {
         Long successCount,
         Long failureCount,
         String latestStatus,
-        OffsetDateTime lastRun
+        OffsetDateTime lastRun,
+        Long durationNanos
     ) {
         this.jobConfigId = jobConfigId;
         this.notificationCount = notificationCount;
@@ -29,7 +30,7 @@ public class JobCompletionStatusModel extends AlertSerializableModel {
         this.failureCount = failureCount;
         this.latestStatus = latestStatus;
         this.lastRun = lastRun;
-        this.durations = null;
+        this.durationNanos = durationNanos;
     }
 
     public UUID getJobConfigId() {
@@ -56,7 +57,7 @@ public class JobCompletionStatusModel extends AlertSerializableModel {
         return lastRun;
     }
 
-    public JobCompletionStatusDurations getDurations() {
-        return durations;
+    public Long getDurationNanos() {
+        return durationNanos;
     }
 }

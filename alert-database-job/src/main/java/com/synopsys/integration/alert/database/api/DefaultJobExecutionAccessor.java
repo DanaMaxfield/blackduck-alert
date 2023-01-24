@@ -142,8 +142,8 @@ public class DefaultJobExecutionAccessor implements JobExecutionAccessor {
 
     @Override
     @Transactional(readOnly = true)
-    public Optional<JobStageModel> getJobStage(UUID jobExecutionId, String stageName) {
-        return Optional.empty();
+    public Optional<JobStageModel> getJobStage(UUID jobExecutionId, int stageId) {
+        return jobExecutionStageRepository.findByExecutionIdAndStage(jobExecutionId, stageId).map(this::convertToStageModel);
     }
 
     @Override

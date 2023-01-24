@@ -5,18 +5,14 @@ import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-import com.synopsys.integration.alert.database.job.execution.JobCompletionStatusDurationRepository;
 import com.synopsys.integration.alert.database.job.execution.JobCompletionStatusEntity;
 import com.synopsys.integration.alert.database.job.execution.JobCompletionStatusRepository;
 import com.synopsys.integration.alert.test.common.database.MockRepositoryContainer;
 
 public class MockJobCompletionStatusStatusRepository extends MockRepositoryContainer<UUID, JobCompletionStatusEntity> implements JobCompletionStatusRepository {
 
-    private final JobCompletionStatusDurationRepository jobExecutionStatusDurationsRepository;
-
-    public MockJobCompletionStatusStatusRepository(JobCompletionStatusDurationRepository jobExecutionStatusDurationsRepository) {
+    public MockJobCompletionStatusStatusRepository() {
         super(JobCompletionStatusEntity::getJobConfigId);
-        this.jobExecutionStatusDurationsRepository = jobExecutionStatusDurationsRepository;
     }
 
     @Override

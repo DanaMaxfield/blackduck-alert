@@ -28,7 +28,7 @@ public interface JobExecutionAccessor {
 
     List<JobStageModel> getJobStages(UUID jobExecutionId);
 
-    Optional<JobStageModel> getJobStage(UUID jobExecutionId, String stageName);
+    Optional<JobStageModel> getJobStage(UUID jobExecutionId, int stageId);
 
     void startStage(UUID executionId, int stageId, Instant start);
 

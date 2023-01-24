@@ -7,41 +7,14 @@ import com.synopsys.integration.alert.api.common.model.AlertSerializableModel;
 public class JobExecutionsDiagnosticModel extends AlertSerializableModel {
 
     private static final long serialVersionUID = -1234272679442123110L;
-    private final long totalJobsInSystem;
-    private final long pendingJobs;
-    private final long successfulJobs;
-    private final long failedJobs;
 
     private final List<JobExecutionDiagnosticModel> jobExecutions;
 
     public JobExecutionsDiagnosticModel(
-        final long totalJobsInSystem,
-        final long pendingJobs,
-        long successfulJobs,
-        final long failedJobs,
-        final List<JobExecutionDiagnosticModel> jobExecutions
+         List<JobExecutionDiagnosticModel> jobExecutions
     ) {
-        this.totalJobsInSystem = totalJobsInSystem;
-        this.pendingJobs = pendingJobs;
-        this.successfulJobs = successfulJobs;
-        this.failedJobs = failedJobs;
+
         this.jobExecutions = jobExecutions;
-    }
-
-    public long getTotalJobsInSystem() {
-        return totalJobsInSystem;
-    }
-
-    public long getPendingJobs() {
-        return pendingJobs;
-    }
-
-    public long getSuccessfulJobs() {
-        return successfulJobs;
-    }
-
-    public long getFailedJobs() {
-        return failedJobs;
     }
 
     public List<JobExecutionDiagnosticModel> getJobExecutions() {

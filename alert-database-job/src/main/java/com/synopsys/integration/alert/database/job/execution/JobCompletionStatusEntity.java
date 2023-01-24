@@ -30,6 +30,9 @@ public class JobCompletionStatusEntity extends BaseEntity {
     @Column(name = "last_run")
     private OffsetDateTime lastRun;
 
+    @Column(name = "duration_nanoseconds")
+    private Long durationNanos;
+
     public JobCompletionStatusEntity() {
         // default constructor for JPA
     }
@@ -40,7 +43,8 @@ public class JobCompletionStatusEntity extends BaseEntity {
         Long successCount,
         Long failureCount,
         String latestStatus,
-        OffsetDateTime lastRun
+        OffsetDateTime lastRun,
+        Long durationNanos
     ) {
         this.jobConfigId = jobConfigId;
         this.notificationCount = notificationCount;
@@ -48,6 +52,7 @@ public class JobCompletionStatusEntity extends BaseEntity {
         this.failureCount = failureCount;
         this.latestStatus = latestStatus;
         this.lastRun = lastRun;
+        this.durationNanos = durationNanos;
     }
 
     public UUID getJobConfigId() {
@@ -74,4 +79,7 @@ public class JobCompletionStatusEntity extends BaseEntity {
         return lastRun;
     }
 
+    public Long getDurationNanos() {
+        return durationNanos;
+    }
 }

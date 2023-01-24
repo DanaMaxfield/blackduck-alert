@@ -23,7 +23,6 @@ import com.synopsys.integration.alert.api.distribution.mock.MockAuditFailedEntry
 import com.synopsys.integration.alert.api.distribution.mock.MockAuditFailedNotificationRepository;
 import com.synopsys.integration.alert.api.distribution.mock.MockAuditNotificationRepository;
 import com.synopsys.integration.alert.api.distribution.mock.MockJobCompletionStageRepository;
-import com.synopsys.integration.alert.api.distribution.mock.MockJobCompletionStatusDurationRepository;
 import com.synopsys.integration.alert.api.distribution.mock.MockJobCompletionStatusStatusRepository;
 import com.synopsys.integration.alert.api.distribution.mock.MockJobExecutionRepository;
 import com.synopsys.integration.alert.api.distribution.mock.MockJobExecutionStageRepository;
@@ -56,7 +55,6 @@ import com.synopsys.integration.alert.database.audit.AuditNotificationRelation;
 import com.synopsys.integration.alert.database.audit.AuditNotificationRelationPK;
 import com.synopsys.integration.alert.database.audit.AuditNotificationRepository;
 import com.synopsys.integration.alert.database.job.execution.JobCompletionStageRepository;
-import com.synopsys.integration.alert.database.job.execution.JobCompletionStatusDurationRepository;
 import com.synopsys.integration.alert.database.job.execution.JobCompletionStatusRepository;
 import com.synopsys.integration.alert.database.job.execution.JobExecutionRepository;
 import com.synopsys.integration.alert.database.job.execution.JobExecutionStageRepository;
@@ -90,13 +88,12 @@ class AuditFailedHandlerTest {
         auditFailedNotificationRepository = new MockAuditFailedNotificationRepository(AuditFailedNotificationEntity::getNotificationId);
         ConfigurationModelConfigurationAccessor configurationModelConfigurationAccessor = Mockito.mock(ConfigurationModelConfigurationAccessor.class);
         notificationAccessor = new DefaultNotificationAccessor(notificationContentRepository, auditEntryRepository, configurationModelConfigurationAccessor);
-        JobCompletionStatusDurationRepository jobCompletionStatusDurationRepository = new MockJobCompletionStatusDurationRepository();
-        JobCompletionStatusRepository jobCompletionStatusRepository = new MockJobCompletionStatusStatusRepository(jobCompletionStatusDurationRepository);
+        JobCompletionStatusRepository jobCompletionStatusRepository = new MockJobCompletionStatusStatusRepository();
         JobCompletionStageRepository jobCompletionStageRepository = new MockJobCompletionStageRepository();
         JobExecutionRepository jobExecutionRepository = new MockJobExecutionRepository();
         JobExecutionStageRepository jobExecutionStageRepository = new MockJobExecutionStageRepository();
 
-        jobCompletionStatusAccessor = new DefaultJobCompletionStatusAccessor(jobCompletionStatusRepository, jobCompletionStatusDurationRepository, jobCompletionStageRepository);
+        jobCompletionStatusAccessor = new DefaultJobCompletionStatusAccessor(jobCompletionStatusRepository, jobCompletionStageRepository);
         jobExecutionAccessor = new DefaultJobExecutionAccessor(jobExecutionRepository, jobExecutionStageRepository);
         executingJobManager = new ExecutingJobManager(jobCompletionStatusAccessor, jobExecutionAccessor);
     }

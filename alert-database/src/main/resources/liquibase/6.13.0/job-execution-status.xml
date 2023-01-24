@@ -154,6 +154,9 @@
             <column name="last_run" type="TIMESTAMP">
                 <constraints nullable="false"/>
             </column>
+            <column name="duration_nanoseconds" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
         </createTable>
     </changeSet>
     <changeSet author="psantos" id="create-job-completion-stage-table">

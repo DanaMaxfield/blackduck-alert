@@ -3,7 +3,6 @@ package com.synopsys.integration.alert.component.diagnostic.database;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -13,7 +12,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import com.synopsys.integration.alert.api.distribution.execution.AggregatedExecutionResults;
 import com.synopsys.integration.alert.api.distribution.execution.ExecutingJobManager;
 import com.synopsys.integration.alert.api.distribution.execution.JobStage;
 import com.synopsys.integration.alert.common.enumeration.AuditEntryStatus;
@@ -23,6 +21,7 @@ import com.synopsys.integration.alert.common.persistence.accessor.JobCompletionS
 import com.synopsys.integration.alert.common.persistence.accessor.JobExecutionAccessor;
 import com.synopsys.integration.alert.common.persistence.model.job.DistributionJobModel;
 import com.synopsys.integration.alert.common.persistence.model.job.DistributionJobModelBuilder;
+import com.synopsys.integration.alert.common.persistence.model.job.executions.JobCompletionStageModel;
 import com.synopsys.integration.alert.common.persistence.model.job.executions.JobCompletionStatusModel;
 import com.synopsys.integration.alert.common.persistence.model.job.executions.JobExecutionModel;
 import com.synopsys.integration.alert.common.persistence.model.job.executions.JobStageModel;
@@ -131,11 +130,22 @@ class DefaultDiagnosticAccessorTest {
         Long failureCount = 0L;
         String latestStatus = AuditEntryStatus.SUCCESS.name();
         OffsetDateTime lastRun = DateUtils.createCurrentDateTimestamp();
+        Long jobDuration = 100000L;
+        JobCompletionStageModel firstStage = new JobCompletionStageModel(
+            jobConfigId,
+            JobStage.NOTIFICATION_PROCESSING.getStageId(),
+            1000000L
+        );
+        JobCompletionStageModel secondStage = new JobCompletionStageModel(
+            jobConfigId,
+            JobStage.CHANNEL_PROCESSING.getStageId(),
+            300000L
+        );
 
-        JobCompletionStatusModel statusModel = new JobCompletionStatusModel(jobConfigId, notificationCount, successCount, failureCount, latestStatus, lastRun);
+        JobCompletionStatusModel statusModel = new JobCompletionStatusModel(jobConfigId, notificationCount, successCount, failureCount, latestStatus, lastRun, jobDuration);
         AlertPagedModel<JobCompletionStatusModel> pageModel = new AlertPagedModel<>(1, 0, 10, List.of(statusModel));
         Mockito.when(jobCompletionStatusAccessor.getJobExecutionStatus(Mockito.any(AlertPagedQueryDetails.class))).thenReturn(pageModel);
-
+        Mockito.when(jobCompletionStatusAccessor.getJobStageData(Mockito.any())).thenReturn(List.of(firstStage, secondStage));
         DistributionJobModelBuilder jobModelBuilder = DistributionJobModel.builder()
             .jobId(UUID.randomUUID())
             .name(TEST_JOB_NAME)
@@ -148,12 +158,13 @@ class DefaultDiagnosticAccessorTest {
 
         Mockito.when(staticJobAccessor.getJobById(Mockito.any())).thenReturn(Optional.of(jobModelBuilder.build()));
         JobDurationDiagnosticModel durationDiagnosticModel = new JobDurationDiagnosticModel(
+            DateUtils.formatDurationFromNanos(jobDuration),
             List.of(new JobStageStatusDiagnosticModel(
-                    JobStage.NOTIFICATION_PROCESSING.name(),
-                    DateUtils.formatDurationFromNanos(1000000L)
+                    JobStage.findByStageId(firstStage.getStageId()).name(),
+                    DateUtils.formatDurationFromNanos(firstStage.getDurationNano())
                 ), new JobStageStatusDiagnosticModel(
-                    JobStage.CHANNEL_PROCESSING.name(),
-                    DateUtils.formatDurationFromNanos(300000L)
+                    JobStage.findByStageId(secondStage.getStageId()).name(),
+                    DateUtils.formatDurationFromNanos(secondStage.getDurationNano())
                 )
             )
         );
@@ -171,14 +182,8 @@ class DefaultDiagnosticAccessorTest {
     }
 
     private JobExecutionsDiagnosticModel createJobExecutionsDiagnosticModel() {
-        long totalJobsInSystem = 1L;
-        long pendingCount = 1L;
-        long successCount = 0L;
-        long failureCount = 0L;
         int processedNotificationCount = 10;
         int totalNotificationCount = 100;
-
-        AggregatedExecutionResults results = new AggregatedExecutionResults(totalJobsInSystem, pendingCount, successCount, failureCount);
 
         String channelName = ChannelKeys.SLACK.getUniversalKey();
         OffsetDateTime startTime = DateUtils.createCurrentDateTimestamp();
@@ -241,12 +246,11 @@ class DefaultDiagnosticAccessorTest {
             secondStageStart,
             secondStageEnd
         );
-        Mockito.when(executingJobManager.aggregateExecutingJobData()).thenReturn(results);
         List<JobStageModel> jobStages = List.of(firstJobStageModel, secondJobStageModel);
         Mockito.when(executingJobManager.getStages(Mockito.any(UUID.class))).thenReturn(jobStages);
         AlertPagedModel<JobExecutionModel> executingJobs = new AlertPagedModel<>(1, 0, 1, List.of(jobExecutionModel));
         Mockito.when(executingJobManager.getExecutingJobs(Mockito.anyInt(), Mockito.anyInt())).thenReturn(executingJobs);
-        return new JobExecutionsDiagnosticModel(totalJobsInSystem, pendingCount, successCount, failureCount, jobExecutionDiagnosticModels);
+        return new JobExecutionsDiagnosticModel(jobExecutionDiagnosticModels);
     }
 
     private void assertSystemDiagnostics(SystemDiagnosticModel systemDiagnosticModel) {
@@ -256,10 +260,5 @@ class DefaultDiagnosticAccessorTest {
         assertTrue(systemDiagnosticModel.getTotalMemory() > 0);
         assertTrue(systemDiagnosticModel.getFreeMemory() > 0);
         assertTrue(systemDiagnosticModel.getUsedMemory() > 0);
-    }
-
-    private String calculateFormattedDuration(Long milliseconds) {
-        Duration duration = Duration.ofMillis(milliseconds);
-        return String.format("%sH:%sm:%ss.%s", duration.toHoursPart(), duration.toMinutesPart(), duration.toSecondsPart(), duration.toMillisPart());
     }
 }

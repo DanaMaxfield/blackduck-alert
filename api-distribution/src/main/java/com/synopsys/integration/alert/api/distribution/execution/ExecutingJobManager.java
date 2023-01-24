@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.synopsys.integration.alert.common.enumeration.AuditEntryStatus;
@@ -26,6 +27,7 @@ public class ExecutingJobManager {
     private final JobCompletionStatusAccessor completedJobStatusAccessor;
     private final JobExecutionAccessor jobExecutionAccessor;
 
+    @Autowired
     public ExecutingJobManager(JobCompletionStatusAccessor completedJobStatusAccessor, JobExecutionAccessor jobExecutionAccessor) {
         this.completedJobStatusAccessor = completedJobStatusAccessor;
         this.jobExecutionAccessor = jobExecutionAccessor;
@@ -80,19 +82,6 @@ public class ExecutingJobManager {
         jobExecutionAccessor.purgeJob(executionId);
     }
 
-    public AggregatedExecutionResults aggregateExecutingJobData() {
-        Long pendingCount = countJobsByStatus(AuditEntryStatus.PENDING);
-        Long successCount = countJobsByStatus(AuditEntryStatus.SUCCESS);
-        Long failedJobs = countJobsByStatus(AuditEntryStatus.FAILURE);
-        long totalJobs = pendingCount + successCount + failedJobs;
-
-        return new AggregatedExecutionResults(totalJobs, pendingCount, successCount, failedJobs);
-    }
-
-    private Long countJobsByStatus(AuditEntryStatus status) {
-        return jobExecutionAccessor.countJobsByStatus(status);
-    }
-
     private JobCompletionStatusModel createStatusModel(JobExecutionModel executingJob, AuditEntryStatus jobStatus) {
         long successCount = 0L;
         long failureCount = 0L;
@@ -104,6 +93,8 @@ public class ExecutingJobManager {
         if (jobStatus == AuditEntryStatus.FAILURE) {
             failureCount = 1L;
         }
+        OffsetDateTime start = executingJob.getStart();
+        OffsetDateTime end = executingJob.getEnd().orElse(OffsetDateTime.now());
 
         return new JobCompletionStatusModel(
             executingJob.getJobConfigId(),
@@ -111,21 +102,29 @@ public class ExecutingJobManager {
             successCount,
             failureCount,
             jobStatus.name(),
-            DateUtils.fromInstantUTC(executingJob.getEnd().map(OffsetDateTime::toInstant).orElse(Instant.now()))
+            DateUtils.fromInstantUTC(end.toInstant()),
+            calculateDuration(start, end)
         );
     }
 
     private Long calculateJobStageDuration(JobExecutionModel executionModel, JobStage jobStage) {
-        Optional<JobStageModel> jobStageModel = jobExecutionAccessor.getJobStage(executionModel.getExecutionId(), jobStage.name());
+        Optional<JobStageModel> jobStageModel = jobExecutionAccessor.getJobStage(executionModel.getExecutionId(), jobStage.getStageId());
         return jobStageModel
             .map(this::calculateJobStageDuration)
             .orElse(0L);
     }
 
     private Long calculateJobStageDuration(JobStageModel stageModel) {
+        return calculateDuration(
+            stageModel.getStart(),
+            stageModel.getEnd().orElse(DateUtils.createCurrentDateTimestamp())
+        );
+    }
+
+    private Long calculateDuration(OffsetDateTime start, OffsetDateTime end) {
         return Duration.between(
-            stageModel.getStart().toInstant(),
-            stageModel.getEnd().orElse(DateUtils.createCurrentDateTimestamp()).toInstant()
+            start.toInstant(),
+            end.toInstant()
         ).toNanos();
     }
 }
