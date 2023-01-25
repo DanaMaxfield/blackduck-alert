@@ -34,7 +34,12 @@ public class ExecutingJobManager {
     }
 
     public JobExecutionModel startJob(UUID jobConfigId, int totalNotificationCount) {
-        return jobExecutionAccessor.startJob(jobConfigId, totalNotificationCount);
+        JobExecutionModel execution = jobExecutionAccessor.startJob(jobConfigId, totalNotificationCount);
+        Optional<JobCompletionStatusModel> existingStatus = completedJobStatusAccessor.getJobExecutionStatus(execution.getJobConfigId());
+        if (existingStatus.isEmpty()) {
+            completedJobStatusAccessor.saveExecutionStatus(createEmptyStatusModel(execution));
+        }
+        return execution;
     }
 
     public void endJobWithSuccess(UUID executionId, Instant endTime) {
@@ -80,6 +85,10 @@ public class ExecutingJobManager {
 
     public void purgeJob(UUID executionId) {
         jobExecutionAccessor.purgeJob(executionId);
+    }
+
+    private JobCompletionStatusModel createEmptyStatusModel(JobExecutionModel executingJob) {
+        return new JobCompletionStatusModel(executingJob.getJobConfigId(), 0L, 0L, 0L, AuditEntryStatus.PENDING.name(), OffsetDateTime.now(), 0L);
     }
 
     private JobCompletionStatusModel createStatusModel(JobExecutionModel executingJob, AuditEntryStatus jobStatus) {

@@ -55,12 +55,12 @@ public class IssueTrackerAsyncMessageSender<T extends Serializable> {
             .flatMap(List::stream)
             .collect(Collectors.toList());
 
-        if (eventList.isEmpty()) {
-            // nothing further to send downstream. Channel handled message successfully.
-            eventManager.sendEvent(new AuditSuccessEvent(jobExecutionId, notificationIds));
-        } else {
+        if (!eventList.isEmpty()) {
             jobSubTaskAccessor.updateTaskCount(parentEventId, (long) eventList.size());
             eventManager.sendEvents(eventList);
+        } else {
+            jobSubTaskAccessor.removeSubTaskStatus(parentEventId);
+            eventManager.sendEvent(new AuditSuccessEvent(parentEventId, notificationIds));
         }
     }
 

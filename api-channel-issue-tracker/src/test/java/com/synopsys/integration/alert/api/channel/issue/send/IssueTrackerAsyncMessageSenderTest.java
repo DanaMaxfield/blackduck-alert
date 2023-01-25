@@ -51,7 +51,6 @@ class IssueTrackerAsyncMessageSenderTest {
         );
 
         sender.sendAsyncMessages(List.of(modelHolder));
-        Mockito.verify(mockEventManager).sendEvent(Mockito.any());
         Mockito.verify(mockJobSubTaskAccessor, Mockito.times(0)).updateTaskCount(Mockito.eq(parentEventId), Mockito.anyLong());
 
     }

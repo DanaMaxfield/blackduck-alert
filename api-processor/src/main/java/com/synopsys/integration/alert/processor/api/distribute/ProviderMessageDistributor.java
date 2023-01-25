@@ -61,7 +61,8 @@ public class ProviderMessageDistributor {
 
     public void distributeIndividually(UUID jobExecutionId, UUID jobId, String jobName, ChannelKey destinationKey, ProcessedProviderMessageHolder processedMessageHolder) {
         Set<Long> notificationIds = processedMessageHolder.extractAllNotificationIds();
-        auditAccessor.createOrUpdatePendingAuditEntryForJob(jobId, notificationIds);
+        // Don't use the old audit accessor
+        // auditAccessor.createOrUpdatePendingAuditEntryForJob(jobId, notificationIds);
 
         DistributionEvent event = new DistributionEvent(destinationKey, jobId, jobExecutionId, jobName, notificationIds, processedMessageHolder.toProviderMessageHolder());
         logger.info("Sending {}. Event ID: {}. Job ID: {}. Destination: {}", EVENT_CLASS_NAME, event.getEventId(), jobId, destinationKey);

@@ -132,8 +132,8 @@ public class DefaultJobCompletionStatusAccessor implements JobCompletionStatusAc
     }
 
     private JobCompletionStatusModel updateCompletedJobStatus(JobCompletionStatusModel latestData, JobCompletionStatusModel savedStatus) {
-        long successCount = 0L;
-        long failureCount = 0L;
+        long successCount = savedStatus.getSuccessCount();
+        long failureCount = savedStatus.getFailureCount();
         AuditEntryStatus jobStatus = AuditEntryStatus.valueOf(latestData.getLatestStatus());
 
         if (jobStatus == AuditEntryStatus.SUCCESS) {
@@ -144,14 +144,30 @@ public class DefaultJobCompletionStatusAccessor implements JobCompletionStatusAc
             failureCount = savedStatus.getFailureCount() + 1L;
         }
 
+        long notificationCount;
+
+        if (0L == savedStatus.getNotificationCount()) {
+            notificationCount = latestData.getNotificationCount();
+        } else {
+            notificationCount = calculateAverage(latestData.getNotificationCount(), savedStatus.getNotificationCount());
+        }
+
+        long duration;
+
+        if (0L == savedStatus.getDurationNanos()) {
+            duration = latestData.getDurationNanos();
+        } else {
+            duration = calculateAverage(latestData.getDurationNanos(), savedStatus.getDurationNanos());
+        }
+
         return new JobCompletionStatusModel(
             latestData.getJobConfigId(),
-            calculateAverage(latestData.getNotificationCount(), savedStatus.getNotificationCount()),
+            notificationCount,
             successCount,
             failureCount,
             jobStatus.name(),
             latestData.getLastRun(),
-            calculateAverage(latestData.getDurationNanos(), savedStatus.getDurationNanos())
+            duration
         );
     }
 
