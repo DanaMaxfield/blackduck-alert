@@ -209,6 +209,12 @@ public class DefaultJobExecutionAccessor implements JobExecutionAccessor {
         );
     }
 
+    @Override
+    @Transactional(propagation = Propagation.REQUIRED)
+    public void purgeOldCompletedJobs() {
+        jobExecutionRepository.purgeCompletedAggregatedJobs(DateUtils.createCurrentDateTimestamp(), Set.of(AuditEntryStatus.SUCCESS.name(), AuditEntryStatus.FAILURE.name()));
+    }
+
     private JobStageModel convertToStageModel(JobExecutionStageEntity entity) {
         return new JobStageModel(entity.getExecutionId(), entity.getStage(), entity.getStart(), entity.getEnd());
     }

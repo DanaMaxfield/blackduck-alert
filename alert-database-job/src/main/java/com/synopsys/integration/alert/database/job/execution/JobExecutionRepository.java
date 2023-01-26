@@ -1,5 +1,6 @@
 package com.synopsys.integration.alert.database.job.execution;
 
+import java.time.OffsetDateTime;
 import java.util.Set;
 import java.util.UUID;
 
@@ -23,4 +24,13 @@ public interface JobExecutionRepository extends JpaRepository<JobExecutionEntity
         + " WHERE entity.jobConfigId = :jobConfigId"
     )
     void updateCompletionCountedTrueForJobConfig(@Param("jobConfigId") UUID jobConfigId);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("DELETE JobExecutionEntity entity"
+        + " WHERE entity.completionCounted = true"
+        + " AND entity.status IN :statuses"
+        + " AND entity.end IS NOT NULL"
+        + " AND entity.end < :currentTime"
+    )
+    void purgeCompletedAggregatedJobs(@Param("currentTime") OffsetDateTime currentTime, @Param("statuses") Set<String> statuses);
 }

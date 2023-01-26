@@ -1,5 +1,6 @@
 package com.synopsys.integration.alert.api.distribution.mock;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -84,5 +85,21 @@ public class MockJobExecutionRepository extends MockRepositoryContainer<UUID, Jo
             .collect(Collectors.toList());
 
         saveAll(updatedList);
+    }
+
+    @Override
+    public void purgeCompletedAggregatedJobs(OffsetDateTime currentTime, Set<String> statuses) {
+        Predicate<JobExecutionEntity> completionCountedTrue = JobExecutionEntity::isCompletionCounted;
+        Predicate<JobExecutionEntity> containsStatus = entity -> statuses.contains(entity.getStatus());
+        Predicate<JobExecutionEntity> timeBeforeCurrent = entity -> entity.getEnd() != null && entity.getEnd().isBefore(currentTime);
+        List<UUID> entitiesToDelete = findAll()
+            .stream()
+            .filter(completionCountedTrue)
+            .filter(containsStatus)
+            .filter(timeBeforeCurrent)
+            .map(JobExecutionEntity::getExecutionId)
+            .collect(Collectors.toList());
+        deleteAllById(entitiesToDelete);
+
     }
 }

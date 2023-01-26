@@ -39,4 +39,6 @@ public interface JobExecutionAccessor {
     void markAllExecutionsForJobAggregated(UUID jobConfigId);
 
     void purgeJob(UUID executionId);
+
+    void purgeOldCompletedJobs();
 }
