@@ -20,6 +20,7 @@ import com.synopsys.integration.alert.common.persistence.model.job.executions.Jo
 import com.synopsys.integration.alert.common.persistence.model.job.executions.JobCompletionStatusModel;
 import com.synopsys.integration.alert.common.rest.model.AlertPagedModel;
 import com.synopsys.integration.alert.common.rest.model.AlertPagedQueryDetails;
+import com.synopsys.integration.alert.common.util.DateUtils;
 import com.synopsys.integration.alert.database.job.execution.JobCompletionStageEntity;
 import com.synopsys.integration.alert.database.job.execution.JobCompletionStageRepository;
 import com.synopsys.integration.alert.database.job.execution.JobCompletionStatusEntity;
@@ -95,7 +96,7 @@ public class DefaultJobCompletionStatusAccessor implements JobCompletionStatusAc
             entity.getSuccessCount(),
             entity.getFailureCount(),
             entity.getLatestStatus(),
-            entity.getLastRun(),
+            DateUtils.fromInstantUTC(entity.getLastRun().toInstant()),
             entity.getDurationNanos()
         );
     }
@@ -107,7 +108,7 @@ public class DefaultJobCompletionStatusAccessor implements JobCompletionStatusAc
             model.getSuccessCount(),
             model.getFailureCount(),
             model.getLatestStatus(),
-            model.getLastRun(),
+            DateUtils.fromInstantUTC(model.getLastRun().toInstant()),
             model.getDurationNanos()
         );
     }
