@@ -34,7 +34,9 @@ public interface JobExecutionAccessor {
 
     void endStage(UUID executionId, int stageId, Instant end);
 
-    Long countJobsByStatus(AuditEntryStatus status);
+    Long countJobExecutionsByStatus(UUID jobConfigId, AuditEntryStatus status);
+
+    void markAllExecutionsForJobAggregated(UUID jobConfigId);
 
     void purgeJob(UUID executionId);
 }

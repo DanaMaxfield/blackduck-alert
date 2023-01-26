@@ -49,7 +49,8 @@ public class DefaultJobExecutionAccessor implements JobExecutionAccessor {
             null,
             AuditEntryStatus.PENDING.name(),
             0,
-            totalNotificationCount
+            totalNotificationCount,
+            false
         );
         entity = jobExecutionRepository.save(entity);
         return convertToExecutionModel(entity);
@@ -58,16 +59,16 @@ public class DefaultJobExecutionAccessor implements JobExecutionAccessor {
     @Override
     @Transactional(propagation = Propagation.REQUIRED)
     public void endJobWithSuccess(UUID executionId, Instant endTime) {
-        endJobWIthStatus(executionId, endTime, AuditEntryStatus.SUCCESS);
+        endJobWithStatus(executionId, endTime, AuditEntryStatus.SUCCESS);
     }
 
     @Override
     @Transactional(propagation = Propagation.REQUIRED)
     public void endJobWithFailure(UUID executionId, Instant endTime) {
-        endJobWIthStatus(executionId, endTime, AuditEntryStatus.FAILURE);
+        endJobWithStatus(executionId, endTime, AuditEntryStatus.FAILURE);
     }
 
-    private void endJobWIthStatus(UUID executionId, Instant endTime, AuditEntryStatus status) {
+    private void endJobWithStatus(UUID executionId, Instant endTime, AuditEntryStatus status) {
         Optional<JobExecutionEntity> searchedEntity = jobExecutionRepository.findById(executionId);
         if (searchedEntity.isPresent()) {
             OffsetDateTime end = DateUtils.fromInstantUTC(endTime);
@@ -79,7 +80,8 @@ public class DefaultJobExecutionAccessor implements JobExecutionAccessor {
                 end,
                 status.name(),
                 savedEntity.getProcessedNotificationCount(),
-                savedEntity.getTotalNotificationCount()
+                savedEntity.getTotalNotificationCount(),
+                savedEntity.isCompletionCounted()
             );
             jobExecutionRepository.save(updatedEntity);
         }
@@ -99,7 +101,8 @@ public class DefaultJobExecutionAccessor implements JobExecutionAccessor {
                 entity.getEnd(),
                 entity.getStatus(),
                 incrementedValue,
-                entity.getTotalNotificationCount()
+                entity.getTotalNotificationCount(),
+                entity.isCompletionCounted()
             ));
         }
     }
@@ -136,8 +139,14 @@ public class DefaultJobExecutionAccessor implements JobExecutionAccessor {
 
     @Override
     @Transactional(readOnly = true)
-    public Long countJobsByStatus(AuditEntryStatus status) {
-        return jobExecutionRepository.countAllByStatusIn(Set.of(status.name()));
+    public Long countJobExecutionsByStatus(UUID jobConfigId, AuditEntryStatus status) {
+        return jobExecutionRepository.countAllByCompletionCountedFalseAndJobConfigIdAndStatusIn(jobConfigId, Set.of(status.name()));
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.REQUIRED)
+    public void markAllExecutionsForJobAggregated(UUID jobConfigId) {
+        jobExecutionRepository.updateCompletionCountedTrueForJobConfig(jobConfigId);
     }
 
     @Override
@@ -160,16 +169,7 @@ public class DefaultJobExecutionAccessor implements JobExecutionAccessor {
     @Transactional(propagation = Propagation.REQUIRED)
     public void startStage(UUID executionId, int stageId, Instant start) {
         Optional<JobExecutionStageEntity> stageData = jobExecutionStageRepository.findByExecutionIdAndStage(executionId, stageId);
-        if (stageData.isPresent()) {
-            JobExecutionStageEntity stage = stageData.get();
-            JobExecutionStageEntity updatedStage = new JobExecutionStageEntity(
-                stage.getExecutionId(),
-                stage.getStage(),
-                DateUtils.fromInstantUTC(start),
-                stage.getEnd()
-            );
-            jobExecutionStageRepository.save(updatedStage);
-        } else {
+        if (stageData.isEmpty()) {
             jobExecutionStageRepository.save(new JobExecutionStageEntity(executionId, stageId, DateUtils.fromInstantUTC(start), null));
         }
     }
@@ -204,7 +204,8 @@ public class DefaultJobExecutionAccessor implements JobExecutionAccessor {
             entity.getEnd(),
             AuditEntryStatus.valueOf(entity.getStatus()),
             entity.getProcessedNotificationCount(),
-            entity.getTotalNotificationCount()
+            entity.getTotalNotificationCount(),
+            entity.isCompletionCounted()
         );
     }
 

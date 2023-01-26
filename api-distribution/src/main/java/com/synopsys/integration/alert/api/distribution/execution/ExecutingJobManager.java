@@ -92,16 +92,10 @@ public class ExecutingJobManager {
     }
 
     private JobCompletionStatusModel createStatusModel(JobExecutionModel executingJob, AuditEntryStatus jobStatus) {
-        long successCount = 0L;
-        long failureCount = 0L;
-
-        if (jobStatus == AuditEntryStatus.SUCCESS) {
-            successCount = 1L;
-        }
-
-        if (jobStatus == AuditEntryStatus.FAILURE) {
-            failureCount = 1L;
-        }
+        UUID jobConfigId = executingJob.getJobConfigId();
+        long successCount = jobExecutionAccessor.countJobExecutionsByStatus(jobConfigId, AuditEntryStatus.SUCCESS);
+        long failureCount = jobExecutionAccessor.countJobExecutionsByStatus(jobConfigId, AuditEntryStatus.FAILURE);
+        jobExecutionAccessor.markAllExecutionsForJobAggregated(jobConfigId);
         OffsetDateTime start = executingJob.getStart();
         OffsetDateTime end = executingJob.getEnd().orElse(OffsetDateTime.now());
 

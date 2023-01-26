@@ -33,6 +33,9 @@ public class JobExecutionEntity extends BaseEntity {
     @Column(name = "total_notification_count")
     private int totalNotificationCount;
 
+    @Column(name = "completion_counted")
+    private boolean completionCounted;
+
     public JobExecutionEntity() {
         // default constructor
     }
@@ -44,7 +47,8 @@ public class JobExecutionEntity extends BaseEntity {
         OffsetDateTime end,
         String status,
         int processedNotificationCount,
-        int totalNotificationCount
+        int totalNotificationCount,
+        boolean completionCounted
     ) {
         this.executionId = executionId;
         this.jobConfigId = jobConfigId;
@@ -53,6 +57,7 @@ public class JobExecutionEntity extends BaseEntity {
         this.status = status;
         this.processedNotificationCount = processedNotificationCount;
         this.totalNotificationCount = totalNotificationCount;
+        this.completionCounted = completionCounted;
     }
 
     public UUID getExecutionId() {
@@ -81,5 +86,9 @@ public class JobExecutionEntity extends BaseEntity {
 
     public int getTotalNotificationCount() {
         return totalNotificationCount;
+    }
+
+    public boolean isCompletionCounted() {
+        return completionCounted;
     }
 }

@@ -57,7 +57,6 @@ class JobNotificationProcessorTest {
     private final UUID uuid = UUID.randomUUID();
 
     private final UUID jobExecutionId = UUID.randomUUID();
-    private final Long notificationId = 123L;
 
     @Test
     void processNotificationForJobTest() throws IntegrationException {
@@ -78,9 +77,8 @@ class JobNotificationProcessorTest {
             projectMessageSummarizer
         );
 
-        MockProcessingAuditAccessor processingAuditAccessor = new MockProcessingAuditAccessor();
         EventManager eventManager = Mockito.mock(EventManager.class);
-        ProviderMessageDistributor providerMessageDistributor = new ProviderMessageDistributor(processingAuditAccessor, eventManager);
+        ProviderMessageDistributor providerMessageDistributor = new ProviderMessageDistributor(eventManager);
 
         NotificationExtractorBlackDuckServicesFactoryCache lifecycleCaches = createNotificationExtractorBlackDuckServicesFactoryCache();
 

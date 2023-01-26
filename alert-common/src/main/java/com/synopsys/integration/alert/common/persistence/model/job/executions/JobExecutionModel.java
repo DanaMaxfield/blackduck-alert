@@ -17,6 +17,7 @@ public class JobExecutionModel extends AlertSerializableModel {
     private final AuditEntryStatus status;
     private final int processedNotificationCount;
     private final int totalNotificationCount;
+    private final boolean completionCounted;
 
     public JobExecutionModel(
         UUID executionId,
@@ -25,7 +26,8 @@ public class JobExecutionModel extends AlertSerializableModel {
         OffsetDateTime end,
         AuditEntryStatus status,
         int processedNotificationCount,
-        int totalNotificationCount
+        int totalNotificationCount,
+        boolean completionCounted
     ) {
         this.executionId = executionId;
         this.jobConfigId = jobConfigId;
@@ -34,6 +36,7 @@ public class JobExecutionModel extends AlertSerializableModel {
         this.status = status;
         this.processedNotificationCount = processedNotificationCount;
         this.totalNotificationCount = totalNotificationCount;
+        this.completionCounted = completionCounted;
     }
 
     public UUID getExecutionId() {
@@ -62,5 +65,9 @@ public class JobExecutionModel extends AlertSerializableModel {
 
     public int getTotalNotificationCount() {
         return totalNotificationCount;
+    }
+
+    public boolean isCompletionCounted() {
+        return completionCounted;
     }
 }

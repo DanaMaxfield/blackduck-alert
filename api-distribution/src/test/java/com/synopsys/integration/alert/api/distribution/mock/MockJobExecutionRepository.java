@@ -47,4 +47,42 @@ public class MockJobExecutionRepository extends MockRepositoryContainer<UUID, Jo
             .filter(containsStatus)
             .count();
     }
+
+    @Override
+    public long countAllByCompletionCountedFalseAndJobConfigIdAndStatusIn(UUID jobConfigId, Set<String> statuses) {
+        Predicate<JobExecutionEntity> completionCountedFalse = Predicate.not(JobExecutionEntity::isCompletionCounted);
+        Predicate<JobExecutionEntity> containsStatus = entity -> statuses.contains(entity.getStatus());
+        Predicate<JobExecutionEntity> jobConfigEqual = entity -> entity.getJobConfigId().equals(jobConfigId);
+        return findAll()
+            .stream()
+            .filter(completionCountedFalse)
+            .filter(jobConfigEqual)
+            .filter(containsStatus)
+            .count();
+    }
+
+    @Override
+    public void updateCompletionCountedTrueForJobConfig(UUID jobConfigId) {
+        Predicate<JobExecutionEntity> jobConfigEqual = entity -> entity.getJobConfigId().equals(jobConfigId);
+        List<JobExecutionEntity> entitiesForJob = findAll()
+            .stream()
+            .filter(jobConfigEqual)
+            .collect(Collectors.toList());
+
+        List<JobExecutionEntity> updatedList = entitiesForJob
+            .stream()
+            .map(oldEntity -> new JobExecutionEntity(
+                oldEntity.getExecutionId(),
+                oldEntity.getJobConfigId(),
+                oldEntity.getStart(),
+                oldEntity.getEnd(),
+                oldEntity.getStatus(),
+                oldEntity.getProcessedNotificationCount(),
+                oldEntity.getTotalNotificationCount(),
+                true
+            ))
+            .collect(Collectors.toList());
+
+        saveAll(updatedList);
+    }
 }

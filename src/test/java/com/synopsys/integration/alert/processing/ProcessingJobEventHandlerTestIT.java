@@ -17,7 +17,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,7 +36,6 @@ import com.synopsys.integration.alert.common.enumeration.ProcessingType;
 import com.synopsys.integration.alert.common.message.model.LinkableItem;
 import com.synopsys.integration.alert.common.persistence.accessor.JobAccessor;
 import com.synopsys.integration.alert.common.persistence.accessor.JobNotificationMappingAccessor;
-import com.synopsys.integration.alert.common.persistence.accessor.ProcessingAuditAccessor;
 import com.synopsys.integration.alert.common.persistence.model.ConfigurationFieldModel;
 import com.synopsys.integration.alert.common.persistence.model.ConfigurationModel;
 import com.synopsys.integration.alert.common.persistence.model.job.DistributionJobModel;
@@ -325,48 +323,8 @@ class ProcessingJobEventHandlerTestIT {
         return eventManager;
     }
 
-    private ProcessingAuditAccessor createMockAuditAccessor() {
-        return new ProcessingAuditAccessor() {
-            @Override
-            public void createOrUpdatePendingAuditEntryForJob(UUID jobId, Set<Long> notificationIds) {
-            }
-
-            @Override
-            public void setAuditEntrySuccess(UUID jobId, Set<Long> notificationIds) {
-                // not used at this point only at the channel level.
-            }
-
-            @Override
-            public void setAuditEntrySuccess(UUID jobId, Set<Long> notificationIds, OffsetDateTime successTimestamp) {
-                // not used at this point only at the channel level.
-            }
-
-            @Override
-            public void setAuditEntryFailure(UUID jobId, Set<Long> notificationIds, String errorMessage, @Nullable Throwable exception) {
-                // not used at this point only at the channel level.
-            }
-
-            @Override
-            public void setAuditEntryFailure(UUID jobId, Set<Long> notificationIds, String errorMessage, @Nullable String stackTrace) {
-                // not used at this point only at the channel level.
-            }
-
-            @Override
-            public void setAuditEntryFailure(
-                UUID jobId,
-                Set<Long> notificationIds,
-                OffsetDateTime failureTimestamp,
-                String errorMessage,
-                @Nullable String stackTrace
-            ) {
-                // not used at this point only at the channel level.
-            }
-        };
-    }
-
     private ProviderMessageDistributor createMockMessageDistributor() {
         EventManager eventManager = createMockEventManager();
-        ProcessingAuditAccessor auditAccessor = createMockAuditAccessor();
-        return new ProviderMessageDistributor(auditAccessor, eventManager);
+        return new ProviderMessageDistributor(eventManager);
     }
 }

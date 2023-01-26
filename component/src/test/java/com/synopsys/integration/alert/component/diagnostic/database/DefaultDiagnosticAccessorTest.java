@@ -237,7 +237,8 @@ class DefaultDiagnosticAccessorTest {
             null,
             AuditEntryStatus.PENDING,
             processedNotificationCount,
-            totalNotificationCount
+            totalNotificationCount,
+            false
         );
         JobStageModel firstJobStageModel = new JobStageModel(jobExecutionModel.getExecutionId(), firstStage.getStage().getStageId(), firstStageStart, firstStageEnd);
         JobStageModel secondJobStageModel = new JobStageModel(

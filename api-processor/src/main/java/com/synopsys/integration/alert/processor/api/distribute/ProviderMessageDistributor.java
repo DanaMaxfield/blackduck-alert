@@ -18,7 +18,6 @@ import org.springframework.stereotype.Component;
 
 import com.synopsys.integration.alert.api.event.EventManager;
 import com.synopsys.integration.alert.common.logging.AlertLoggerFactory;
-import com.synopsys.integration.alert.common.persistence.accessor.ProcessingAuditAccessor;
 import com.synopsys.integration.alert.descriptor.api.model.ChannelKey;
 import com.synopsys.integration.alert.descriptor.api.model.ChannelKeys;
 import com.synopsys.integration.alert.processor.api.extract.model.ProcessedProviderMessageHolder;
@@ -30,13 +29,10 @@ public class ProviderMessageDistributor {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final Logger notificationLogger = AlertLoggerFactory.getNotificationLogger(getClass());
-
-    private final ProcessingAuditAccessor auditAccessor;
     private final EventManager eventManager;
 
     @Autowired
-    public ProviderMessageDistributor(ProcessingAuditAccessor auditAccessor, EventManager eventManager) {
-        this.auditAccessor = auditAccessor;
+    public ProviderMessageDistributor(EventManager eventManager) {
         this.eventManager = eventManager;
     }
 
@@ -61,8 +57,6 @@ public class ProviderMessageDistributor {
 
     public void distributeIndividually(UUID jobExecutionId, UUID jobId, String jobName, ChannelKey destinationKey, ProcessedProviderMessageHolder processedMessageHolder) {
         Set<Long> notificationIds = processedMessageHolder.extractAllNotificationIds();
-        // Don't use the old audit accessor
-        // auditAccessor.createOrUpdatePendingAuditEntryForJob(jobId, notificationIds);
 
         DistributionEvent event = new DistributionEvent(destinationKey, jobId, jobExecutionId, jobName, notificationIds, processedMessageHolder.toProviderMessageHolder());
         logger.info("Sending {}. Event ID: {}. Job ID: {}. Destination: {}", EVENT_CLASS_NAME, event.getEventId(), jobId, destinationKey);

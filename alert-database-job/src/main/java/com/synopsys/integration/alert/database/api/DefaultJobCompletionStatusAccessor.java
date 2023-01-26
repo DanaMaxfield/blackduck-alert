@@ -137,11 +137,11 @@ public class DefaultJobCompletionStatusAccessor implements JobCompletionStatusAc
         AuditEntryStatus jobStatus = AuditEntryStatus.valueOf(latestData.getLatestStatus());
 
         if (jobStatus == AuditEntryStatus.SUCCESS) {
-            successCount = savedStatus.getSuccessCount() + 1L;
+            successCount = savedStatus.getSuccessCount() + latestData.getSuccessCount();
         }
 
         if (jobStatus == AuditEntryStatus.FAILURE) {
-            failureCount = savedStatus.getFailureCount() + 1L;
+            failureCount = savedStatus.getFailureCount() + latestData.getFailureCount();
         }
 
         long notificationCount;
