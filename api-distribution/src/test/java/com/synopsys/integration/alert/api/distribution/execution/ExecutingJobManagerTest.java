@@ -133,8 +133,8 @@ class ExecutingJobManagerTest {
         UUID jobConfigId = UUID.randomUUID();
         Instant firstStageStart = Instant.now();
         Instant firstStageEnd = Instant.now();
-        Instant secondStageStart = Instant.now();
-        Instant secondStageEnd = Instant.now();
+        Instant secondStageStart = Instant.now().plusSeconds(1);
+        Instant secondStageEnd = Instant.now().plusSeconds(2);
         JobExecutionModel executingJob = jobManager.startJob(jobConfigId, 1);
         jobManager.startStage(executingJob.getExecutionId(), JobStage.NOTIFICATION_PROCESSING, firstStageStart);
         jobManager.endStage(executingJob.getExecutionId(), JobStage.NOTIFICATION_PROCESSING, firstStageEnd);
@@ -149,8 +149,8 @@ class ExecutingJobManagerTest {
         assertEquals(JobStage.NOTIFICATION_PROCESSING.getStageId(), storedStage.getStageId());
         assertNotNull(storedStage.getStart());
         assertNotNull(storedStage.getEnd());
-        assertTrue(firstStageStart.isBefore(storedStage.getStart().toInstant()));
-        assertTrue(firstStageEnd.isBefore(storedStage.getEnd().map(OffsetDateTime::toInstant).orElseThrow(() -> new AssertionError("End time should be present."))));
+        assertEquals(firstStageStart, storedStage.getStart().toInstant());
+        assertEquals(secondStageEnd, storedStage.getEnd().map(OffsetDateTime::toInstant).orElseThrow(() -> new AssertionError("End time should be present.")));
     }
 
     @Test
