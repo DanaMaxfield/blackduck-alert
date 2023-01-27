@@ -77,7 +77,7 @@ public class DefaultJobNotificationMappingAccessor implements JobNotificationMap
 
     @Override
     @Transactional
-    public int getNotificationCountForJob(final UUID correlationId, final UUID jobId) {
+    public int getNotificationCountForJob(UUID correlationId, UUID jobId) {
         return jobToNotificationRelationRepository.countAllByCorrelationIdAndJobId(correlationId, jobId);
     }
 

@@ -44,7 +44,13 @@ public class NotificationMappingProcessor {
         this.notificationAccessor = notificationAccessor;
     }
 
+    public boolean hasAJobHitNotificationLimit(UUID correlationId) {
+        return jobNotificationMapper.hasAJobHitNotificationLimit(correlationId);
+    }
+
     public void processNotifications(UUID correlationID, List<AlertNotificationModel> notifications, List<FrequencyType> frequencies) {
+        // mark these notifications as processed as soon as possible.
+        notificationAccessor.setNotificationsProcessed(notifications);
         logNotifications("Start mapping notifications: {}", notifications);
         List<DetailedNotificationContent> filterableNotifications = notifications
             .stream()
@@ -52,7 +58,6 @@ public class NotificationMappingProcessor {
             .flatMap(List::stream)
             .collect(Collectors.toList());
         jobNotificationMapper.mapJobsToNotifications(correlationID, filterableNotifications, frequencies);
-        notificationAccessor.setNotificationsProcessed(notifications);
         logNotifications("Finished mapping notifications: {}", notifications);
     }
 

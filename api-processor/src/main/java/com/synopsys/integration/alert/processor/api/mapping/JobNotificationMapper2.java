@@ -10,6 +10,7 @@ package com.synopsys.integration.alert.processor.api.mapping;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Predicate;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +28,7 @@ import com.synopsys.integration.alert.processor.api.filter.JobNotificationFilter
 
 @Component
 public class JobNotificationMapper2 {
+    public static final long JOB_NOTIFICATION_LIMIT = 10000L;
     private final ProcessingJobAccessor2 processingJobAccessor;
     private final JobNotificationMappingAccessor jobNotificationMappingAccessor;
 
@@ -37,6 +39,13 @@ public class JobNotificationMapper2 {
     ) {
         this.processingJobAccessor = processingJobAccessor;
         this.jobNotificationMappingAccessor = jobNotificationMappingAccessor;
+    }
+
+    public boolean hasAJobHitNotificationLimit(UUID correlationId) {
+        Predicate<UUID> jobNotificationLimit = jobId -> JOB_NOTIFICATION_LIMIT == jobNotificationMappingAccessor.getNotificationCountForJob(correlationId, jobId);
+        return jobNotificationMappingAccessor.getUniqueJobIds(correlationId)
+            .stream()
+            .anyMatch(jobNotificationLimit);
     }
 
     public void mapJobsToNotifications(

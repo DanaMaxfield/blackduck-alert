@@ -51,21 +51,23 @@ public class NotificationReceivedEventHandler implements AlertEventHandler<Notif
     public void handle(NotificationReceivedEvent event) {
         logger.debug("Event {}", event);
         logger.info("Processing event {} for notifications.", event.getEventId());
-        processNotifications();
+        processNotifications(event);
         logger.info("Finished processing event {} for notifications.", event.getEventId());
     }
 
-    private void processNotifications() {
-        UUID correlationID = UUID.randomUUID();
+    private void processNotifications(NotificationReceivedEvent event) {
+        UUID correlationID = event.getCorrelationId();
         AlertPagedModel<AlertNotificationModel> pageOfAlertNotificationModels = notificationAccessor.getFirstPageOfNotificationsNotProcessed(PAGE_SIZE);
         if (!CollectionUtils.isEmpty(pageOfAlertNotificationModels.getModels())) {
             List<AlertNotificationModel> notifications = pageOfAlertNotificationModels.getModels();
             logger.info("Starting to process batch: {} = {} notifications.", correlationID, notifications.size());
             notificationMappingProcessor.processNotifications(correlationID, notifications, List.of(FrequencyType.REAL_TIME));
-            eventManager.sendEvent(new JobNotificationMappedEvent(correlationID));
+            boolean hasAJobHitNotificationLimit = notificationMappingProcessor.hasAJobHitNotificationLimit(correlationID);
             boolean hasMoreNotificationsToProcess = notificationAccessor.hasMoreNotificationsToProcess();
-            if (hasMoreNotificationsToProcess) {
-                eventManager.sendEvent(new NotificationReceivedEvent());
+            if (hasMoreNotificationsToProcess && !hasAJobHitNotificationLimit) {
+                eventManager.sendEvent(new NotificationReceivedEvent(correlationID));
+            } else {
+                eventManager.sendEvent(new JobNotificationMappedEvent(correlationID));
             }
         }
         logger.info("Finished processing event for notifications.");

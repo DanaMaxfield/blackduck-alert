@@ -7,11 +7,24 @@
  */
 package com.synopsys.integration.alert.api.event;
 
+import java.util.UUID;
+
 public class NotificationReceivedEvent extends AlertEvent {
     private static final long serialVersionUID = -5072672016837128957L;
     public static final String NOTIFICATION_RECEIVED_EVENT_TYPE = "notification_received_event";
 
+    public UUID correlationId;
+
     public NotificationReceivedEvent() {
+        this(UUID.randomUUID());
+    }
+
+    public NotificationReceivedEvent(UUID correlationId) {
         super(NOTIFICATION_RECEIVED_EVENT_TYPE);
+        this.correlationId = correlationId;
+    }
+
+    public UUID getCorrelationId() {
+        return correlationId;
     }
 }
