@@ -91,6 +91,10 @@ public class ExecutingJobManager {
         jobExecutionAccessor.purgeOldCompletedJobs();
     }
 
+    public void purgeAllJobs() {
+        jobExecutionAccessor.purgeAllJobs();
+    }
+
     private JobCompletionStatusModel createEmptyStatusModel(JobExecutionModel executingJob) {
         return new JobCompletionStatusModel(executingJob.getJobConfigId(), 0L, 0L, 0L, AuditEntryStatus.PENDING.name(), OffsetDateTime.now(), 0L);
     }

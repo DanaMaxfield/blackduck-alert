@@ -196,6 +196,12 @@ public class DefaultJobExecutionAccessor implements JobExecutionAccessor {
         jobExecutionRepository.deleteById(executionId);
     }
 
+    @Override
+    @Transactional(propagation = Propagation.REQUIRED)
+    public void purgeAllJobs() {
+        jobExecutionRepository.deleteAll();
+    }
+
     private JobExecutionModel convertToExecutionModel(JobExecutionEntity entity) {
         return new JobExecutionModel(
             entity.getExecutionId(),
