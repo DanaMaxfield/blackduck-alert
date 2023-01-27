@@ -199,7 +199,8 @@ public class DefaultDiagnosticAccessor implements DiagnosticAccessor {
         return new JobStatusDiagnosticModel(
             jobCompletionStatusModel.getJobConfigId(),
             jobName,
-            jobCompletionStatusModel.getNotificationCount(),
+            jobCompletionStatusModel.getLatestNotificationCount(),
+            jobCompletionStatusModel.getAverageNotificationCount(),
             jobCompletionStatusModel.getSuccessCount(),
             jobCompletionStatusModel.getFailureCount(),
             jobCompletionStatusModel.getLatestStatus(),

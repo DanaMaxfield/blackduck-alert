@@ -82,7 +82,7 @@ public class ProcessingCompleteWaitJobTask implements WaitJobCondition {
                 .stream()
                 .filter(jobStatusDiagnosticModel -> expectedJobIds.contains(jobStatusDiagnosticModel.getJobConfigId().toString()))
                 .filter(this::isAfterSearchTime)
-                .map(JobStatusDiagnosticModel::getNotificationCount)
+                .map(JobStatusDiagnosticModel::getLatestNotificationCount)
                 .map(Long::intValue)
                 .reduce(0, Integer::sum);
 
@@ -154,11 +154,12 @@ public class ProcessingCompleteWaitJobTask implements WaitJobCondition {
         jobStatusDiagnosticModel.getJobStatuses()
             .forEach(jobStatus -> {
                 intLogger.info(String.format(
-                    "Job: %s, last status: %s, last run: %s, notifications: %d, iterations: (SUCCESS: %s FAILURE: %s)",
+                    "Job: %s, last status: %s, last run: %s, notifications: (latest: %d avg: %d), iterations: (SUCCESS: %s FAILURE: %s)",
                     jobStatus.getJobName(),
                     jobStatus.getLatestStatus(),
                     jobStatus.getLastRun(),
-                    jobStatus.getNotificationCount(),
+                    jobStatus.getLatestNotificationCount(),
+                    jobStatus.getAverageNotificationCount(),
                     jobStatus.getSuccessCount(),
                     jobStatus.getFailureCount()
                 ));

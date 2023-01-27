@@ -96,7 +96,7 @@ public class ExecutingJobManager {
     }
 
     private JobCompletionStatusModel createEmptyStatusModel(JobExecutionModel executingJob) {
-        return new JobCompletionStatusModel(executingJob.getJobConfigId(), 0L, 0L, 0L, AuditEntryStatus.PENDING.name(), OffsetDateTime.now(), 0L);
+        return new JobCompletionStatusModel(executingJob.getJobConfigId(), 0L, 0L, 0L, 0L, AuditEntryStatus.PENDING.name(), OffsetDateTime.now(), 0L);
     }
 
     private JobCompletionStatusModel createStatusModel(JobExecutionModel executingJob, AuditEntryStatus jobStatus) {
@@ -109,6 +109,7 @@ public class ExecutingJobManager {
 
         return new JobCompletionStatusModel(
             executingJob.getJobConfigId(),
+            Integer.valueOf(executingJob.getProcessedNotificationCount()).longValue(),
             Integer.valueOf(executingJob.getProcessedNotificationCount()).longValue(),
             successCount,
             failureCount,

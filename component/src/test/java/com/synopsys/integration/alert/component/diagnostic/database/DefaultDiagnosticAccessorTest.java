@@ -142,7 +142,16 @@ class DefaultDiagnosticAccessorTest {
             300000L
         );
 
-        JobCompletionStatusModel statusModel = new JobCompletionStatusModel(jobConfigId, notificationCount, successCount, failureCount, latestStatus, lastRun, jobDuration);
+        JobCompletionStatusModel statusModel = new JobCompletionStatusModel(
+            jobConfigId,
+            notificationCount,
+            notificationCount,
+            successCount,
+            failureCount,
+            latestStatus,
+            lastRun,
+            jobDuration
+        );
         AlertPagedModel<JobCompletionStatusModel> pageModel = new AlertPagedModel<>(1, 0, 10, List.of(statusModel));
         Mockito.when(jobCompletionStatusAccessor.getJobExecutionStatus(Mockito.any(AlertPagedQueryDetails.class))).thenReturn(pageModel);
         Mockito.when(jobCompletionStatusAccessor.getJobStageData(Mockito.any())).thenReturn(List.of(firstStage, secondStage));
@@ -171,6 +180,7 @@ class DefaultDiagnosticAccessorTest {
         JobStatusDiagnosticModel statusDiagnosticModel = new JobStatusDiagnosticModel(
             jobConfigId,
             TEST_JOB_NAME,
+            notificationCount,
             notificationCount,
             successCount,
             failureCount,

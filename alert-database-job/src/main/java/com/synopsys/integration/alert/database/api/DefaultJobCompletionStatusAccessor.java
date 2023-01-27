@@ -92,7 +92,8 @@ public class DefaultJobCompletionStatusAccessor implements JobCompletionStatusAc
     private JobCompletionStatusModel convertToModel(JobCompletionStatusEntity entity) {
         return new JobCompletionStatusModel(
             entity.getJobConfigId(),
-            entity.getNotificationCount(),
+            entity.getLatestNotificationCount(),
+            entity.getAverageNotificationCount(),
             entity.getSuccessCount(),
             entity.getFailureCount(),
             entity.getLatestStatus(),
@@ -104,7 +105,8 @@ public class DefaultJobCompletionStatusAccessor implements JobCompletionStatusAc
     private JobCompletionStatusEntity convertFromModel(JobCompletionStatusModel model) {
         return new JobCompletionStatusEntity(
             model.getJobConfigId(),
-            model.getNotificationCount(),
+            model.getLatestNotificationCount(),
+            model.getAverageNotificationCount(),
             model.getSuccessCount(),
             model.getFailureCount(),
             model.getLatestStatus(),
@@ -145,12 +147,12 @@ public class DefaultJobCompletionStatusAccessor implements JobCompletionStatusAc
             failureCount = savedStatus.getFailureCount() + latestData.getFailureCount();
         }
 
-        long notificationCount;
+        long averageNotificationCount;
 
-        if (0L == savedStatus.getNotificationCount()) {
-            notificationCount = latestData.getNotificationCount();
+        if (0L == savedStatus.getAverageNotificationCount()) {
+            averageNotificationCount = latestData.getAverageNotificationCount();
         } else {
-            notificationCount = calculateAverage(latestData.getNotificationCount(), savedStatus.getNotificationCount());
+            averageNotificationCount = calculateAverage(latestData.getAverageNotificationCount(), savedStatus.getAverageNotificationCount());
         }
 
         long duration;
@@ -163,7 +165,8 @@ public class DefaultJobCompletionStatusAccessor implements JobCompletionStatusAc
 
         return new JobCompletionStatusModel(
             latestData.getJobConfigId(),
-            notificationCount,
+            latestData.getLatestNotificationCount(),
+            averageNotificationCount,
             successCount,
             failureCount,
             jobStatus.name(),
@@ -187,7 +190,8 @@ public class DefaultJobCompletionStatusAccessor implements JobCompletionStatusAc
 
         return new JobCompletionStatusModel(
             latestData.getJobConfigId(),
-            latestData.getNotificationCount(),
+            latestData.getLatestNotificationCount(),
+            latestData.getAverageNotificationCount(),
             successCount,
             failureCount,
             jobStatus.name(),
@@ -215,7 +219,7 @@ public class DefaultJobCompletionStatusAccessor implements JobCompletionStatusAc
     }
 
     private Long calculateAverage(Long firstValue, Long secondValue) {
-        if (firstValue < 1 || secondValue < 1) {
+        if (firstValue == 0 && secondValue == 0) {
             return 0L;
         }
         return (firstValue + secondValue) / 2;
