@@ -9,6 +9,7 @@ package com.synopsys.integration.alert.database.notification;
 
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import org.springframework.data.domain.Page;
@@ -83,4 +84,13 @@ public interface NotificationContentRepository extends JpaRepository<Notificatio
     boolean existsByProcessedFalse();
 
     long countByProcessed(boolean processed);
+
+    boolean existsByProcessedFalseAndCreatedAtBetween(OffsetDateTime start, OffsetDateTime end);
+
+    Page<NotificationEntity> findByProcessedFalseAndCreatedAtIsBetweenOrderByProviderCreationTimeAsc(OffsetDateTime start, OffsetDateTime end, Pageable pageable);
+
+    Optional<NotificationEntity> findFirstByProcessedFalseOrderByCreatedAtAsc();
+
+    Optional<NotificationEntity> findFirstByProcessedFalseOrderByCreatedAtDesc();
+    
 }

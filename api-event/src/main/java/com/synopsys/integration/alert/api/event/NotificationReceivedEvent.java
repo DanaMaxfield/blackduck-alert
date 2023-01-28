@@ -13,18 +13,30 @@ public class NotificationReceivedEvent extends AlertEvent {
     private static final long serialVersionUID = -5072672016837128957L;
     public static final String NOTIFICATION_RECEIVED_EVENT_TYPE = "notification_received_event";
 
-    public UUID correlationId;
+    public final UUID correlationId;
+    public final Long searchRangeStart;
+    public final Long searchRangeEnd;
 
-    public NotificationReceivedEvent() {
-        this(UUID.randomUUID());
+    public NotificationReceivedEvent(Long searchRangeStart, Long searchRangeEnd) {
+        this(UUID.randomUUID(), searchRangeStart, searchRangeEnd);
     }
 
-    public NotificationReceivedEvent(UUID correlationId) {
+    public NotificationReceivedEvent(UUID correlationId, Long searchRangeStart, Long searchRangeEnd) {
         super(NOTIFICATION_RECEIVED_EVENT_TYPE);
         this.correlationId = correlationId;
+        this.searchRangeStart = searchRangeStart;
+        this.searchRangeEnd = searchRangeEnd;
     }
 
     public UUID getCorrelationId() {
         return correlationId;
+    }
+
+    public Long getSearchRangeStart() {
+        return searchRangeStart;
+    }
+
+    public Long getSearchRangeEnd() {
+        return searchRangeEnd;
     }
 }

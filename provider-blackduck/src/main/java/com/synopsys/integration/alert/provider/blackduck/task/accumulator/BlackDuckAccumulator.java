@@ -7,6 +7,7 @@
  */
 package com.synopsys.integration.alert.provider.blackduck.task.accumulator;
 
+import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.Comparator;
 import java.util.List;
@@ -115,6 +116,7 @@ public class BlackDuckAccumulator extends ProviderTask {
             dateRange,
             SUPPORTED_NOTIFICATION_TYPES
         );
+        Instant start = Instant.now();
         boolean emptyPage = notificationPage.isCurrentPageEmpty();
         try {
             while (!notificationPage.isCurrentPageEmpty()) {
@@ -126,7 +128,8 @@ public class BlackDuckAccumulator extends ProviderTask {
             }
         } finally {
             if (!emptyPage) {
-                eventManager.sendEvent(new NotificationReceivedEvent());
+                Instant end = Instant.now();
+                eventManager.sendEvent(new NotificationReceivedEvent(start.toEpochMilli(), end.toEpochMilli()));
             }
         }
     }

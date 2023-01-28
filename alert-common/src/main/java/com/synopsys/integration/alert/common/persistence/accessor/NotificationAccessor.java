@@ -41,4 +41,12 @@ public interface NotificationAccessor {
 
     boolean hasMoreNotificationsToProcess();
 
+    AlertPagedModel<AlertNotificationModel> getFirstPageOfNotificationsNotProcessed(OffsetDateTime start, OffsetDateTime end, int pageSize);
+
+    boolean hasMoreNotificationToProcessBetween(OffsetDateTime start, OffsetDateTime end);
+
+    Optional<AlertNotificationModel> getFirstNotificationNotProcessed();
+
+    Optional<AlertNotificationModel> getLastNotificationNotProcessed();
+
 }

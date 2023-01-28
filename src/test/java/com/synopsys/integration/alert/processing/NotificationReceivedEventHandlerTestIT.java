@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -94,13 +95,14 @@ class NotificationReceivedEventHandlerTestIT {
 
     @Test
     void testHandleEventNotProcessedNotifications() {
-
+        Instant searchRangeStart = Instant.now();
         List<AlertNotificationModel> notificationContent = new ArrayList<>();
         notificationContent.add(createAlertNotificationModel(false));
         notificationContent.add(createAlertNotificationModel(false));
 
         List<AlertNotificationModel> savedModels = defaultNotificationAccessor.saveAllNotifications(notificationContent);
         assertNotNull(savedModels);
+        Instant searchRangeEnd = Instant.now();
 
         NotificationMappingProcessor notificationMappingProcessor = createNotificationMappingProcessor();
         NotificationReceivedEventHandler notificationReceivedEventHandler = new NotificationReceivedEventHandler(
@@ -108,19 +110,21 @@ class NotificationReceivedEventHandlerTestIT {
             notificationMappingProcessor,
             eventManager
         );
-        notificationReceivedEventHandler.handle(new NotificationReceivedEvent());
+        notificationReceivedEventHandler.handle(new NotificationReceivedEvent(searchRangeStart.toEpochMilli(), searchRangeEnd.toEpochMilli()));
 
         testAlertNotificationModels(savedModels);
     }
 
     @Test
     void testHandleEventProcessedNotifications() {
+        Instant searchRangeStart = Instant.now();
         List<AlertNotificationModel> notificationContent = new ArrayList<>();
         notificationContent.add(createAlertNotificationModel(true));
         notificationContent.add(createAlertNotificationModel(true));
 
         List<AlertNotificationModel> savedModels = defaultNotificationAccessor.saveAllNotifications(notificationContent);
         assertNotNull(savedModels);
+        Instant searchRangeEnd = Instant.now();
         assertEquals(0, defaultNotificationAccessor.getFirstPageOfNotificationsNotProcessed(pageSize).getModels().size());
 
         NotificationMappingProcessor notificationMappingProcessor = createNotificationMappingProcessor();
@@ -129,19 +133,21 @@ class NotificationReceivedEventHandlerTestIT {
             notificationMappingProcessor,
             eventManager
         );
-        notificationReceivedEventHandler.handle(new NotificationReceivedEvent());
+        notificationReceivedEventHandler.handle(new NotificationReceivedEvent(searchRangeStart.toEpochMilli(), searchRangeEnd.toEpochMilli()));
 
         testAlertNotificationModels(savedModels);
     }
 
     @Test
     void testHandleEventMixedProcessedNotifications() {
+        Instant searchRangeStart = Instant.now();
         List<AlertNotificationModel> notificationContent = new ArrayList<>();
         notificationContent.add(createAlertNotificationModel(true));
         notificationContent.add(createAlertNotificationModel(false));
 
         List<AlertNotificationModel> savedModels = defaultNotificationAccessor.saveAllNotifications(notificationContent);
         assertNotNull(savedModels);
+        Instant searchRangeEnd = Instant.now();
 
         NotificationMappingProcessor notificationMappingProcessor = createNotificationMappingProcessor();
         NotificationReceivedEventHandler notificationReceivedEventHandler = new NotificationReceivedEventHandler(
@@ -149,13 +155,14 @@ class NotificationReceivedEventHandlerTestIT {
             notificationMappingProcessor,
             eventManager
         );
-        notificationReceivedEventHandler.handle(new NotificationReceivedEvent());
+        notificationReceivedEventHandler.handle(new NotificationReceivedEvent(searchRangeStart.toEpochMilli(), searchRangeEnd.toEpochMilli()));
 
         testAlertNotificationModels(savedModels);
     }
 
     @Test
     void testHandleEventProcessedNotificationsWithPages() {
+        Instant searchRangeStart = Instant.now();
         EventManager eventManagerSpy = Mockito.spy(eventManager);
         int totalNotifications = 400;
         List<AlertNotificationModel> notificationContent = new ArrayList<>();
@@ -164,6 +171,7 @@ class NotificationReceivedEventHandlerTestIT {
         }
         List<AlertNotificationModel> savedModels = defaultNotificationAccessor.saveAllNotifications(notificationContent);
         assertNotNull(savedModels);
+        Instant searchRangeEnd = Instant.now();
 
         NotificationMappingProcessor notificationMappingProcessor = createNotificationMappingProcessor();
         NotificationReceivedEventHandler notificationReceivedEventHandler = new NotificationReceivedEventHandler(
@@ -171,7 +179,7 @@ class NotificationReceivedEventHandlerTestIT {
             notificationMappingProcessor,
             eventManagerSpy
         );
-        notificationReceivedEventHandler.handle(new NotificationReceivedEvent());
+        notificationReceivedEventHandler.handle(new NotificationReceivedEvent(searchRangeStart.toEpochMilli(), searchRangeEnd.toEpochMilli()));
 
         assertEquals(200, defaultNotificationAccessor.getFirstPageOfNotificationsNotProcessed(200).getModels().size());
     }
