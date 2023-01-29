@@ -44,7 +44,7 @@ public class AuditFailedHandler implements AlertEventHandler<AuditFailedEvent> {
             } else {
                 processingFailedAccessor.setAuditFailure(jobConfigId, event.getNotificationIds(), DateUtils.fromInstantUTC(event.getCreatedTimestamp()), event.getErrorMessage());
             }
-            executingJobManager.endJobWithFailure(jobExecutionId, event.getCreatedTimestamp());
+            executingJobManager.endJobWithFailure(jobExecutionId, event.getCreatedTimestamp(), event.getNotificationIds().size());
         }
     }
 }

@@ -9,7 +9,7 @@ public class JobCompletionStatusModel extends AlertSerializableModel {
     private static final long serialVersionUID = -118491395692643581L;
     private final UUID jobConfigId;
     private final Long latestNotificationCount;
-    private final Long averageNotificationCount;
+    private final Long totalNotificationCount;
     private final Long successCount;
     private final Long failureCount;
     private final String latestStatus;
@@ -19,7 +19,7 @@ public class JobCompletionStatusModel extends AlertSerializableModel {
     public JobCompletionStatusModel(
         UUID jobConfigId,
         Long latestNotificationCount,
-        Long averageNotificationCount,
+        Long totalNotificationCount,
         Long successCount,
         Long failureCount,
         String latestStatus,
@@ -28,7 +28,7 @@ public class JobCompletionStatusModel extends AlertSerializableModel {
     ) {
         this.jobConfigId = jobConfigId;
         this.latestNotificationCount = latestNotificationCount;
-        this.averageNotificationCount = averageNotificationCount;
+        this.totalNotificationCount = totalNotificationCount;
         this.successCount = successCount;
         this.failureCount = failureCount;
         this.latestStatus = latestStatus;
@@ -44,8 +44,8 @@ public class JobCompletionStatusModel extends AlertSerializableModel {
         return latestNotificationCount;
     }
 
-    public Long getAverageNotificationCount() {
-        return averageNotificationCount;
+    public Long getTotalNotificationCount() {
+        return totalNotificationCount;
     }
 
     public Long getSuccessCount() {

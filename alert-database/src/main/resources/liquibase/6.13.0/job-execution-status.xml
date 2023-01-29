@@ -147,7 +147,7 @@
             <column name="latest_notification_count" type="BIGINT" defaultValue="0">
                 <constraints nullable="false"/>
             </column>
-            <column name="average_notification_count" type="BIGINT" defaultValue="0">
+            <column name="total_notification_count" type="BIGINT" defaultValue="0">
                 <constraints nullable="false"/>
             </column>
             <column name="success_count" type="BIGINT" defaultValue="0">

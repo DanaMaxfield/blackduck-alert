@@ -21,8 +21,8 @@ public class JobCompletionStatusEntity extends BaseEntity {
     @Column(name = "latest_notification_count")
     private Long latestNotificationCount;
 
-    @Column(name = "average_notification_count")
-    private Long averageNotificationCount;
+    @Column(name = "total_notification_count")
+    private Long totalNotificationCount;
     @Column(name = "success_count")
     private Long successCount;
     @Column(name = "failure_count")
@@ -43,7 +43,7 @@ public class JobCompletionStatusEntity extends BaseEntity {
     public JobCompletionStatusEntity(
         UUID jobConfigId,
         Long latestNotificationCount,
-        Long averageNotificationCount,
+        Long totalNotificationCount,
         Long successCount,
         Long failureCount,
         String latestStatus,
@@ -52,7 +52,7 @@ public class JobCompletionStatusEntity extends BaseEntity {
     ) {
         this.jobConfigId = jobConfigId;
         this.latestNotificationCount = latestNotificationCount;
-        this.averageNotificationCount = averageNotificationCount;
+        this.totalNotificationCount = totalNotificationCount;
         this.successCount = successCount;
         this.failureCount = failureCount;
         this.latestStatus = latestStatus;
@@ -68,8 +68,8 @@ public class JobCompletionStatusEntity extends BaseEntity {
         return latestNotificationCount;
     }
 
-    public Long getAverageNotificationCount() {
-        return averageNotificationCount;
+    public Long getTotalNotificationCount() {
+        return totalNotificationCount;
     }
 
     public Long getSuccessCount() {

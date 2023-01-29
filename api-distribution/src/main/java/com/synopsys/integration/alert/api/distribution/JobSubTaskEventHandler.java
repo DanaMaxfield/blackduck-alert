@@ -6,7 +6,6 @@ import java.util.UUID;
 
 import com.synopsys.integration.alert.api.common.model.exception.AlertException;
 import com.synopsys.integration.alert.api.distribution.audit.AuditFailedEvent;
-import com.synopsys.integration.alert.api.distribution.audit.AuditSuccessEvent;
 import com.synopsys.integration.alert.api.distribution.execution.JobStage;
 import com.synopsys.integration.alert.api.distribution.execution.JobStageEndedEvent;
 import com.synopsys.integration.alert.api.event.AlertEvent;
@@ -40,8 +39,6 @@ public abstract class JobSubTaskEventHandler<T extends JobSubTaskEvent> implemen
                 .filter(remainingCount -> remainingCount < 1)
                 .ifPresent(ignored -> {
                     eventManager.sendEvent(new JobStageEndedEvent(jobExecutionId, jobStage));
-                    // need to check if the count of the jobExecution id is 1 for this event only.
-                    eventManager.sendEvent(new AuditSuccessEvent(jobExecutionId, event.getNotificationIds()));
                     jobSubTaskAccessor.removeSubTaskStatus(parentEventId);
                 });
         } catch (AlertException exception) {

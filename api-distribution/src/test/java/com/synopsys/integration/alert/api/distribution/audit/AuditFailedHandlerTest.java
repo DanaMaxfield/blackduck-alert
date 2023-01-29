@@ -163,7 +163,7 @@ class AuditFailedHandlerTest {
         assertEquals(AuditEntryStatus.FAILURE.name(), statusModel.getLatestStatus());
         assertEquals(0, statusModel.getSuccessCount());
         assertEquals(1, statusModel.getFailureCount());
-        assertEquals(0, statusModel.getAverageNotificationCount());
+        assertEquals(3, statusModel.getTotalNotificationCount());
         assertTrue(executingJobManager.getExecutingJob(executingJobId).isPresent());
 
     }

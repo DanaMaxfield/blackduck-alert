@@ -93,7 +93,7 @@ public class DefaultJobCompletionStatusAccessor implements JobCompletionStatusAc
         return new JobCompletionStatusModel(
             entity.getJobConfigId(),
             entity.getLatestNotificationCount(),
-            entity.getAverageNotificationCount(),
+            entity.getTotalNotificationCount(),
             entity.getSuccessCount(),
             entity.getFailureCount(),
             entity.getLatestStatus(),
@@ -106,7 +106,7 @@ public class DefaultJobCompletionStatusAccessor implements JobCompletionStatusAc
         return new JobCompletionStatusEntity(
             model.getJobConfigId(),
             model.getLatestNotificationCount(),
-            model.getAverageNotificationCount(),
+            model.getTotalNotificationCount(),
             model.getSuccessCount(),
             model.getFailureCount(),
             model.getLatestStatus(),
@@ -147,13 +147,7 @@ public class DefaultJobCompletionStatusAccessor implements JobCompletionStatusAc
             failureCount = savedStatus.getFailureCount() + latestData.getFailureCount();
         }
 
-        long averageNotificationCount;
-
-        if (0L == savedStatus.getAverageNotificationCount()) {
-            averageNotificationCount = latestData.getAverageNotificationCount();
-        } else {
-            averageNotificationCount = calculateAverage(latestData.getAverageNotificationCount(), savedStatus.getAverageNotificationCount());
-        }
+        long totalNotificationCount = savedStatus.getTotalNotificationCount() + latestData.getTotalNotificationCount();
 
         long duration;
 
@@ -166,7 +160,7 @@ public class DefaultJobCompletionStatusAccessor implements JobCompletionStatusAc
         return new JobCompletionStatusModel(
             latestData.getJobConfigId(),
             latestData.getLatestNotificationCount(),
-            averageNotificationCount,
+            totalNotificationCount,
             successCount,
             failureCount,
             jobStatus.name(),
@@ -191,7 +185,7 @@ public class DefaultJobCompletionStatusAccessor implements JobCompletionStatusAc
         return new JobCompletionStatusModel(
             latestData.getJobConfigId(),
             latestData.getLatestNotificationCount(),
-            latestData.getAverageNotificationCount(),
+            latestData.getTotalNotificationCount(),
             successCount,
             failureCount,
             jobStatus.name(),

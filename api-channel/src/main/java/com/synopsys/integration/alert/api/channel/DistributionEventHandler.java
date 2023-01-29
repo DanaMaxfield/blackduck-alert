@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 
 import com.synopsys.integration.alert.api.common.model.exception.AlertException;
 import com.synopsys.integration.alert.api.distribution.audit.AuditFailedEvent;
+import com.synopsys.integration.alert.api.distribution.audit.AuditSuccessEvent;
 import com.synopsys.integration.alert.api.distribution.execution.JobStage;
 import com.synopsys.integration.alert.api.distribution.execution.JobStageEndedEvent;
 import com.synopsys.integration.alert.api.distribution.execution.JobStageStartedEvent;
@@ -59,6 +60,7 @@ public class DistributionEventHandler<D extends DistributionJobDetailsModel> imp
                     event.getNotificationIds()
                 );
                 notificationLogger.debug("Channel: {} successfully processed event: {}", channel.getClass(), event.getEventId());
+                eventManager.sendEvent(new AuditSuccessEvent(jobExecutionId, event.getNotificationIds()));
             } catch (AlertException alertException) {
                 handleAlertException(alertException, event);
             } catch (Exception unknownException) {

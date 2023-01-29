@@ -60,7 +60,7 @@ class ExecutingJobManagerTest {
 
         UUID jobConfigId = UUID.randomUUID();
         JobExecutionModel executingJob = jobManager.startJob(jobConfigId, 0);
-        jobManager.endJobWithSuccess(jobConfigId, Instant.now());
+        jobManager.endJobWithSuccess(jobConfigId, Instant.now(), 8);
         jobManager.purgeJob(executingJob.getExecutionId());
         Optional<JobExecutionModel> savedJob = jobManager.getExecutingJob(executingJob.getExecutionId());
         assertTrue(savedJob.isEmpty());
@@ -86,7 +86,7 @@ class ExecutingJobManagerTest {
 
         UUID jobConfigId = UUID.randomUUID();
         JobExecutionModel executingJob = jobManager.startJob(jobConfigId, 1);
-        jobManager.endJobWithSuccess(executingJob.getExecutionId(), Instant.now());
+        jobManager.endJobWithSuccess(executingJob.getExecutionId(), Instant.now(), 1);
         JobExecutionModel savedJob = jobManager.getExecutingJob(executingJob.getExecutionId()).orElseThrow(() -> new AssertionError("Job with execution ID not found."));
         assertEquals(jobConfigId, savedJob.getJobConfigId());
         assertEquals(AuditEntryStatus.SUCCESS, savedJob.getStatus());
@@ -100,7 +100,7 @@ class ExecutingJobManagerTest {
 
         UUID jobConfigId = UUID.randomUUID();
         JobExecutionModel executingJob = jobManager.startJob(jobConfigId, 1);
-        jobManager.endJobWithFailure(executingJob.getExecutionId(), Instant.now());
+        jobManager.endJobWithFailure(executingJob.getExecutionId(), Instant.now(), 1);
         JobExecutionModel savedJob = jobManager.getExecutingJob(executingJob.getExecutionId()).orElseThrow(() -> new AssertionError("Job with execution ID not found."));
         assertEquals(jobConfigId, savedJob.getJobConfigId());
         assertEquals(AuditEntryStatus.FAILURE, savedJob.getStatus());

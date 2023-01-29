@@ -38,20 +38,22 @@ public class ExecutingJobManager {
         Optional<JobCompletionStatusModel> existingStatus = completedJobStatusAccessor.getJobExecutionStatus(execution.getJobConfigId());
         if (existingStatus.isEmpty()) {
             completedJobStatusAccessor.saveExecutionStatus(createEmptyStatusModel(execution));
+            completedJobStatusAccessor.saveJobStageData(createEmptyStatusStageModel(jobConfigId, JobStage.NOTIFICATION_PROCESSING));
+            completedJobStatusAccessor.saveJobStageData(createEmptyStatusStageModel(jobConfigId, JobStage.CHANNEL_PROCESSING));
         }
         return execution;
     }
 
-    public void endJobWithSuccess(UUID executionId, Instant endTime) {
+    public void endJobWithSuccess(UUID executionId, Instant endTime, int notificationCount) {
         jobExecutionAccessor.endJobWithSuccess(executionId, endTime);
         Optional<JobExecutionModel> executingJob = jobExecutionAccessor.getJobExecution(executionId);
-        executingJob.ifPresent(execution -> completedJobStatusAccessor.saveExecutionStatus(createStatusModel(execution, AuditEntryStatus.SUCCESS)));
+        executingJob.ifPresent(execution -> completedJobStatusAccessor.saveExecutionStatus(createStatusModel(execution, AuditEntryStatus.SUCCESS, notificationCount)));
     }
 
-    public void endJobWithFailure(UUID executionId, Instant endTime) {
+    public void endJobWithFailure(UUID executionId, Instant endTime, int notificationCount) {
         jobExecutionAccessor.endJobWithFailure(executionId, endTime);
         Optional<JobExecutionModel> executingJob = jobExecutionAccessor.getJobExecution(executionId);
-        executingJob.ifPresent(execution -> completedJobStatusAccessor.saveExecutionStatus(createStatusModel(execution, AuditEntryStatus.FAILURE)));
+        executingJob.ifPresent(execution -> completedJobStatusAccessor.saveExecutionStatus(createStatusModel(execution, AuditEntryStatus.FAILURE, notificationCount)));
     }
 
     public void incrementNotificationCount(UUID jobExecutionId, int notificationCount) {
@@ -99,7 +101,11 @@ public class ExecutingJobManager {
         return new JobCompletionStatusModel(executingJob.getJobConfigId(), 0L, 0L, 0L, 0L, AuditEntryStatus.PENDING.name(), OffsetDateTime.now(), 0L);
     }
 
-    private JobCompletionStatusModel createStatusModel(JobExecutionModel executingJob, AuditEntryStatus jobStatus) {
+    private JobCompletionStageModel createEmptyStatusStageModel(UUID jobConfigId, JobStage jobStage) {
+        return new JobCompletionStageModel(jobConfigId, jobStage.getStageId(), 0L);
+    }
+
+    private JobCompletionStatusModel createStatusModel(JobExecutionModel executingJob, AuditEntryStatus jobStatus, int notificationCount) {
         UUID jobConfigId = executingJob.getJobConfigId();
         long successCount = jobExecutionAccessor.countJobExecutionsByStatus(jobConfigId, AuditEntryStatus.SUCCESS);
         long failureCount = jobExecutionAccessor.countJobExecutionsByStatus(jobConfigId, AuditEntryStatus.FAILURE);
@@ -110,7 +116,7 @@ public class ExecutingJobManager {
         return new JobCompletionStatusModel(
             executingJob.getJobConfigId(),
             Integer.valueOf(executingJob.getProcessedNotificationCount()).longValue(),
-            Integer.valueOf(executingJob.getProcessedNotificationCount()).longValue(),
+            Integer.valueOf(notificationCount).longValue(),
             successCount,
             failureCount,
             jobStatus.name(),

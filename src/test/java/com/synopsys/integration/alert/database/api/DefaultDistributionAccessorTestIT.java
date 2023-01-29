@@ -330,11 +330,11 @@ public class DefaultDistributionAccessorTestIT {
         JobExecutionModel executingJob5 = executingJobManager.startJob(fifthJobSaved.getJobId(), 5);
         JobExecutionModel executingJob6 = executingJobManager.startJob(sixthJobSaved.getJobId(), 6);
 
-        executingJobManager.endJobWithSuccess(executingJob1.getExecutionId(), Instant.now());
-        executingJobManager.endJobWithSuccess(executingJob2.getExecutionId(), Instant.now());
-        executingJobManager.endJobWithFailure(executingJob4.getExecutionId(), Instant.now());
-        executingJobManager.endJobWithSuccess(executingJob5.getExecutionId(), Instant.now());
-        executingJobManager.endJobWithFailure(executingJob6.getExecutionId(), Instant.now());
+        executingJobManager.endJobWithSuccess(executingJob1.getExecutionId(), Instant.now(), 1);
+        executingJobManager.endJobWithSuccess(executingJob2.getExecutionId(), Instant.now(), 2);
+        executingJobManager.endJobWithFailure(executingJob4.getExecutionId(), Instant.now(), 4);
+        executingJobManager.endJobWithSuccess(executingJob5.getExecutionId(), Instant.now(), 5);
+        executingJobManager.endJobWithFailure(executingJob6.getExecutionId(), Instant.now(), 6);
 
         return Map.of(
             firstJobSaved.getJobId(), firstJobSaved,

@@ -13,7 +13,6 @@ import java.util.UUID;
 
 import com.synopsys.integration.alert.api.channel.convert.AbstractChannelMessageConverter;
 import com.synopsys.integration.alert.api.common.model.exception.AlertException;
-import com.synopsys.integration.alert.api.distribution.audit.AuditSuccessEvent;
 import com.synopsys.integration.alert.api.event.EventManager;
 import com.synopsys.integration.alert.common.message.model.MessageResult;
 import com.synopsys.integration.alert.common.persistence.model.job.details.DistributionJobDetailsModel;
@@ -51,7 +50,7 @@ public abstract class MessageBoardChannel<D extends DistributionJobDetailsModel,
         throws AlertException {
         List<T> channelMessages = channelMessageConverter.convertToChannelMessages(distributionDetails, messages, jobName);
         MessageResult messageResult = channelMessageSender.sendMessages(distributionDetails, channelMessages);
-        eventManager.sendEvent(new AuditSuccessEvent(distributionDetails.getJobId(), notificationIds));
+        //eventManager.sendEvent(new AuditSuccessEvent(distributionDetails.getJobId(), notificationIds));
         return messageResult;
     }
 
