@@ -1,6 +1,5 @@
 package com.synopsys.integration.alert.processing;
 
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -88,9 +87,6 @@ class JmsNotificationReceiverTestIT {
     @Autowired
     private BlackDuckProviderKey blackDuckProviderKey;
 
-    private Instant searchRangeStart;
-    private Instant searchRangeEnd;
-
     @BeforeEach
     public void init() {
         properties = new TestProperties();
@@ -115,13 +111,11 @@ class JmsNotificationReceiverTestIT {
                 blackduckTimeout));
         blackDuckGlobalConfigId = blackduckConfigurationModel.getConfigurationId();
 
-        searchRangeStart = Instant.now();
         List<AlertNotificationModel> notificationContent = new ArrayList<>();
         for (Long i = 1L; i <= 1000; i++) {
             notificationContent.add(createAlertNotificationModel(i, false));
         }
         savedModels = defaultNotificationAccessor.saveAllNotifications(notificationContent);
-        searchRangeEnd = Instant.now();
 
         SlackJobDetailsModel slackJobDetailsModel = createSlackJobDetailsModel();
         DistributionJobRequestModel distributionJobRequestModel = createDistributionJobRequestModel("jobName1", slackJobDetailsModel);
@@ -142,7 +136,7 @@ class JmsNotificationReceiverTestIT {
         //      Sending events: EventManager
         //      Receiving events: NotificationReceiver or DistributionChannel
         //      Processing notifications: NotificationReceiver
-        NotificationReceivedEvent notificationReceivedEvent = new NotificationReceivedEvent(searchRangeStart.toEpochMilli(), searchRangeEnd.toEpochMilli());
+        NotificationReceivedEvent notificationReceivedEvent = new NotificationReceivedEvent();
         eventManager.sendEvent(notificationReceivedEvent);
 
         Thread.sleep(120000);

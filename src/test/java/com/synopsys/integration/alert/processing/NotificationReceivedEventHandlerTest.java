@@ -3,7 +3,6 @@ package com.synopsys.integration.alert.processing;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
-import java.time.Instant;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -24,16 +23,15 @@ class NotificationReceivedEventHandlerTest {
 
     @Test
     void handleEventTest() throws IOException {
-        Instant searchRangeStart = Instant.now();
         AlertNotificationModel alertNotificationModel = createAlertNotificationModel(1L, false);
         List<AlertNotificationModel> alertNotificationModels = List.of(alertNotificationModel);
         NotificationAccessor notificationAccessor = new MockNotificationAccessor(alertNotificationModels);
         NotificationMappingProcessor notificationMappingProcessor = Mockito.mock(NotificationMappingProcessor.class);
         EventManager eventManager = mockEventManager();
         NotificationReceivedEventHandler eventHandler = new NotificationReceivedEventHandler(notificationAccessor, notificationMappingProcessor, eventManager);
-        Instant searchRangeEnd = Instant.now();
+
         try {
-            eventHandler.handle(new NotificationReceivedEvent(searchRangeStart.toEpochMilli(), searchRangeEnd.toEpochMilli()));
+            eventHandler.handle(new NotificationReceivedEvent());
         } catch (RuntimeException e) {
             fail("Unable to handle event", e);
         }

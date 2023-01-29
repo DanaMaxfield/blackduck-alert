@@ -198,40 +198,6 @@ public class DefaultNotificationAccessor implements NotificationAccessor {
         return notificationContentRepository.existsByProcessedFalse();
     }
 
-    @Override
-    @Transactional(readOnly = true, isolation = Isolation.READ_COMMITTED)
-    public AlertPagedModel<AlertNotificationModel> getFirstPageOfNotificationsNotProcessed(OffsetDateTime start, OffsetDateTime end, int pageSize) {
-        int currentPage = 0;
-        Sort.Order sortingOrder = Sort.Order.asc(COLUMN_NAME_PROVIDER_CREATION_TIME);
-        PageRequest pageRequest = PageRequest.of(currentPage, pageSize, Sort.by(sortingOrder));
-        Page<AlertNotificationModel> pageOfNotifications = notificationContentRepository.findByProcessedFalseAndCreatedAtIsBetweenOrderByProviderCreationTimeAsc(
-                start,
-                end,
-                pageRequest
-            )
-            .map(this::toModel);
-        List<AlertNotificationModel> alertNotificationModels = pageOfNotifications.getContent();
-        return new AlertPagedModel<>(pageOfNotifications.getTotalPages(), currentPage, pageSize, alertNotificationModels);
-    }
-
-    @Override
-    @Transactional(readOnly = true, isolation = Isolation.READ_COMMITTED)
-    public boolean hasMoreNotificationToProcessBetween(OffsetDateTime start, OffsetDateTime end) {
-        return notificationContentRepository.existsByProcessedFalseAndCreatedAtBetween(start, end);
-    }
-
-    @Override
-    @Transactional(readOnly = true, isolation = Isolation.READ_COMMITTED)
-    public Optional<AlertNotificationModel> getFirstNotificationNotProcessed() {
-        return notificationContentRepository.findFirstByProcessedFalseOrderByCreatedAtAsc().map(this::toModel);
-    }
-
-    @Override
-    @Transactional(readOnly = true, isolation = Isolation.READ_COMMITTED)
-    public Optional<AlertNotificationModel> getLastNotificationNotProcessed() {
-        return notificationContentRepository.findFirstByProcessedFalseOrderByCreatedAtDesc().map(this::toModel);
-    }
-
     private List<AlertNotificationModel> toModels(List<NotificationEntity> notificationEntities) {
         return notificationEntities
             .stream()
@@ -240,16 +206,7 @@ public class DefaultNotificationAccessor implements NotificationAccessor {
     }
 
     private NotificationEntity fromModel(AlertNotificationModel model) {
-        return new NotificationEntity(
-            model.getId(),
-            model.getCreatedAt(),
-            model.getProvider(),
-            model.getProviderConfigId(),
-            model.getProviderCreationTime(),
-            model.getNotificationType(),
-            model.getContent(),
-            model.getProcessed()
-        );
+        return new NotificationEntity(model.getId(), model.getCreatedAt(), model.getProvider(), model.getProviderConfigId(), model.getProviderCreationTime(), model.getNotificationType(), model.getContent(), model.getProcessed());
     }
 
     private AlertNotificationModel toModel(NotificationEntity entity) {

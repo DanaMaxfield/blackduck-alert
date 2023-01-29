@@ -115,50 +115,9 @@ public class MockProcessingNotificationAccessor implements NotificationAccessor 
         return false;
     }
 
-    public AlertPagedModel<AlertNotificationModel> getFirstPageOfNotificationsNotProcessed(OffsetDateTime start, OffsetDateTime end, int pageSize) {
-        ArrayList<AlertNotificationModel> notificationsNotProcessed = new ArrayList<>();
-        for (AlertNotificationModel notification : alertNotificationModels) {
-            if (!notification.getProcessed() && notification.getCreatedAt().isAfter(start) && notification.getCreatedAt().isBefore(end)) {
-                notificationsNotProcessed.add(notification);
-            }
-        }
-        Page<AlertNotificationModel> pageOfNotifications;
-        if (notificationsNotProcessed.size() > 0) {
-            pageOfNotifications = new PageImpl<>(notificationsNotProcessed);
-        } else {
-            pageOfNotifications = Page.empty();
-        }
-        return new AlertPagedModel<>(pageOfNotifications.getTotalPages(), pageOfNotifications.getNumber(), pageOfNotifications.getSize(), pageOfNotifications.getContent());
-    }
-
-    @Override
-    public boolean hasMoreNotificationToProcessBetween(OffsetDateTime start, OffsetDateTime end) {
-        return alertNotificationModels.stream()
-            .filter(model -> model.getCreatedAt().isAfter(start))
-            .filter(model -> model.getCreatedAt().isBefore(end))
-            .anyMatch(AlertNotificationModel::getProcessed);
-    }
-
-    @Override
-    public Optional<AlertNotificationModel> getFirstNotificationNotProcessed() {
-        return alertNotificationModels.stream()
-            .sorted(Comparator.comparing(AlertNotificationModel::getCreatedAt))
-            .filter(Predicate.not(AlertNotificationModel::getProcessed))
-            .findFirst();
-    }
-
-    @Override
-    public Optional<AlertNotificationModel> getLastNotificationNotProcessed() {
-        return alertNotificationModels.stream()
-            .sorted(Comparator.comparing(AlertNotificationModel::getCreatedAt).reversed())
-            .filter(Predicate.not(AlertNotificationModel::getProcessed))
-            .findFirst();
-    }
-
     //AlertNotificationModel is immutable, this is a workaround for the unit test to set "processed" to true.
     private AlertNotificationModel createProcessedAlertNotificationModel(AlertNotificationModel alertNotificationModel) {
-        return new AlertNotificationModel(
-            alertNotificationModel.getId(),
+        return new AlertNotificationModel(alertNotificationModel.getId(),
             alertNotificationModel.getProviderConfigId(),
             alertNotificationModel.getProvider(),
             alertNotificationModel.getProviderConfigName(),
@@ -166,7 +125,6 @@ public class MockProcessingNotificationAccessor implements NotificationAccessor 
             alertNotificationModel.getContent(),
             alertNotificationModel.getCreatedAt(),
             alertNotificationModel.getProviderCreationTime(),
-            true
-        );
+            true);
     }
 }

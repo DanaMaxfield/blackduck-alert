@@ -7,8 +7,6 @@
  */
 package com.synopsys.integration.alert.processing;
 
-import java.time.Instant;
-import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -25,7 +23,6 @@ import com.synopsys.integration.alert.common.enumeration.FrequencyType;
 import com.synopsys.integration.alert.common.persistence.accessor.NotificationAccessor;
 import com.synopsys.integration.alert.common.rest.model.AlertNotificationModel;
 import com.synopsys.integration.alert.common.rest.model.AlertPagedModel;
-import com.synopsys.integration.alert.common.util.DateUtils;
 import com.synopsys.integration.alert.processor.api.NotificationMappingProcessor;
 import com.synopsys.integration.alert.processor.api.event.JobNotificationMappedEvent;
 
@@ -59,18 +56,16 @@ public class NotificationReceivedEventHandler implements AlertEventHandler<Notif
     }
 
     private void processNotifications(NotificationReceivedEvent event) {
-        OffsetDateTime start = DateUtils.fromInstantUTC(Instant.ofEpochMilli(event.getSearchRangeStart()));
-        OffsetDateTime end = DateUtils.fromInstantUTC(Instant.ofEpochMilli(event.getSearchRangeEnd()));
         UUID correlationID = event.getCorrelationId();
-        AlertPagedModel<AlertNotificationModel> pageOfAlertNotificationModels = notificationAccessor.getFirstPageOfNotificationsNotProcessed(start, end, PAGE_SIZE);
+        AlertPagedModel<AlertNotificationModel> pageOfAlertNotificationModels = notificationAccessor.getFirstPageOfNotificationsNotProcessed(PAGE_SIZE);
         if (!CollectionUtils.isEmpty(pageOfAlertNotificationModels.getModels())) {
             List<AlertNotificationModel> notifications = pageOfAlertNotificationModels.getModels();
             logger.info("Starting to process batch: {} = {} notifications.", correlationID, notifications.size());
             notificationMappingProcessor.processNotifications(correlationID, notifications, List.of(FrequencyType.REAL_TIME));
             boolean hasAJobHitNotificationLimit = notificationMappingProcessor.hasAJobHitNotificationLimit(correlationID);
-            boolean hasMoreNotificationsToProcess = notificationAccessor.hasMoreNotificationToProcessBetween(start, end);
+            boolean hasMoreNotificationsToProcess = notificationAccessor.hasMoreNotificationsToProcess();
             if (hasMoreNotificationsToProcess && !hasAJobHitNotificationLimit) {
-                eventManager.sendEvent(new NotificationReceivedEvent(correlationID, event.getSearchRangeStart(), event.getSearchRangeEnd()));
+                eventManager.sendEvent(new NotificationReceivedEvent(correlationID));
             } else {
                 eventManager.sendEvent(new JobNotificationMappedEvent(correlationID));
             }

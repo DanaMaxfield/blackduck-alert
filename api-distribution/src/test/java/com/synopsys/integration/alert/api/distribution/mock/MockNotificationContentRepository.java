@@ -3,7 +3,6 @@ package com.synopsys.integration.alert.api.distribution.mock;
 import java.time.OffsetDateTime;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -117,32 +116,5 @@ public class MockNotificationContentRepository extends MockRepositoryContainer<L
         return findAll().stream()
             .filter(entity -> entity.getProcessed() == processed)
             .count();
-    }
-
-    @Override
-    public boolean existsByProcessedFalseAndCreatedAtBetween(OffsetDateTime start, OffsetDateTime end) {
-        Predicate<NotificationEntity> notProcessed = Predicate.not(NotificationEntity::getProcessed);
-        return findAll().stream()
-            .filter(model -> model.getCreatedAt().isAfter(start))
-            .anyMatch(notProcessed);
-    }
-
-    @Override
-    public Page<NotificationEntity> findByProcessedFalseAndCreatedAtIsBetweenOrderByProviderCreationTimeAsc(
-        OffsetDateTime start,
-        OffsetDateTime end,
-        Pageable pageable
-    ) {
-        return null;
-    }
-
-    @Override
-    public Optional<NotificationEntity> findFirstByProcessedFalseOrderByCreatedAtAsc() {
-        return Optional.empty();
-    }
-
-    @Override
-    public Optional<NotificationEntity> findFirstByProcessedFalseOrderByCreatedAtDesc() {
-        return Optional.empty();
     }
 }
