@@ -18,9 +18,12 @@ public class AuditSuccessHandler implements AlertEventHandler<AuditSuccessEvent>
     @Override
     public void handle(AuditSuccessEvent event) {
         UUID jobExecutionId = event.getJobExecutionId();
+        executingJobManager.decrementJobEventCount(jobExecutionId);
         executingJobManager.getExecutingJob(jobExecutionId)
             .ifPresent(executingJob -> {
-                executingJobManager.endJobWithSuccess(jobExecutionId, event.getCreatedTimestamp(), event.getNotificationIds().size());
+                if (!executingJobManager.hasRemainingEvents(jobExecutionId)) {
+                    executingJobManager.endJobWithSuccess(jobExecutionId, event.getCreatedTimestamp(), event.getNotificationIds().size());
+                }
             });
     }
 }

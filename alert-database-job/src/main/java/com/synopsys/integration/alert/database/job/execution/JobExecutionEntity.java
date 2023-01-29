@@ -36,6 +36,9 @@ public class JobExecutionEntity extends BaseEntity {
     @Column(name = "completion_counted")
     private boolean completionCounted;
 
+    @Column(name = "remaining_events")
+    private int remainingEvents;
+
     public JobExecutionEntity() {
         // default constructor
     }
@@ -48,7 +51,8 @@ public class JobExecutionEntity extends BaseEntity {
         String status,
         int processedNotificationCount,
         int totalNotificationCount,
-        boolean completionCounted
+        boolean completionCounted,
+        int remainingEvents
     ) {
         this.executionId = executionId;
         this.jobConfigId = jobConfigId;
@@ -58,6 +62,7 @@ public class JobExecutionEntity extends BaseEntity {
         this.processedNotificationCount = processedNotificationCount;
         this.totalNotificationCount = totalNotificationCount;
         this.completionCounted = completionCounted;
+        this.remainingEvents = remainingEvents;
     }
 
     public UUID getExecutionId() {
@@ -90,5 +95,9 @@ public class JobExecutionEntity extends BaseEntity {
 
     public boolean isCompletionCounted() {
         return completionCounted;
+    }
+
+    public int getRemainingEvents() {
+        return remainingEvents;
     }
 }

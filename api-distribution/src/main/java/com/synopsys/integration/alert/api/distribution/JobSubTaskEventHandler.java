@@ -36,11 +36,11 @@ public abstract class JobSubTaskEventHandler<T extends JobSubTaskEvent> implemen
         try {
             handleEvent(event);
             Optional<JobSubTaskStatusModel> subTaskStatus = jobSubTaskAccessor.decrementTaskCount(parentEventId);
+            eventManager.sendEvent(new AuditSuccessEvent(jobExecutionId, event.getNotificationIds()));
             subTaskStatus.map(JobSubTaskStatusModel::getRemainingTaskCount)
                 .filter(remainingCount -> remainingCount < 1)
                 .ifPresent(ignored -> {
                     eventManager.sendEvent(new JobStageEndedEvent(jobExecutionId, jobStage));
-                    eventManager.sendEvent(new AuditSuccessEvent(jobExecutionId, event.getNotificationIds()));
                     jobSubTaskAccessor.removeSubTaskStatus(parentEventId);
                 });
         } catch (AlertException exception) {

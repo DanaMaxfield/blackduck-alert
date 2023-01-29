@@ -27,6 +27,8 @@ public class ExecutingJobManager {
     private final JobCompletionStatusAccessor completedJobStatusAccessor;
     private final JobExecutionAccessor jobExecutionAccessor;
 
+    //private final Map<UUID, AtomicInteger> remainingEvents = new ConcurrentHashMap<>();
+
     @Autowired
     public ExecutingJobManager(JobCompletionStatusAccessor completedJobStatusAccessor, JobExecutionAccessor jobExecutionAccessor) {
         this.completedJobStatusAccessor = completedJobStatusAccessor;
@@ -58,6 +60,36 @@ public class ExecutingJobManager {
 
     public void incrementNotificationCount(UUID jobExecutionId, int notificationCount) {
         jobExecutionAccessor.incrementNotificationCount(jobExecutionId, notificationCount);
+    }
+
+    public void incrementJobEventCount(UUID jobExecutionId, int eventCount) {
+        //        jobExecutionAccessor.getJobExecution(jobExecutionId)
+        //            .map(JobExecutionModel::getJobConfigId)
+        //            .ifPresent(jobConfigId -> {
+        //                AtomicInteger remainingEventCount = remainingEvents.computeIfAbsent(jobConfigId, ignored -> new AtomicInteger(0));
+        //                remainingEventCount.addAndGet(eventCount);
+        //            });
+        jobExecutionAccessor.incrementJobEventCount(jobExecutionId, eventCount);
+    }
+
+    public void decrementJobEventCount(UUID jobExecutionId) {
+        //        jobExecutionAccessor.getJobExecution(jobExecutionId)
+        //            .map(JobExecutionModel::getJobConfigId)
+        //            .ifPresent(jobConfigId -> {
+        //                AtomicInteger remainingEventCount = remainingEvents.computeIfAbsent(jobConfigId, ignored -> new AtomicInteger(0));
+        //                remainingEventCount.decrementAndGet();
+        //            });
+        jobExecutionAccessor.decrementJobEventCount(jobExecutionId);
+    }
+
+    public boolean hasRemainingEvents(UUID jobExecutionId) {
+        //        return jobExecutionAccessor.getJobExecution(jobExecutionId)
+        //            .map(JobExecutionModel::getJobConfigId)
+        //            .filter(remainingEvents::containsKey)
+        //            .map(remainingEvents::get)
+        //            .stream()
+        //            .allMatch(atomicInteger -> atomicInteger.get() > 0);
+        return jobExecutionAccessor.hasRemainingEvents(jobExecutionId);
     }
 
     public Optional<JobExecutionModel> getExecutingJob(UUID jobExecutionId) {

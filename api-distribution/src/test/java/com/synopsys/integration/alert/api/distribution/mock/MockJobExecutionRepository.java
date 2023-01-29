@@ -80,7 +80,8 @@ public class MockJobExecutionRepository extends MockRepositoryContainer<UUID, Jo
                 oldEntity.getStatus(),
                 oldEntity.getProcessedNotificationCount(),
                 oldEntity.getTotalNotificationCount(),
-                true
+                true,
+                oldEntity.getRemainingEvents()
             ))
             .collect(Collectors.toList());
 

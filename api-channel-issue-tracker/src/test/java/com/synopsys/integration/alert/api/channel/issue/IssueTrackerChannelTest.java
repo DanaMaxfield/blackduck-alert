@@ -20,6 +20,7 @@ import com.synopsys.integration.alert.api.channel.issue.send.IssueTrackerComment
 import com.synopsys.integration.alert.api.channel.issue.send.IssueTrackerCreationEventGenerator;
 import com.synopsys.integration.alert.api.channel.issue.send.IssueTrackerTransitionEventGenerator;
 import com.synopsys.integration.alert.api.common.model.exception.AlertException;
+import com.synopsys.integration.alert.api.distribution.execution.ExecutingJobManager;
 import com.synopsys.integration.alert.api.event.EventManager;
 import com.synopsys.integration.alert.common.message.model.MessageResult;
 import com.synopsys.integration.alert.common.persistence.accessor.JobSubTaskAccessor;
@@ -95,6 +96,7 @@ class IssueTrackerChannelTest {
         IssueTrackerTransitionEventGenerator<String> transitioner = (model) -> null;
         IssueTrackerCreationEventGenerator creator = (model) -> null;
         RabbitTemplate rabbitTemplate = Mockito.mock(RabbitTemplate.class);
+        ExecutingJobManager executingJobManager = Mockito.mock(ExecutingJobManager.class);
         EventManager eventManager = new EventManager(new Gson(), rabbitTemplate, new SyncTaskExecutor());
 
         return new IssueTrackerAsyncMessageSender<>(
@@ -105,7 +107,8 @@ class IssueTrackerChannelTest {
             jobSubTaskAccessor,
             UUID.randomUUID(),
             UUID.randomUUID(),
-            Set.of(1L, 2L, 3L)
+            Set.of(1L, 2L, 3L),
+            executingJobManager
         );
     }
 

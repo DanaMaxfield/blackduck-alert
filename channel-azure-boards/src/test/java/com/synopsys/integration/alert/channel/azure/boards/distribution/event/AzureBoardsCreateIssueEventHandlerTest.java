@@ -22,6 +22,7 @@ import com.synopsys.integration.alert.api.channel.issue.callback.ProviderCallbac
 import com.synopsys.integration.alert.api.channel.issue.event.IssueTrackerCreateIssueEvent;
 import com.synopsys.integration.alert.api.channel.issue.model.IssueCreationModel;
 import com.synopsys.integration.alert.api.channel.issue.search.IssueCategoryRetriever;
+import com.synopsys.integration.alert.api.distribution.execution.ExecutingJobManager;
 import com.synopsys.integration.alert.api.event.EventManager;
 import com.synopsys.integration.alert.channel.azure.boards.AzureBoardsHttpExceptionMessageImprover;
 import com.synopsys.integration.alert.channel.azure.boards.AzureBoardsProperties;
@@ -51,10 +52,13 @@ class AzureBoardsCreateIssueEventHandlerTest {
     private IssueTrackerResponsePostProcessor responsePostProcessor;
     private DefaultAzureBoardsJobDetailsAccessor jobDetailsAccessor;
 
+    private ExecutingJobManager executingJobManager;
+
     @BeforeEach
     public void init() {
         issueCounter = new AtomicInteger(0);
         eventManager = Mockito.mock(EventManager.class);
+        executingJobManager = Mockito.mock(ExecutingJobManager.class);
         responsePostProcessor = new ProviderCallbackIssueTrackerResponsePostProcessor(eventManager);
 
         MockJobSubTaskStatusRepository subTaskRepository = new MockJobSubTaskStatusRepository();
@@ -86,7 +90,8 @@ class AzureBoardsCreateIssueEventHandlerTest {
             exceptionMessageImprover,
             issueCategoryRetriever,
             eventManager,
-            jobSubTaskAccessor
+            jobSubTaskAccessor,
+            executingJobManager
         );
 
         Mockito.when(mockProxyManager.createProxyInfoForHost(Mockito.anyString())).thenReturn(ProxyInfo.NO_PROXY_INFO);
@@ -152,7 +157,8 @@ class AzureBoardsCreateIssueEventHandlerTest {
             exceptionMessageImprover,
             issueCategoryRetriever,
             eventManager,
-            jobSubTaskAccessor
+            jobSubTaskAccessor,
+            executingJobManager
         );
 
         //TODO: Mock out services required for Azure, blocked by IALERT-3136

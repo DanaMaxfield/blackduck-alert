@@ -46,5 +46,6 @@ public class AuditFailedHandler implements AlertEventHandler<AuditFailedEvent> {
             }
             executingJobManager.endJobWithFailure(jobExecutionId, event.getCreatedTimestamp(), event.getNotificationIds().size());
         }
+        executingJobManager.decrementJobEventCount(jobExecutionId);
     }
 }

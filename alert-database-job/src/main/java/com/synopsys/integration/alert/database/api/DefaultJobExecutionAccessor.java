@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -50,7 +51,8 @@ public class DefaultJobExecutionAccessor implements JobExecutionAccessor {
             AuditEntryStatus.PENDING.name(),
             0,
             totalNotificationCount,
-            false
+            false,
+            0
         );
         entity = jobExecutionRepository.save(entity);
         return convertToExecutionModel(entity);
@@ -81,7 +83,8 @@ public class DefaultJobExecutionAccessor implements JobExecutionAccessor {
                 status.name(),
                 savedEntity.getProcessedNotificationCount(),
                 savedEntity.getTotalNotificationCount(),
-                savedEntity.isCompletionCounted()
+                savedEntity.isCompletionCounted(),
+                savedEntity.getRemainingEvents()
             );
             jobExecutionRepository.save(updatedEntity);
         }
@@ -102,19 +105,72 @@ public class DefaultJobExecutionAccessor implements JobExecutionAccessor {
                 entity.getStatus(),
                 incrementedValue,
                 entity.getTotalNotificationCount(),
-                entity.isCompletionCounted()
+                entity.isCompletionCounted(),
+                entity.getRemainingEvents()
             ));
         }
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional(propagation = Propagation.REQUIRED)
+    public void incrementJobEventCount(UUID jobExecutionId, int eventCount) {
+        Optional<JobExecutionEntity> searchedEntity = jobExecutionRepository.findById(jobExecutionId);
+        if (searchedEntity.isPresent()) {
+            JobExecutionEntity entity = searchedEntity.get();
+            int incrementedValue = entity.getRemainingEvents() + eventCount;
+            jobExecutionRepository.save(new JobExecutionEntity(
+                entity.getExecutionId(),
+                entity.getJobConfigId(),
+                entity.getStart(),
+                entity.getEnd(),
+                entity.getStatus(),
+                entity.getProcessedNotificationCount(),
+                entity.getTotalNotificationCount(),
+                entity.isCompletionCounted(),
+                incrementedValue
+            ));
+        }
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.REQUIRED)
+    public void decrementJobEventCount(UUID jobExecutionId) {
+        Optional<JobExecutionEntity> searchedEntity = jobExecutionRepository.findById(jobExecutionId);
+        if (searchedEntity.isPresent()) {
+            JobExecutionEntity entity = searchedEntity.get();
+            int decrementedValue = entity.getRemainingEvents() - 1;
+            jobExecutionRepository.save(new JobExecutionEntity(
+                entity.getExecutionId(),
+                entity.getJobConfigId(),
+                entity.getStart(),
+                entity.getEnd(),
+                entity.getStatus(),
+                entity.getProcessedNotificationCount(),
+                entity.getTotalNotificationCount(),
+                entity.isCompletionCounted(),
+                decrementedValue
+            ));
+        }
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.REQUIRED)
+    public boolean hasRemainingEvents(UUID jobExecutionId) {
+        return jobExecutionRepository.findById(jobExecutionId)
+            .map(JobExecutionEntity::getRemainingEvents)
+            .stream()
+            .allMatch(remainingEvents -> remainingEvents > 0);
+
+    }
+
+    @Override
+    @Transactional(readOnly = true, isolation = Isolation.SERIALIZABLE)
     public Optional<JobExecutionModel> getJobExecution(UUID jobExecutionId) {
         return jobExecutionRepository.findById(jobExecutionId).map(this::convertToExecutionModel);
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, isolation = Isolation.SERIALIZABLE)
     public AlertPagedModel<JobExecutionModel> getExecutingJobs(AlertPagedQueryDetails pagedQueryDetails) {
         PageRequest pageRequest = PageRequest.of(pagedQueryDetails.getOffset(), pagedQueryDetails.getLimit());
         Page<JobExecutionEntity> page = jobExecutionRepository.findAllByStatusIn(Set.of(AuditEntryStatus.PENDING.name()), pageRequest);
@@ -126,7 +182,7 @@ public class DefaultJobExecutionAccessor implements JobExecutionAccessor {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, isolation = Isolation.SERIALIZABLE)
     public AlertPagedModel<JobExecutionModel> getCompletedJobs(AlertPagedQueryDetails pagedQueryDetails) {
         PageRequest pageRequest = PageRequest.of(pagedQueryDetails.getOffset(), pagedQueryDetails.getLimit());
         Page<JobExecutionEntity> page = jobExecutionRepository.findAllByStatusIn(Set.of(AuditEntryStatus.FAILURE.name(), AuditEntryStatus.SUCCESS.name()), pageRequest);
@@ -138,7 +194,7 @@ public class DefaultJobExecutionAccessor implements JobExecutionAccessor {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, isolation = Isolation.SERIALIZABLE)
     public Long countJobExecutionsByStatus(UUID jobConfigId, AuditEntryStatus status) {
         return jobExecutionRepository.countAllByCompletionCountedFalseAndJobConfigIdAndStatusIn(jobConfigId, Set.of(status.name()));
     }
@@ -150,13 +206,13 @@ public class DefaultJobExecutionAccessor implements JobExecutionAccessor {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, isolation = Isolation.SERIALIZABLE)
     public Optional<JobStageModel> getJobStage(UUID jobExecutionId, int stageId) {
         return jobExecutionStageRepository.findByExecutionIdAndStage(jobExecutionId, stageId).map(this::convertToStageModel);
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, isolation = Isolation.SERIALIZABLE)
     public List<JobStageModel> getJobStages(UUID jobExecutionId) {
         List<JobExecutionStageEntity> stages = jobExecutionStageRepository.findAllByExecutionId(jobExecutionId);
         return stages

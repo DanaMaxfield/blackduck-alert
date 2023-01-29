@@ -20,6 +20,12 @@ public interface JobExecutionAccessor {
 
     void incrementNotificationCount(UUID jobExecutionId, int notificationCount);
 
+    void incrementJobEventCount(UUID jobExecutionId, int eventCount);
+
+    void decrementJobEventCount(UUID jobExecutionId);
+
+    boolean hasRemainingEvents(UUID jobExecutionId);
+
     Optional<JobExecutionModel> getJobExecution(UUID jobExecutionId);
 
     AlertPagedModel<JobExecutionModel> getExecutingJobs(AlertPagedQueryDetails pagedQueryDetails);

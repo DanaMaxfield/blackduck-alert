@@ -24,6 +24,7 @@ import com.synopsys.integration.alert.api.channel.issue.model.IssueBomComponentD
 import com.synopsys.integration.alert.api.channel.issue.model.IssueCreationModel;
 import com.synopsys.integration.alert.api.channel.issue.model.ProjectIssueModel;
 import com.synopsys.integration.alert.api.channel.issue.search.IssueCategoryRetriever;
+import com.synopsys.integration.alert.api.distribution.execution.ExecutingJobManager;
 import com.synopsys.integration.alert.api.event.EventManager;
 import com.synopsys.integration.alert.channel.jira.cloud.JiraCloudProperties;
 import com.synopsys.integration.alert.channel.jira.cloud.JiraCloudPropertiesFactory;
@@ -65,10 +66,13 @@ class JiraCloudCreateIssueEventHandlerTest {
     private IssueTrackerResponsePostProcessor responsePostProcessor;
     private DefaultJiraCloudJobDetailsAccessor jobDetailsAccessor;
 
+    private ExecutingJobManager executingJobManager;
+
     @BeforeEach
     public void init() {
         issueCounter = new AtomicInteger(0);
         eventManager = Mockito.mock(EventManager.class);
+        executingJobManager = Mockito.mock(ExecutingJobManager.class);
         responsePostProcessor = new ProviderCallbackIssueTrackerResponsePostProcessor(eventManager);
 
         MockJobSubTaskStatusRepository subTaskRepository = new MockJobSubTaskStatusRepository();
@@ -100,7 +104,8 @@ class JiraCloudCreateIssueEventHandlerTest {
             callbackInfoCreator,
             issueCategoryRetriever,
             eventManager,
-            jobSubTaskAccessor
+            jobSubTaskAccessor,
+            executingJobManager
         );
 
         JiraCloudJobDetailsModel jobDetailsModel = createJobDetails(jobId);
@@ -175,7 +180,8 @@ class JiraCloudCreateIssueEventHandlerTest {
             callbackInfoCreator,
             issueCategoryRetriever,
             eventManager,
-            jobSubTaskAccessor
+            jobSubTaskAccessor,
+            executingJobManager
         );
 
         jobDetailsAccessor.saveJiraCloudJobDetails(jobId, jobDetailsModel);
@@ -251,7 +257,8 @@ class JiraCloudCreateIssueEventHandlerTest {
             callbackInfoCreator,
             issueCategoryRetriever,
             eventManager,
-            jobSubTaskAccessor
+            jobSubTaskAccessor,
+            executingJobManager
         );
 
         jobDetailsAccessor.saveJiraCloudJobDetails(jobId, jobDetailsModel);
@@ -332,7 +339,8 @@ class JiraCloudCreateIssueEventHandlerTest {
             callbackInfoCreator,
             issueCategoryRetriever,
             eventManager,
-            jobSubTaskAccessor
+            jobSubTaskAccessor,
+            executingJobManager
         );
 
         jobDetailsAccessor.saveJiraCloudJobDetails(jobId, jobDetailsModel);
