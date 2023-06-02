@@ -7,6 +7,9 @@
  */
 package com.synopsys.integration.alert.channel.jira.server.web;
 
+import java.util.UUID;
+
+import org.apache.commons.lang3.BooleanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -19,6 +22,7 @@ import com.synopsys.integration.alert.api.common.model.ValidationResponseModel;
 import com.synopsys.integration.alert.channel.jira.server.JiraServerProperties;
 import com.synopsys.integration.alert.channel.jira.server.JiraServerPropertiesFactory;
 import com.synopsys.integration.alert.channel.jira.server.action.JiraServerGlobalValidationAction;
+import com.synopsys.integration.alert.channel.jira.server.database.accessor.JiraServerGlobalConfigAccessor;
 import com.synopsys.integration.alert.channel.jira.server.model.JiraServerGlobalConfigModel;
 import com.synopsys.integration.alert.common.action.ActionResponse;
 import com.synopsys.integration.alert.common.enumeration.ConfigContextEnum;
@@ -33,24 +37,30 @@ import com.synopsys.integration.rest.exception.IntegrationRestException;
 
 @Component
 public class JiraServerInstallPluginAction {
-    private final Logger logger = LoggerFactory.getLogger(JiraServerInstallPluginAction.class);
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final AuthorizationManager authorizationManager;
     private final JiraServerPropertiesFactory jiraServerPropertiesFactory;
     private final JiraServerGlobalValidationAction jiraServerGlobalValidationAction;
+    private final JiraServerGlobalConfigAccessor jiraServerGlobalConfigAccessor;
     private final Gson gson;
 
     public JiraServerInstallPluginAction(
-        AuthorizationManager authorizationManager, JiraServerPropertiesFactory jiraServerPropertiesFactory, JiraServerGlobalValidationAction jiraServerGlobalValidationAction,
+        AuthorizationManager authorizationManager,
+        JiraServerPropertiesFactory jiraServerPropertiesFactory,
+        JiraServerGlobalValidationAction jiraServerGlobalValidationAction,
+        JiraServerGlobalConfigAccessor jiraServerGlobalConfigAccessor,
         Gson gson
     ) {
         this.authorizationManager = authorizationManager;
         this.jiraServerPropertiesFactory = jiraServerPropertiesFactory;
         this.jiraServerGlobalValidationAction = jiraServerGlobalValidationAction;
+        this.jiraServerGlobalConfigAccessor = jiraServerGlobalConfigAccessor;
         this.gson = gson;
     }
 
     public ActionResponse<ValidationResponseModel> installPlugin(JiraServerGlobalConfigModel jiraServerGlobalConfigModel) {
+        logger.trace("Jira Server install plugin action called.");
         if (!authorizationManager.hasExecutePermission(ConfigContextEnum.GLOBAL, ChannelKeys.JIRA_SERVER)) {
             return new ActionResponse<>(HttpStatus.FORBIDDEN, ResponseFactory.UNAUTHORIZED_REQUEST_MESSAGE);
         }
@@ -59,6 +69,17 @@ public class JiraServerInstallPluginAction {
         Boolean validationHasErrors = validate.getContent().map(ValidationResponseModel::hasErrors).orElse(false);
         if (validationHasErrors) {
             return validate;
+        }
+
+        if (BooleanUtils.toBoolean(jiraServerGlobalConfigModel.getIsPasswordSet().orElse(Boolean.FALSE)) && jiraServerGlobalConfigModel.getPassword().isEmpty()) {
+            jiraServerGlobalConfigAccessor.getConfiguration(UUID.fromString(jiraServerGlobalConfigModel.getId()))
+                .flatMap(JiraServerGlobalConfigModel::getPassword)
+                .ifPresent(jiraServerGlobalConfigModel::setPassword);
+        }
+        if (BooleanUtils.toBoolean(jiraServerGlobalConfigModel.getIsAccessTokenSet().orElse(Boolean.FALSE)) && jiraServerGlobalConfigModel.getAccessToken().isEmpty()) {
+            jiraServerGlobalConfigAccessor.getConfiguration(UUID.fromString(jiraServerGlobalConfigModel.getId()))
+                .flatMap(JiraServerGlobalConfigModel::getAccessToken)
+                .ifPresent(jiraServerGlobalConfigModel::setAccessToken);
         }
 
         JiraServerProperties jiraProperties = jiraServerPropertiesFactory.createJiraProperties(jiraServerGlobalConfigModel);
@@ -88,6 +109,7 @@ public class JiraServerInstallPluginAction {
                 );
             }
             String successMessage = String.format("Successfully installed the '%s' plugin on Jira server.", JiraConstants.JIRA_ALERT_APP_NAME);
+            logger.trace(successMessage);
             return new ActionResponse<>(HttpStatus.OK, successMessage, ValidationResponseModel.success(successMessage));
         } catch (IntegrationException e) {
             return createBadRequestIntegrationException(e);
