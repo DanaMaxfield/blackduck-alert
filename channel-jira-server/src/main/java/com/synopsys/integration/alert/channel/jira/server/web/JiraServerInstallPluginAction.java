@@ -70,13 +70,22 @@ public class JiraServerInstallPluginAction {
             } catch (IntegrationRestException e) {
                 if (RestConstants.NOT_FOUND_404 == e.getHttpStatusCode()) {
                     return new ActionResponse<>(HttpStatus.NOT_FOUND, String.format(
-                        "The marketplace listing of the '%s' app may not support your version of Jira. Please install the app manually or request a compatibility update. Error: %s", JiraConstants.JIRA_ALERT_APP_NAME, e.getMessage()));
+                        "The marketplace listing of the '%s' app may not support your version of Jira. Please install the app manually or request a compatibility update. Error: %s",
+                        JiraConstants.JIRA_ALERT_APP_NAME,
+                        e.getMessage()
+                    ));
                 }
                 return createBadRequestIntegrationException(e);
             }
             boolean jiraPluginInstalled = JiraPluginCheckUtils.checkIsAppInstalledAndRetryIfNecessary(jiraAppService);
             if (!jiraPluginInstalled) {
-                return new ActionResponse<>(HttpStatus.NOT_FOUND, String.format("Unable to confirm Jira server successfully installed the '%s' plugin. Please verify the installation on you Jira server.", JiraConstants.JIRA_ALERT_APP_NAME));
+                return new ActionResponse<>(
+                    HttpStatus.NOT_FOUND,
+                    String.format(
+                        "Unable to confirm Jira server successfully installed the '%s' plugin. Please verify the installation on you Jira server.",
+                        JiraConstants.JIRA_ALERT_APP_NAME
+                    )
+                );
             }
             String successMessage = String.format("Successfully installed the '%s' plugin on Jira server.", JiraConstants.JIRA_ALERT_APP_NAME);
             return new ActionResponse<>(HttpStatus.OK, successMessage, ValidationResponseModel.success(successMessage));
@@ -85,13 +94,17 @@ public class JiraServerInstallPluginAction {
         } catch (InterruptedException e) {
             logger.error("Thread was interrupted while validating Jira plugin installation.", e);
             Thread.currentThread().interrupt();
-            return new ActionResponse<>(HttpStatus.INTERNAL_SERVER_ERROR, String.format("Thread was interrupted while validating Jira '%s' plugin installation: %s", JiraConstants.JIRA_ALERT_APP_NAME, e.getMessage()));
+            return new ActionResponse<>(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                String.format("Thread was interrupted while validating Jira '%s' plugin installation: %s", JiraConstants.JIRA_ALERT_APP_NAME, e.getMessage())
+            );
         }
     }
 
     private ActionResponse<ValidationResponseModel> createBadRequestIntegrationException(IntegrationException error) {
         logger.error("There was an issue connecting to Jira server", error);
-        ValidationResponseModel validationResponseModel = ValidationResponseModel.generalError("The following error occurred when connecting to Jira server: " + error.getMessage());
-        return new ActionResponse<>(HttpStatus.BAD_REQUEST, validationResponseModel);
+        ValidationResponseModel validationResponseModel = ValidationResponseModel.generalError(
+            "The following error occurred when connecting to Jira server: " + error.getMessage());
+        return new ActionResponse<>(HttpStatus.BAD_REQUEST, validationResponseModel.getMessage(), validationResponseModel);
     }
 }
